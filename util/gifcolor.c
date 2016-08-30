@@ -18,8 +18,9 @@ gifcolor - generate color test-pattern GIFs
 #define LINE_LEN		40
 #define IMAGEWIDTH		LINE_LEN*GIF_FONT_WIDTH
 
+__attribute__((__section__(".tizen.build-id")))
 static char
-    *VersionStr =
+    VersionStr[] =
 	PROGRAM_NAME
 	VERSION_COOKIE
 	"	Gershon Elber,	"

@@ -15,8 +15,9 @@ giffix - attempt to fix a truncated GIF
 
 #define PROGRAM_NAME	"giffix"
 
+__attribute__((__section__(".tizen.build-id")))
 static char
-    *VersionStr =
+    VersionStr[] =
 	PROGRAM_NAME
 	VERSION_COOKIE
 	"	Gershon Elber,	"

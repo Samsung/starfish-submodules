@@ -19,8 +19,9 @@ gifhisto - make a color histogram from image color frequencies
 #define DEFAULT_HISTO_HEIGHT	256
 #define HISTO_BITS_PER_PIXEL	2	/* Size of bitmap for histogram GIF. */
 
+__attribute__((__section__(".tizen.build-id")))
 static char
-    *VersionStr =
+    VersionStr[] =
 	PROGRAM_NAME
 	VERSION_COOKIE
 	"	Gershon Elber,	"

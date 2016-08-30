@@ -20,8 +20,9 @@ gifwedge - create a GIF test pattern
 
 #define DEFAULT_NUM_LEVELS	16     /* Number of colors to gen the image. */
 
+__attribute__((__section__(".tizen.build-id")))
 static char
-    *VersionStr =
+    VersionStr[] =
 	PROGRAM_NAME
 	VERSION_COOKIE
 	"	Gershon Elber,	"

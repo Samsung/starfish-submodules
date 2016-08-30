@@ -27,8 +27,9 @@ gifinto - save GIF on stdin to file if size over set threshold
 #define	DEFAULT_OUT_NAME	"GifInto.Gif"
 #define DEFAULT_TMP_NAME	"TempInto.XXXXXX"
 
+__attribute__((__section__(".tizen.build-id")))
 static char
-    *VersionStr =
+    VersionStr[] =
 	PROGRAM_NAME
 	VERSION_COOKIE
 	"	Gershon Elber,	"

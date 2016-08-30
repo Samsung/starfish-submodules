@@ -16,8 +16,9 @@ gifbuild - dump GIF data in a textual format, or undump it to a GIF
 
 #define PROGRAM_NAME	"gifbuild"
 
+__attribute__((__section__(".tizen.build-id")))
 static char
-    *VersionStr =
+    VersionStr[] =
 	PROGRAM_NAME
 	VERSION_COOKIE
 	"	Eric Raymond,	"

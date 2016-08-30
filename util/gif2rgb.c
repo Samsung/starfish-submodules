@@ -36,8 +36,9 @@ with our utilities mainly interesting as test tools.
 
 #define PROGRAM_NAME	"gif2rgb"
 
+__attribute__((__section__(".tizen.build-id")))
 static char
-    *VersionStr =
+    VersionStr[] =
 	PROGRAM_NAME
 	VERSION_COOKIE
 	"	Gershon Elber,	"

@@ -25,8 +25,9 @@ gifecho - generate a GIF from ASCII text
 #define DEFAULT_COLOR_GREEN	255
 #define DEFAULT_COLOR_BLUE	255
 
+__attribute__((__section__(".tizen.build-id")))
 static char
-    *VersionStr =
+    VersionStr[] =
 	PROGRAM_NAME
 	VERSION_COOKIE
 	"	Gershon Elber,	"

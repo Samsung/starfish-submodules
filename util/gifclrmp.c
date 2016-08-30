@@ -17,8 +17,9 @@ gifclrmap - extract colormaps from GIF images
 
 #define PROGRAM_NAME	"gifclrmp"
 
+__attribute__((__section__(".tizen.build-id")))
 static char
-    *VersionStr =
+    VersionStr[] =
 	PROGRAM_NAME
 	VERSION_COOKIE
 	"	Gershon Elber,	"

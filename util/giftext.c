@@ -21,8 +21,9 @@ giftext - dump GIF pixels and metadata as text
 
 #define MAKE_PRINTABLE(c)  (isprint(c) ? (c) : ' ')
 
+__attribute__((__section__(".tizen.build-id")))
 static char
-    *VersionStr =
+    VersionStr[] =
 	PROGRAM_NAME
 	VERSION_COOKIE
 	"	Gershon Elber,	"

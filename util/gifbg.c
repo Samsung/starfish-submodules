@@ -39,8 +39,9 @@ gifbg - generate a test-pattern GIF
 
 #define DEFAULT_DIR	"T"			   /* TOP (North) direction. */
 
+__attribute__((__section__(".tizen.build-id")))
 static char
-    *VersionStr =
+    VersionStr[] =
 	PROGRAM_NAME
 	VERSION_COOKIE
 	"	Gershon Elber,	"
