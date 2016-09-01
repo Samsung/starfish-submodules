@@ -14,6 +14,9 @@
  * libpng itself during the course of reading an image.
  */
 
+#ifdef _ARCH_ARM_
+#include "arm_neon.h"
+#endif
 #include "pngpriv.h"
 
 #ifdef PNG_READ_SUPPORTED
@@ -3045,6 +3048,167 @@ png_check_chunk_name(png_structrp png_ptr, png_uint_32 chunk_name)
       chunk_name >>= 8;
    }
 }
+
+#ifdef _PNG_COLOR_PICK_ENABLED_
+#ifdef _ARCH_ARM_
+void 
+copy_src_to_dst(png_bytep dp, png_bytep sp, int width, 
+                  int row_stride, int nplanes, PngPickColor *png_pickcolor)
+{
+   int j;
+   unsigned char *src = (unsigned char *)sp;
+   unsigned char *dst = (unsigned char *)dp;
+
+   unsigned long long sumRGBA[4] = {0, 0, 0, 0};
+   const int const0 = 0;
+
+
+   uint32x4_t sumR_32x4 = vmovq_n_u32 ( 0 );
+   uint32x4_t sumG_32x4 = vmovq_n_u32 ( 0 );
+   uint32x4_t sumB_32x4 = vmovq_n_u32 ( 0 );
+
+   uint8x16_t R_8x16;
+   uint8x16_t G_8x16;
+   uint8x16_t B_8x16;
+
+   uint64x1x3_t sumRGB_64x1;
+
+   for(j = 0; j < width-(width&0xf); j += 16)
+   {
+      if(nplanes == 3)
+      {
+         uint8x16x3_t rgb = vld3q_u8 ( src );
+         vst3q_u8(dst, rgb);
+         R_8x16 = rgb.val[0];
+         G_8x16 = rgb.val[1];
+         B_8x16 = rgb.val[2];
+      }
+      else
+      {
+         uint8x16x4_t rgb = vld4q_u8 ( src );
+         vst4q_u8(dst, rgb);
+         R_8x16 = rgb.val[0];
+         G_8x16 = rgb.val[1];
+         B_8x16 = rgb.val[2];
+      }
+
+      if(png_pickcolor && png_pickcolor->enable)
+      {
+         if(png_pickcolor->perc > 0)
+         {
+            uint16x8_t sumR_16x8 = vpaddlq_u8 ( R_8x16 );
+            uint16x8_t sumG_16x8 = vpaddlq_u8 ( G_8x16 );
+            uint16x8_t sumB_16x8 = vpaddlq_u8 ( B_8x16 );
+
+            sumR_32x4 = vpadalq_u16 ( sumR_32x4, sumR_16x8 );
+            sumG_32x4 = vpadalq_u16 ( sumG_32x4, sumG_16x8 );
+            sumB_32x4 = vpadalq_u16 ( sumB_32x4, sumB_16x8 );
+         }
+         else if( (png_pickcolor->x1 > j) && (png_pickcolor->x1 < j + 16) )
+         {
+            int x = png_pickcolor->x1;
+            unsigned char *from = sp + (png_pickcolor->x1 * nplanes);
+            while( x < j + 16 )
+            {
+               png_pickcolor->sumR += from[0];
+               png_pickcolor->sumG += from[1];
+               png_pickcolor->sumB += from[2];
+               from += nplanes;
+               x ++;
+            }
+         }
+         else if( (png_pickcolor->x2 >= j) && (png_pickcolor->x2 < j + 16) )
+         {
+            int x = j;
+            unsigned char *from = sp + (j * nplanes);
+            while(x <= png_pickcolor->x2)
+            {
+               png_pickcolor->sumR += from[0];
+               png_pickcolor->sumG += from[1];
+               png_pickcolor->sumB += from[2];
+               from += nplanes;
+               x ++;
+            }
+         }
+         else if ( (j >= png_pickcolor->x1) && (j+15 <= png_pickcolor->x2) )
+         {
+            uint16x8_t sumR_16x8 = vpaddlq_u8 ( R_8x16 );
+            uint16x8_t sumG_16x8 = vpaddlq_u8 ( G_8x16 );
+            uint16x8_t sumB_16x8 = vpaddlq_u8 ( B_8x16 );
+
+            sumR_32x4 = vpadalq_u16 ( sumR_32x4, sumR_16x8 );
+            sumG_32x4 = vpadalq_u16 ( sumG_32x4, sumG_16x8 );
+            sumB_32x4 = vpadalq_u16 ( sumB_32x4, sumB_16x8 );
+         }
+      }
+      dst += (nplanes*16);
+      src += (nplanes*16);
+   }
+
+   if(png_pickcolor && png_pickcolor->enable)
+   {
+
+      uint64x2_t sumR_64x2 = vpaddlq_u32 ( sumR_32x4 );
+      uint64x2_t sumG_64x2 = vpaddlq_u32 ( sumG_32x4 );
+      uint64x2_t sumB_64x2 = vpaddlq_u32 ( sumB_32x4 );	
+
+      uint64x1_t sumR_Lo_64x1 = vget_low_u64 ( sumR_64x2 );
+      uint64x1_t sumR_Hi_64x1 = vget_high_u64 ( sumR_64x2 );
+
+      uint64x1_t sumG_Lo_64x1 = vget_low_u64 ( sumG_64x2 );
+      uint64x1_t sumG_Hi_64x1 = vget_high_u64 ( sumG_64x2 );
+
+      uint64x1_t sumB_Lo_64x1 = vget_low_u64 ( sumB_64x2 );
+      uint64x1_t sumB_Hi_64x1 = vget_high_u64 ( sumB_64x2 );
+
+      sumRGB_64x1.val[0] = vadd_u64 ( sumR_Lo_64x1, sumR_Hi_64x1 );
+      sumRGB_64x1.val[1] = vadd_u64 ( sumG_Lo_64x1, sumG_Hi_64x1 );
+      sumRGB_64x1.val[2] = vadd_u64 ( sumB_Lo_64x1, sumB_Hi_64x1 );
+
+      vst3_u64( sumRGBA, sumRGB_64x1);
+
+      png_pickcolor->sumR += sumRGBA[0];
+      png_pickcolor->sumG += sumRGBA[1];	
+      png_pickcolor->sumB += sumRGBA[2];	
+   }
+
+   memcpy(dst, src, (width-j)*nplanes);
+   if(png_pickcolor && png_pickcolor->enable)
+   {
+      if(png_pickcolor->perc <= 0)
+      {
+         if(j < png_pickcolor->x1)
+         {
+            j = png_pickcolor->x1;
+            dst = dp + (j*nplanes);
+         }
+         width = png_pickcolor->x2;
+      }
+      for(; j < width ; j ++)
+      {
+         png_pickcolor->sumR += dst[0];
+         png_pickcolor->sumG += dst[1];
+         png_pickcolor->sumB += dst[2];
+         dst += nplanes;
+      }
+   }
+}
+
+void copy_row(png_bytep dp, png_bytep sp, int width, int pixel_bits, PngPickColor *png_pickcolor)
+{
+   int row_stride = PNG_ROWBYTES(pixel_bits, width);
+   if(pixel_bits == 24 || pixel_bits == 32)
+   {
+      copy_src_to_dst(dp, sp, width, row_stride, pixel_bits >> 3, png_pickcolor);
+   }
+   else
+   {
+      memcpy(dp, sp, row_stride);
+   }
+
+}
+#endif
+#endif
 
 /* Combines the row recently read in with the existing pixels in the row.  This
  * routine takes care of alpha and transparency if requested.  This routine also

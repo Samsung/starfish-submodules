@@ -581,6 +581,32 @@ typedef struct png_text_struct
    png_charp lang_key;     /* keyword translated UTF-8 string, 0 or more
                               chars or a NULL pointer */
 } png_text;
+
+/* VD_TIZEN_ONLY */
+/* Adding PNG Color pick feature.*/
+typedef enum _Png_Color_Pick_Region_
+{
+        PNG_COLORPICK_TOP = 0,
+        PNG_COLORPICK_MIDDLE,
+        PNG_COLORPICK_BOTTOM,
+}PngColorPickRegion;
+
+struct _Png_Color_Pick_Struct_
+{
+	unsigned int sumR;
+	unsigned int sumG;
+	unsigned int sumB;
+	int enable;
+	int	perc;
+	int x1;
+	int y1;
+	int x2;
+	int y2;
+	PngColorPickRegion region;
+};
+typedef struct _Png_Color_Pick_Struct_ PngPickColor; /* TODO : PngPickColor will be changed to PngColorPick in future*/
+/* VD_TIZEN_ONLY_END */
+
 typedef png_text * png_textp;
 typedef const png_text * png_const_textp;
 typedef png_text * * png_textpp;
@@ -3105,6 +3131,13 @@ PNG_EXPORT(240, int, png_image_write_to_stdio, (png_imagep image, FILE *file,
 PNG_EXPORT(244, int, png_set_option, (png_structrp png_ptr, int option,
    int onoff));
 #endif /* SET_OPTION */
+
+/* VD_TIZEN_ONLY */
+/* Read the whole image into memory at once. */
+PNG_EXPORT(245, void, png_read_image_with_pick_color, (png_structp png_ptr,
+   png_bytepp image,
+   PngPickColor *pickcolor));
+/* VD_TIZEN_ONLY_END */
 
 /*******************************************************************************
  *  END OF HARDWARE AND SOFTWARE OPTIONS

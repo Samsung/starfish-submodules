@@ -746,6 +746,130 @@ png_read_image(png_structrp png_ptr, png_bytepp image)
       }
    }
 }
+
+#ifdef _PNG_COLOR_PICK_ENABLED_
+void PNGAPI
+png_read_image_with_pick_color(png_structp png_ptr, png_bytepp image, PngPickColor *pickcolor)
+{
+   png_uint_32 i, image_height;
+   int pass, j;
+   png_uint_32 /*k = 0,*/ image_bpp = 0, image_width;
+   png_bytepp rp;
+   //png_bytep rc;
+   unsigned int npixels;
+	int perc_enable_y1, perc_enable_y2;
+   png_debug(1, "in png_read_image");
+
+   if (png_ptr == NULL || pickcolor == NULL)
+      return;
+
+#ifdef PNG_READ_INTERLACING_SUPPORTED
+   if (!(png_ptr->flags & PNG_FLAG_ROW_INIT))
+   {
+      pass = png_set_interlace_handling(png_ptr);
+      /* And make sure transforms are initialized. */
+      png_start_read_image(png_ptr);
+   }
+   else
+   {
+      if (png_ptr->interlaced && !(png_ptr->transformations & PNG_INTERLACE))
+      {
+         /* Caller called png_start_read_image or png_read_update_info without
+          * first turning on the PNG_INTERLACE transform.  We can fix this here,
+          * but the caller should do it!
+          */
+         png_warning(png_ptr, "Interlace handling should be turned on when "
+            "using png_read_image");
+         /* Make sure this is set correctly */
+         png_ptr->num_rows = png_ptr->height;
+      }
+
+      /* Obtain the pass number, which also turns on the PNG_INTERLACE flag in
+       * the above error case.
+       */
+      pass = png_set_interlace_handling(png_ptr);
+   }
+#else
+   if (png_ptr->interlaced)
+      png_error(png_ptr,
+          "Cannot read interlaced image -- interlace handler disabled");
+
+   pass = 1;
+#endif
+
+   image_height=png_ptr->height;
+   image_bpp=png_ptr->rowbytes; 
+   image_width=png_ptr->width;
+   png_ptr->user_chunk_ptr = pickcolor;
+   
+   if(pickcolor->perc < 0)
+   {
+	png_error(png_ptr, "ColorPick percentage is negative");
+	return;
+   }
+   if( (pickcolor->region < PNG_COLORPICK_TOP) || (pickcolor->region > PNG_COLORPICK_BOTTOM))
+   {
+   	png_error(png_ptr, "ColorPick Region is out of bound");
+	return;
+   }
+   if(pickcolor->region == PNG_COLORPICK_TOP)
+   {
+   	perc_enable_y1 = 0;
+   	perc_enable_y2 = (pickcolor->perc*image_height/100) - 1;
+   }
+   else if(pickcolor->region == PNG_COLORPICK_MIDDLE)
+   {
+   	perc_enable_y1 = (image_height/2) - (((pickcolor->perc/2)*image_height)/100);
+   	perc_enable_y2 = perc_enable_y1 + ((pickcolor->perc*image_height)/100) - 1;
+   }
+   else
+   {
+   	perc_enable_y1 = (image_height) - ( pickcolor->perc * image_height / 100  );
+   	perc_enable_y2 = image_height - 1;
+   }
+
+   for (j = 0; j < pass; j++)
+   {
+      rp = image;
+      for (i = 0; i < image_height; i++)
+      {
+         pickcolor->enable = 0;
+         if( pickcolor->perc > 0 )
+         {
+            if( (int)i >= perc_enable_y1 && (int)i <= perc_enable_y2)
+            {
+               pickcolor->enable = 1;
+            }
+         }
+         else
+         {
+            if( ((int)i >= pickcolor->y1) && ((int)i <= pickcolor->y2) )
+            {
+               pickcolor->enable = 1;
+            }
+         }
+         png_read_row(png_ptr, *rp, NULL);
+         rp++;
+      }
+   }
+
+
+   if(pickcolor->perc > 0)
+   {
+      npixels = (pickcolor->perc*image_height*image_width)/100;
+   }
+   else
+   {
+      npixels = (pickcolor->x2-pickcolor->x1+1)*(pickcolor->y2-pickcolor->y1+1);
+   }
+   if(npixels > 0)
+   {
+      pickcolor->sumR = pickcolor->sumR/npixels;
+      pickcolor->sumG = pickcolor->sumG/npixels;
+      pickcolor->sumB = pickcolor->sumB/npixels;
+   }
+}
+#endif /* _PNG_COLOR_PICK_ENABLED_ */
 #endif /* SEQUENTIAL_READ */
 
 #ifdef PNG_SEQUENTIAL_READ_SUPPORTED
