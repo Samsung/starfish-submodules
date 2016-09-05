@@ -71,3 +71,5 @@
 
 /* The size of `size_t', as computed by sizeof. */
 #undef SIZEOF_SIZE_T
+
+#define COLOR_PICKER_ENABLE 0

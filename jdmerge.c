@@ -257,17 +257,34 @@ merged_2v_upsample (j_decompress_ptr cinfo,
   my_upsample_ptr upsample = (my_upsample_ptr) cinfo->upsample;
   JSAMPROW work_ptrs[2];
   JDIMENSION num_rows;          /* number of rows returned to caller */
+#if _USE_PRODUCT_TV
+  int skip = 0;
+#endif
 
   if (upsample->spare_full) {
     /* If we have a spare row saved from a previous cycle, just return it. */
     JDIMENSION size = upsample->out_row_width;
     if (cinfo->out_color_space == JCS_RGB565)
       size = cinfo->output_width * 2;
+#if _USE_PRODUCT_TV
+    jcopy_sample_rows(& upsample->spare_row, 0, output_buf + *out_row_ctr, 0,
+                      1, upsample->out_row_width);
+#else
     jcopy_sample_rows(& upsample->spare_row, 0, output_buf + *out_row_ctr, 0,
                       1, size);
+#endif
     num_rows = 1;
     upsample->spare_full = FALSE;
   } else {
+#if _USE_PRODUCT_TV
+    int _region_y = (int)cinfo->region_y;
+    _region_y = (_region_y>>1)<<1;
+    if ((cinfo->region_w > 0) && (cinfo->region_h > 0)) {
+       if (((int)cinfo->output_scanline < _region_y) ||
+           ((int)cinfo->output_scanline >= (_region_y + (int)cinfo->region_h)))
+         skip = 1;
+    }
+#endif
     /* Figure number of rows to return to caller. */
     num_rows = 2;
     /* Not more than the distance to the end of the image. */
@@ -286,7 +303,12 @@ merged_2v_upsample (j_decompress_ptr cinfo,
       upsample->spare_full = TRUE;
     }
     /* Now do the upsampling. */
+#if _USE_PRODUCT_TV
+    if (!skip)
+      (*upsample->upmethod) (cinfo, input_buf, *in_row_group_ctr, work_ptrs);
+#else
     (*upsample->upmethod) (cinfo, input_buf, *in_row_group_ctr, work_ptrs);
+#endif
   }
 
   /* Adjust counts */

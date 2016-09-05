@@ -35,7 +35,6 @@ extern "C" {
 #endif
 #endif
 
-
 /* Various constants determining the sizes of things.
  * All of these are specified by the JPEG standard, so don't change them
  * if you want to be compatible.
@@ -289,6 +288,18 @@ typedef struct jpeg_common_struct * j_common_ptr;
 typedef struct jpeg_compress_struct * j_compress_ptr;
 typedef struct jpeg_decompress_struct * j_decompress_ptr;
 
+typedef struct _Pick_Color_
+{
+    unsigned int sumR;
+    unsigned int sumG;
+    unsigned int sumB;
+    int enablePickColor;
+    int perc;
+    int x1;
+    int y1;
+    int x2;
+    int y2;
+}PickColor;
 
 /* Master record for a compression instance */
 
@@ -489,6 +500,10 @@ struct jpeg_decompress_struct {
   J_COLOR_SPACE out_color_space; /* colorspace for output */
 
   unsigned int scale_num, scale_denom; /* fraction by which to scale image */
+
+#if COLOR_PICKER_ENABLE == 1
+  unsigned int region_x, region_y, region_w, region_h; /* if region_w && region_h > 0, then use this region to decode. scale above is done prior to region select */
+#endif
 
   double output_gamma;          /* image gamma wanted in output */
 
@@ -702,6 +717,10 @@ struct jpeg_decompress_struct {
   struct jpeg_upsampler * upsample;
   struct jpeg_color_deconverter * cconvert;
   struct jpeg_color_quantizer * cquantize;
+
+#if COLOR_PICKER_ENABLE == 1
+  struct _Pick_Color_ *pick_color_data;
+#endif
 };
 
 

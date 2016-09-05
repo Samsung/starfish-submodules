@@ -64,6 +64,10 @@ files using the libjpeg library.
 cp %{SOURCE1001} .
 
 %build
+%if "%{?TIZEN_PRODUCT_TV}" == "1"
+echo "tizen_product_tv"
+export CFLAGS="$CFLAGS -D_TIZEN_PRODUCT_TV -D_USE_PRODUCT_TV"
+%endif
 autoreconf -fiv
 %configure --enable-shared --disable-static --with-jpeg8
 make %{?_smp_mflags}
@@ -111,6 +115,7 @@ rm -rf $RPM_BUILD_ROOT
 %files -n libjpeg-devel
 %defattr(-,root,root)
 %{_includedir}/*.h
+%{_libdir}/pkgconfig/turbojpeg.pc
 %{_libdir}/libturbojpeg.so
 %{_libdir}/libjpeg.so
 %doc coderules.txt jconfig.txt libjpeg.txt structure.txt example.c

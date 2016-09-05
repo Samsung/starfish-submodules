@@ -416,10 +416,19 @@ start_input_ppm (j_compress_ptr cinfo, cjpeg_source_ptr sinfo)
       (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_IMAGE,
                                   (size_t) (((long) maxval + 1L) * sizeof(JSAMPLE)));
     half_maxval = maxval / 2;
+#if _USE_PRODUCT_TV
+    if(maxval > 0) {
+      for (val = 0; val <= (INT32) maxval; val++) {
+        /* The multiplication here must be done in 32 bits to avoid overflow */
+        source->rescale[val] = (JSAMPLE) ((val*MAXJSAMPLE + half_maxval)/maxval);
+      }
+    }
+#else
     for (val = 0; val <= (INT32) maxval; val++) {
       /* The multiplication here must be done in 32 bits to avoid overflow */
       source->rescale[val] = (JSAMPLE) ((val*MAXJSAMPLE + half_maxval)/maxval);
     }
+#endif
   }
 }
 

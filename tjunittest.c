@@ -383,7 +383,13 @@ void writeJPEG(unsigned char *jpegBuf, unsigned long jpegSize, char *filename)
 	FILE *file=fopen(filename, "wb");
 	if(!file || fwrite(jpegBuf, jpegSize, 1, file)!=1)
 	{
+#if _USE_PRODUCT_TV
+		char err_str[256];
+		strerror_r(errno, err_str, 256);
+		printf("ERROR: Could not write to %s.\n%s\n", filename, err_str);
+#else
 		printf("ERROR: Could not write to %s.\n%s\n", filename, strerror(errno));
+#endif
 		bailout();
 	}
 

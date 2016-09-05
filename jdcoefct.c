@@ -158,21 +158,73 @@ decompress_onepass (j_decompress_ptr cinfo, JSAMPIMAGE output_buf)
   JDIMENSION start_col, output_col;
   jpeg_component_info *compptr;
   inverse_DCT_method_ptr inverse_DCT;
+#if _USE_PRODUCT_TV
+  /* region decoding. this limits decode to the set of blocks +- 1 outside
+   * bounding blocks around the desired region to decode */
+  int blk1 = 0, blk2 = 0, skip = 0;
+
+  if ((cinfo->region_w > 0) && (cinfo->region_h > 0)) {
+    int bsz_w = 0, bsz_h = 0;
+
+    for (ci = 0; ci < cinfo->comps_in_scan; ci++) {
+      compptr = cinfo->cur_comp_info[ci];
+      if (compptr->MCU_sample_width > bsz_w)
+        bsz_w = compptr->MCU_sample_width;
+      if ((compptr->MCU_height * 8) > bsz_h)
+        bsz_h = compptr->MCU_height * 8;
+    }
+    int _region_y = (int)cinfo->region_y;
+    _region_y = (_region_y>>1)<<1;
+    if (((int)cinfo->output_scanline < (_region_y - bsz_h - 1)) ||
+        ((int)cinfo->output_scanline > (_region_y + cinfo->region_h + bsz_h)))
+      skip = 1;
+    if (bsz_w != 0)
+      blk1 = (cinfo->region_x / bsz_w) - 1;
+    if (blk1 < 0)
+      blk1 = 0;
+    if (bsz_w != 0)
+      blk2 = ((cinfo->region_x + cinfo->region_w + bsz_w - 1) / bsz_w) + 1;
+    if (blk2 < 0)
+      blk2 = 0;
+  }
+#endif
 
   /* Loop to process as much as one whole iMCU row */
   for (yoffset = coef->MCU_vert_offset; yoffset < coef->MCU_rows_per_iMCU_row;
        yoffset++) {
     for (MCU_col_num = coef->MCU_ctr; MCU_col_num <= last_MCU_col;
          MCU_col_num++) {
+#if _USE_PRODUCT_TV
+      /* see if we need to skip this MCU or not */
+      if ((cinfo->region_w > 0) && (cinfo->region_h > 0)) {
+        if (!((MCU_col_num < blk1) || (MCU_col_num > blk2) || skip))
+          skip = 0;
+      }
+      /* if we are not skipping this MCU, zero it ready for huffman decode */
+      if (!skip)
+        jzero_far((void FAR *) coef->MCU_buffer[0],
+                  (size_t) (cinfo->blocks_in_MCU * sizeof(JBLOCK)));
+#endif
       /* Try to fetch an MCU.  Entropy decoder expects buffer to be zeroed. */
+#if _USE_PRODUCT_TV
+      jzero_far((void FAR *) coef->MCU_buffer[0],
+                (size_t) (cinfo->blocks_in_MCU * sizeof(JBLOCK)));
+#else
       jzero_far((void *) coef->MCU_buffer[0],
                 (size_t) (cinfo->blocks_in_MCU * sizeof(JBLOCK)));
+#endif
       if (! (*cinfo->entropy->decode_mcu) (cinfo, coef->MCU_buffer)) {
         /* Suspension forced; update state counters and exit */
         coef->MCU_vert_offset = yoffset;
         coef->MCU_ctr = MCU_col_num;
         return JPEG_SUSPENDED;
       }
+#if _USE_PRODUCT_TV
+      /* region decoding. this limits decode to the set of blocks +- 1 outside
+       * bounding blocks around the desired region to decode */
+      if (skip)
+        continue;
+#endif
       /* Determine where data should go in output_buf and do the IDCT thing.
        * We skip dummy blocks at the right and bottom edges (but blkn gets
        * incremented past them!).  Note the inner loop relies on having

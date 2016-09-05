@@ -41,7 +41,15 @@
 #define _throw(op, err) {  \
 	printf("ERROR in line %d while %s:\n%s\n", __LINE__, op, err);  \
   retval=-1;  goto bailout;}
+#if _USE_PRODUCT_TV
+#define _throwunix(m) { \
+	char err_str[256]; \
+	strerror_r(errno, err_str, 256); \
+	_throw(m, err_str) \
+}
+#else
 #define _throwunix(m) _throw(m, strerror(errno))
+#endif
 #define _throwtj(m) _throw(m, tjGetErrorStr())
 #define _throwbmp(m) _throw(m, bmpgeterr())
 

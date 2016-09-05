@@ -38,7 +38,7 @@ endif
 
 
 SUBDIRS = java
-
+SUBDIRS += pkgconfig
 
 if WITH_TURBOJPEG
 

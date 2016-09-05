@@ -99,8 +99,13 @@ if test "x${SUNCC}" = "xyes"; then
   fi
 fi
 
+AC_CHECK_DECL([_TIZEN_PRODUCT_TV], [with_pkg_config="yes"], [with_pkg_config="no"])
+if test "x${with_pkg_config}" = "xyes"; then
+  AC_DEFINE_UNQUOTED(COLOR_PICKER_ENABLE, [1], [tizen coloer picker enable])
+else
+  AC_DEFINE_UNQUOTED(COLOR_PICKER_ENABLE, [0], [tizen coloer picker disable])
+fi
 # Checks for libraries.
-
 # Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS([stddef.h stdlib.h locale.h string.h])
@@ -582,4 +587,5 @@ AC_CONFIG_FILES([libjpeg.map])
 AC_CONFIG_FILES([Makefile simd/Makefile])
 AC_CONFIG_FILES([java/Makefile])
 AC_CONFIG_FILES([md5/Makefile])
+AC_CONFIG_FILES([pkgconfig/Makefile pkgconfig/turbojpeg.pc])
 AC_OUTPUT

@@ -25,6 +25,11 @@
 #include <string.h>
 #include <ctype.h>
 
+#if _USE_PRODUCT_TV
+//Changes for JPEG GAMMA enhancement in thumbnail
+#include <unistd.h>
+#endif
+
 static unsigned int simd_support = ~0;
 
 #if defined(__linux__) || defined(ANDROID) || defined(__ANDROID__)
@@ -273,8 +278,24 @@ jsimd_ycc_rgb_convert (j_decompress_ptr cinfo,
       break;
   }
 
+#if _USE_PRODUCT_TV
+  if (simd_support & JSIMD_ARM_NEON) {
+    neonfct(cinfo->output_width, input_buf, input_row, output_buf, num_rows);
+    PickColor* pickColor = cinfo->pick_color_data;
+    if(pickColor && pickColor->enablePickColor && output_buf) {
+      int w = cinfo->output_width;
+      unsigned char *ptr = *output_buf;
+      if(pickColor->perc <= 0) {
+        w = pickColor->x2 - pickColor->x1 + 1;
+        ptr = (*output_buf) + (pickColor->x1 * 3);
+      }
+      jsimd_pick_color(ptr, pickColor, w);
+    }
+  }
+#else
   if (simd_support & JSIMD_ARM_NEON)
     neonfct(cinfo->output_width, input_buf, input_row, output_buf, num_rows);
+#endif
 }
 
 GLOBAL(void)

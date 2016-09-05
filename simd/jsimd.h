@@ -676,3 +676,13 @@ extern const int jconst_idct_float_sse2[];
 EXTERN(void) jsimd_idct_float_sse2
         (void * dct_table, JCOEFPTR coef_block, JSAMPARRAY output_buf,
          JDIMENSION output_col);
+
+/* TIZEN_PRODUCT_TV */
+EXTERN(void) jsimd_pick_color
+        JPP((JSAMPARRAY output_buf,
+			 void *pickColor,
+			 JDIMENSION out_width));
+
+EXTERN(void) jsimd_h2v1_fancy_upsample_neon
+        JPP((int max_v_samp_factor, JDIMENSION downsampled_width,
+             JSAMPARRAY input_data, JSAMPARRAY * output_data_ptr));

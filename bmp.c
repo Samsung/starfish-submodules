@@ -68,8 +68,16 @@ static void my_output_message(j_common_ptr cinfo)
 
 #define _throw(m) {snprintf(errStr, JMSG_LENGTH_MAX, "%s", m);  \
 	retval=-1;  goto bailout;}
+#if _USE_PRODUCT_TV
+#define _throwunix(m) { \
+	char err_str[256]; \
+	strerror_r(errno, err_str, 256); \
+	snprintf(errStr, JMSG_LENGTH_MAX, "%s\n%s", m,  \
+	err_str);  retval=-1;  goto bailout;}
+#else
 #define _throwunix(m) {snprintf(errStr, JMSG_LENGTH_MAX, "%s\n%s", m,  \
 	strerror(errno));  retval=-1;  goto bailout;}
+#endif
 
 
 static void pixelconvert(unsigned char *srcbuf, int srcpf, int srcbottomup,
