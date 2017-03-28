@@ -77,8 +77,6 @@ make %{?_smp_mflags}
 
 %install
 %makeinstall
-mkdir -p %{buildroot}/usr/share/license
-cp -rf %{_builddir}/%{name}-%{srcver}/COPYING %{buildroot}/usr/share/license/%{name}
 # Fix perms
 chmod -x README-turbo.txt
 
@@ -100,10 +98,11 @@ rm -rf $RPM_BUILD_ROOT
 %docs_package
 
 %files
-%{_datadir}/license/%{name}
 %manifest %{name}.manifest
 %defattr(-,root,root)
 %{_bindir}/*
+%license COPYING
+%license README
 
 %files -n libjpeg
 %manifest %{name}.manifest
@@ -111,6 +110,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libturbojpeg.so.*
 %{_libdir}/libjpeg.so.%{libver}
 %{_libdir}/libjpeg.so.%{major}
+%license COPYING
+%license README
 
 %files -n libjpeg-devel
 %defattr(-,root,root)
