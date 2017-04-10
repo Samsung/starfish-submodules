@@ -215,6 +215,15 @@ def _hd_extattr_custom(target, extattr):
     return True
   return False
 
+def _hd_extattr_custom_getter_setter(target, extattr):
+  if extattr.GetName() == 'CustomGetter':
+    target['custom_getter'] = True
+    return True
+  elif extattr.GetName() == 'CustomSetter':
+    target['custom_setter'] = True
+    return True
+  return False
+
 def _gen_basic_named(node):
   return {
     'name': node.GetName(),
@@ -320,8 +329,7 @@ def _gen_ir_Const(node):
                        child.GetChildren(),
                        [_hd_extattr_flags,
                         _hd_extattr_unimplemented,
-                        _hd_extattr_rename,
-                        _hd_extattr_custom])
+                        _hd_extattr_rename])
   return result
 
 def _gen_ir_Attribute(node):
@@ -343,7 +351,7 @@ def _gen_ir_Attribute(node):
                         _hd_extattr_cereactions,
                         _hd_extattr_rename,
                         _hd_extattr_unforgeable,
-                        _hd_extattr_custom])
+                        _hd_extattr_custom_getter_setter])
 
   # genarate getter ir
   getter = {}
