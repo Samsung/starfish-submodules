@@ -1,0 +1,24 @@
+// https://html.spec.whatwg.org/multipage/semantics.html#the-link-element
+// NOTE Using DOMString instead of USVString
+
+[HTMLConstructor]
+interface HTMLLinkElement : HTMLElement {
+  [CEReactions] attribute DOMString href;
+  [Unimplement, CEReactions] attribute DOMString? crossOrigin;
+  [CEReactions] attribute DOMString rel;
+  [Unimplement, CEReactions] attribute RequestDestination as; // (default "")
+  [Unimplement, SameObject, PutForwards=value] readonly attribute DOMTokenList relList;
+  [Unimplement, CEReactions] attribute DOMString media;
+  [Unimplement, CEReactions] attribute DOMString nonce;
+  [Unimplement, CEReactions] attribute DOMString integrity;
+  [Unimplement, CEReactions] attribute DOMString hreflang;
+  [CEReactions] attribute DOMString type;
+  [Unimplement, SameObject, PutForwards=value] readonly attribute DOMTokenList sizes;
+  [Unimplement, CEReactions] attribute DOMString referrerPolicy;
+  [Unimplement, CEReactions] attribute DOMString scope;
+  [Unimplement, CEReactions] attribute WorkerType workerType;
+  [Unimplement, CEReactions] attribute boolean useCache;
+};
+
+// TODO Support implements
+HTMLLinkElement implements LinkStyle;

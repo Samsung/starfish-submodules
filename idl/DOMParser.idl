@@ -1,0 +1,18 @@
+// https://w3c.github.io/DOM-Parsing/#the-domparser-interface
+
+enum SupportedType {
+  "text/html",
+  "text/xml",
+  "application/xml",
+  "application/xhtml+xml",
+  "image/svg+xml"
+};
+
+[Constructor]
+interface DOMParser {
+  [NewObject] Document parseFromString(DOMString str, SupportedType type);
+};
+
+
+
+

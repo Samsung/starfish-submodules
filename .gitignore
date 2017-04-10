@@ -1,0 +1,6 @@
+# script generated
+binding
+lextab.*
+parsetab.*
+*.pyc
+*.out
