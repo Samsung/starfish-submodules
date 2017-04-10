@@ -47,7 +47,7 @@ using namespace escargot;
 ESFunctionObject* binding{{ name }}(
     ScriptBindingInstance* scriptBindingInstance)
 {
-  // Bind for constructor
+    // Bind for constructor
 {% include 'constructor_bind.cpp' ignore missing %}
 
 {% if attributes %}
@@ -69,3 +69,4 @@ ESFunctionObject* binding{{ name }}(
     return {{ name }}Function;
 }
 }
+
