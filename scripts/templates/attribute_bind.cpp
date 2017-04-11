@@ -24,16 +24,26 @@
     {{ bind_const(module_object|trim, attribute) }}
     {% else %}
         {% if attribute.setter %}
-            {% set setter %}
-                {{ attribute.name }}SetterFunction
-            {% endset %}
+            {% if attribute.custom_setter %}
+                {% set setter %}
+                    {{ attribute.name }}SetterFunction
+                {% endset %}
+            {% else %}
+                {% set setter %}
+                    {{ attribute.name }}{{ name }}SetterFunction
+                {% endset %}
+            {% endif %}
         {% else %}
             {% set setter %}nullptr{% endset %}
         {% endif %}
     defineNativeAccessorPropertyButNeedToGenerateJSFunction(
         {{ name }}Function->protoType().asESPointer()->asESObject(),
         {{ attribute.name }}String,
+        {% if attribute.custom_getter %}
+        {{ attribute.name }}{{ name }}GetterFunction,
+        {% else %}
         {{ attribute.name }}GetterFunction,
+        {% endif %}
         {{ setter|trim }});
     {% endif %}
 {% endcall %}

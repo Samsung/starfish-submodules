@@ -2,7 +2,7 @@
 {% call util_macro.ifdef(attribute.flags) %}
 {% if attribute.getter %}
 {% if attribute.custom_getter %}
-extern ESValue {{ attribute.name }}GetterFunction(ESVMInstance* instance);
+extern ESValue {{ attribute.name }}{{ name }}GetterFunction(ESVMInstance* instance);
 {% else %}
 static ESValue {{ attribute.name }}GetterFunction(ESVMInstance* instance)
 {
@@ -90,14 +90,20 @@ static ESValue {{ attribute.name }}GetterFunction(ESVMInstance* instance)
 {% if attribute.setter %}
 
 {% if attribute.custom_setter %}
-extern ESValue {{ attribute.name }}SetterFunction(ESVMInstance* instance);
+extern ESValue {{ attribute.name }}{{ name }}SetterFunction(ESVMInstance* instance);
 {% else %}
 static ESValue {{ attribute.name }}SetterFunction(ESVMInstance* instance)
 {
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
     ESValue originalV = instance->currentExecutionContext()->readArgument(0);
     {% if attribute.setter.arguments[0].type.kind == 'StringType' %}
-    String* v = toBrowserString(originalV);
+    String* v;
+        {% if attribute.setter.arguments[0].treat_null_as == "EmptyString" %}
+    if (originalV.isNull()) {
+        v = String::emptyString;
+    }
+        {% endif %}
+    v = toBrowserString(originalV);
     {% elif attribute.setter.arguments[0].type.kind == 'PrimitiveType' %}
         {% if attribute.setter.arguments[0].type.name == 'boolean' %}
     bool v = originalV.asBoolean();
