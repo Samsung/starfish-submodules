@@ -8,6 +8,7 @@
                               {{ attribute.name }}Value);
 {%- endmacro %}
 {% call util_macro.ifdef(attribute.flag) %}
+{% with %}
     ESString* {{ attribute.name }}String = ESString::create("{{ attribute.name }}");
     {% if attribute.const %}
         {% set prototype_object %}
@@ -46,4 +47,5 @@
         {% endif %}
         {{ setter|trim }});
     {% endif %}
+{% endwith %}
 {% endcall %}

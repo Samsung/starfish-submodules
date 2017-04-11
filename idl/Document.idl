@@ -24,7 +24,7 @@ interface Document : Node {
   // [REF1]--------------------------------------------------------------
   [STARFISH_EXP, SameObject] readonly attribute DOMImplementation implementation;
   [Rename=urlString] readonly attribute DOMString URL;
-  readonly attribute DOMString documentURI;
+  [Rename=urlString] readonly attribute DOMString documentURI;
   [Unimplemented] readonly attribute DOMString origin;
   readonly attribute DOMString compatMode;
   readonly attribute DOMString characterSet;

@@ -12,3 +12,7 @@
 {{ caller() }}
 {% endif %}
 {%- endmacro %}
+
+{% macro attr_name(attribute) -%}
+{{ attribute.rename|default(attribute.name) }}
+{%- endmacro %}
