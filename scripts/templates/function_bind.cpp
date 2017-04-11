@@ -1,6 +1,8 @@
 {% import 'util.cpp' as util_macro %}
 
 {% call util_macro.ifdef(function.flag) %}
+    {% set fn_name = '%s%sCustom'|format(function.name, name)
+                      if function.custom else function.name %}
     ESString* {{ function.name }}String = ESString::create("{{ function.name }}");
     {% if function.static %}
         {% set object %}
@@ -17,8 +19,8 @@
         {{ function.enumerable|default(True)|lower }},
         {{ function.configurable|default(True)|lower }},
     ESFunctionObject::create(nullptr,
-                             {{ function.name }}Function,
-                             {{ function.name }}String,
-                             {{ function.length|default(0) }},
+                             {{ fn_name }}Function,
+                             {{ fn_name }}String,
+                             {{ function.arguments|length|default(0) }},
                              false));
 {% endcall %}

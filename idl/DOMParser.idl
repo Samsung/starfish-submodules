@@ -8,9 +8,10 @@ enum SupportedType {
   "image/svg+xml"
 };
 
-[Constructor]
+[STARFISH_ENABLE_DOMPARSER, Constructor]
 interface DOMParser {
-  [NewObject] Document parseFromString(DOMString str, SupportedType type);
+  // [NewObject] Document parseFromString(DOMString str, SupportedType type);
+  [RaisesException, NewObject] Document parseFromString(DOMString str, DOMString type);
 };
 
 

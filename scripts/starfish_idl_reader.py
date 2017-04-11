@@ -92,6 +92,8 @@ def __dump_node(node):
   return result
 
 ##########################################################
+_found_custom_in_interface = False
+
 def _is_class(node, class_name):
   return node.GetClass() == class_name
 
@@ -143,15 +145,8 @@ def _hd_extattr_flags(target, extattr):
   return False
 
 def _hd_extattr_constructor(target, extattr):
-  if 'Constructor' in extattr.GetName():
-    # Constructor
-    constructor = _gen_ir_Operation(extattr)
-    constructor.pop('kind', None)
-    _set_prop_to_dict(constructor, 'name', '')
-    _set_prop_to_dict(constructor, 'custom', True if 'Custom' in extattr.GetName() else None)
-    _set_prop_to_dict(target, 'constructor', constructor)
-    return True
-  elif extattr.GetName() == 'NamedConstructor':
+  global _found_custom_in_interface
+  if extattr.GetName() == 'NamedConstructor':
     # NamedConstructor
     for child in extattr.GetChildren():
       if _is_class(child, 'Call'):
@@ -159,6 +154,19 @@ def _hd_extattr_constructor(target, extattr):
         constructor.pop('kind', None)
         target['named_constructor'] = constructor
         return True
+  elif extattr.GetName() == 'UnimplementedConstructor':
+    target['_unimple_cst'] = True
+    return True
+  elif 'Constructor' in extattr.GetName():
+    # Constructor
+    constructor = _gen_ir_Operation(extattr)
+    constructor.pop('kind', None)
+    _set_prop_to_dict(constructor, 'name', '')
+    _set_prop_to_dict(target, 'constructor', constructor)
+    if 'Custom' in extattr.GetName():
+      _found_custom_in_interface = True
+      _set_prop_to_dict(constructor, 'custom', True)
+    return True
   return False
 
 def _hd_extattr_clamp(target, extattr):
@@ -210,17 +218,28 @@ def _hd_extattr_no_interfaceobj(target, extattr):
   return False
 
 def _hd_extattr_custom(target, extattr):
+  global _found_custom_in_interface
   if extattr.GetName() == 'Custom':
     target['custom'] = True
+    _found_custom_in_interface = True
     return True
   return False
 
 def _hd_extattr_custom_getter_setter(target, extattr):
+  global _found_custom_in_interface
   if extattr.GetName() == 'CustomGetter':
     target['custom_getter'] = True
+    _found_custom_in_interface = True
     return True
   elif extattr.GetName() == 'CustomSetter':
     target['custom_setter'] = True
+    _found_custom_in_interface = True
+    return True
+  return False
+
+def _hd_extattr_raise_expection(target, extattr):
+  if extattr.GetName() == 'RaisesException':
+    target['raises_exception'] = True
     return True
   return False
 
@@ -229,7 +248,6 @@ def _gen_basic_named(node):
     'name': node.GetName(),
     'kind': node.GetClass(),
   }
-
 
 ##########################################################
 
@@ -305,7 +323,8 @@ def _gen_ir_Argument(node):
     elif _is_class(child, 'ExtAttributes'):
       _handle_extattrs(result,
                        child.GetChildren(),
-                       [_hd_extattr_clamp])
+                       [_hd_extattr_clamp,
+                        _hd_extattr_treatnull])
   return result
 
 def _gen_ir_Arguments(node):
@@ -397,7 +416,8 @@ def _gen_ir_Operation(node):
                         _hd_extattr_rename,
                         _hd_extattr_unforgeable,
                         _hd_extattr_notenumerable,
-                        _hd_extattr_custom])
+                        _hd_extattr_custom,
+                        _hd_extattr_raise_expection])
 
   if return_ir is not None:
     _set_prop_to_dict(return_ir, 'object_option', result.pop('object_option', None))
@@ -432,6 +452,9 @@ def _gen_ir_Stringifier(node):
   return result
 
 def _gen_ir_Interface(node):
+  # print __dump_node(node)
+  global _found_custom_in_interface
+  _found_custom_in_interface = None
   result = _gen_basic_named(node)
   _set_prop_to_dict(result, 'global_expose', True)
   constants = []
@@ -471,9 +494,14 @@ def _gen_ir_Interface(node):
                         _hd_extattr_htmlconstructor,
                         _hd_extattr_no_interfaceobj])
 
+  unimple_cst = result.pop('_unimple_cst', None)
+  constructor = result.get('constructor')
+  if constructor:
+    _set_prop_to_dict(constructor, 'unimplemented', unimple_cst)
   _set_prop_to_dict(result, 'constants', constants)
   _set_prop_to_dict(result, 'attributes', attributes)
   _set_prop_to_dict(result, 'functions', functions)
+  _set_prop_to_dict(result, 'has_custom', _found_custom_in_interface)
   if len(item_getters) > 0:
     _set_prop_to_dict(result, 'item_getters', item_getters)
   return result

@@ -1,7 +1,9 @@
     ESString* {{ name }}String = ESString::create("{{ name }}");
-    {% if constructor %}
+    {% if constructor and not constructor.unimplemented%}
+        {% set lower_name = '%s'|format(name|lower) %}
+        {% set constructor_name = '%sCustomFunction'|format(lower_name) if constructor.custom else '%sFunction'|format(lower_name) %}
     ESFunctionObject* {{ name }}Function = ESFunctionObject::create(
-        nullptr, {{ name|lower }}Function, {{ name }}String,
+        nullptr, {{ constructor_name }}, {{ name }}String,
         {{ constructor.length|default(0) }}, true, true);
     {% else %}
     ESFunctionObject* {{ name }}Function =

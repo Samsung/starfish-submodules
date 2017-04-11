@@ -3,7 +3,7 @@
 
 typedef (BufferSource or Blob or DOMString) BlobPart;
 
-[Constructor(optional sequence<BlobPart> blobParts, optional BlobPropertyBag options),
+[CustomConstructor(optional sequence<BlobPart> blobParts, optional BlobPropertyBag options),
 Exposed=(Window,Worker)]
 interface Blob {
 

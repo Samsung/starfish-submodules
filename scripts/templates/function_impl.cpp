@@ -31,7 +31,11 @@
 {%- macro handle_arg(index, arg) -%}
     {{ '// Handle argument[%d]'|format(index) }}
     {% if arg.default %}
+        {% if arg.type.kind == 'StringType' %}
+    {{ gen_type_str(arg.type) }} value{{ index }} = String::fromUTF8({{ arg.default }});
+        {% else %}
     {{ gen_type_str(arg.type) }} value{{ index }} = {{ arg.default }};
+        {% endif %}
     {% else %}
     {{ gen_type_str(arg.type) }} value{{ index }};
     {% endif %}
@@ -40,6 +44,8 @@
             {% if not arg.default and not uniformed_call%}
         validArgCount--;
             {% endif %}
+        {% elif arg.treat_null_as and arg.treat_null_as == 'EmptyString' %}
+        value{{ index }} = String::emptyString;
         {% else %}
         instance->throwError(ESValue(
                 TypeError::create(ESString::create("Wrong argument"))));
@@ -68,7 +74,7 @@
         {{- 'Nullable<%s> result;'|format(gen_return_type_str(type)) -}}
     {% elif type.kind == 'Typeref' %}
         {{- '%s result = nullptr;'|format(gen_return_type_str(type)) -}}
-    {% else%}
+    {% elif type.name != 'void' %}
         {{- '%s result;'|format(gen_return_type_str(type)) -}}
     {% endif %}
 {%- endmacro -%}
@@ -97,7 +103,7 @@ STARFISH_RELEASE_ASSERT_NOT_REACHED();
     {% if not has_return -%}
     return ESValue(ESValue::ESUndefined);
     {%- elif use_nullable_struct -%}
-    if (result.isNull()) {
+    if (!result.hasValue()) {
         return ESValue(ESValue::ESNull);
     } else {
         {{ gen_return_type_str(return_type) }} result_value = result.getValue();
@@ -112,7 +118,7 @@ STARFISH_RELEASE_ASSERT_NOT_REACHED();
     {%- else -%}
     {{ gen_return_assert(return_type) }}
     {{ gen_return_code(return_type, 'result') }}
-    {% endif %}
+    {%- endif %}
 {%- endmacro -%}
 
 {%- macro gen_check_getter_code() -%}
@@ -122,6 +128,22 @@ STARFISH_RELEASE_ASSERT_NOT_REACHED();
         instance->throwError(ESValue(TypeError::create(msg)));
         STARFISH_RELEASE_ASSERT_NOT_REACHED();
     }
+{%- endmacro -%}
+
+{%- macro gen_native_call_code(max_arg, min_arg, function, return_left, uniformed_call) -%}
+    {% if max_arg == 0 -%}
+        {{return_left}}originalObj->{{function.name}}();
+    {%- elif uniformed_call -%}
+        {{return_left}}originalObj->{{function.name}}({{ 'arg'|to_arg_syntax(0, max_arg) }});
+    {%- else -%}
+        if (validArgCount == {{min_arg|string}}) {
+            {{return_left}}originalObj->{{function.name}}({{'arg'|to_arg_syntax(0, min_arg)}});
+        {% for count in range(min_arg + 1, max_arg + 1) %}
+        } else if (validArgCount == {{count|string}}) {
+            {{return_left}}originalObj->{{function.name}}({{'arg'|to_arg_syntax(0, count)}});
+        {% endfor %}
+        }
+    {%- endif -%}
 {%- endmacro -%}
 
 {%- macro function_code_normal(function, use_nullable_struct) -%}
@@ -145,22 +167,46 @@ STARFISH_RELEASE_ASSERT_NOT_REACHED();
     {{- 'Error : Wrong argument type' | assert_true(arg.type.name in ['void']) -}}
     {{- 'Error : Unimplemented argument type' | assert_true(arg.type.name in ['object', 'Sequence', 'UnionType', 'Promise']) -}}
     {% endfor %}
-    // TODO Catch DOM exceptions
-    {% if max_arg == 0 %}
-    {{return_left}}originalObj->{{function.name}}();
-    {% elif uniformed_call%}
-    {{return_left}}originalObj->{{function.name}}({{ 'arg'|to_arg_syntax(0, max_arg) }});
+    // Call native function
+    {% if function.raises_exception %}
+    try {
+        {{ gen_native_call_code(max_arg, min_arg, function, return_left, uniformed_call) }}
+    } catch (DOMException* e) {
+        ESVMInstance::currentInstance()->throwError(e->scriptValue());
+        STARFISH_RELEASE_ASSERT_NOT_REACHED();
+    }
     {% else %}
-    if (validArgCount == {{min_arg|string}}) {
-        {{return_left}}originalObj->{{function.name}}({{'arg'|to_arg_syntax(0, min_arg)}});
-    {% for count in range(min_arg + 1, max_arg + 1) %}
-    } else if (validArgCount == {{count|string}}) {
-        {{return_left}}originalObj->{{function.name}}({{'arg'|to_arg_syntax(0, count)}});
-    {% endfor %}
+    {
+        {{ gen_native_call_code(max_arg, min_arg, function, return_left, uniformed_call) }}
     }
     {% endif %}
     {{ handle_return(function.return, has_return, use_nullable_struct) }}
-{%- endmacro -%}
+{% endmacro -%}
+
+{%- macro function_code_ellipsis(function, use_nullable_struct) %}
+    size_t argCount = instance->currentExecutionContext()->argumentCount();
+    {% if function.raises_exception %}
+    try {
+        for (int i = 0; i < argCount; i++) {
+            ESValue arg0 = instance->currentExecutionContext()->readArgument(i);
+            {{ '%s %s'| format(gen_type_str(function.arguments[0].type),
+                               gen_from_esvalue(0, function.arguments[0].type)) }}
+            originalObj->{{function.name}}(value0);
+        }
+    } catch (DOMException* e) {
+        ESVMInstance::currentInstance()->throwError(e->scriptValue());
+        STARFISH_RELEASE_ASSERT_NOT_REACHED();
+    }
+    {% else %}
+    for (int i = 0; i < argCount; i++) {
+        ESValue arg0 = instance->currentExecutionContext()->readArgument(i);
+        {{ '%s %s'| format(gen_type_str(function.arguments[0].type),
+                           gen_from_esvalue(0, function.arguments[0].type)) }}
+        originalObj->{{function.name}}(value0);
+    }
+    {% endif %}
+    return ESValue(ESValue::ESUndefined);
+{% endmacro -%}
 
 {%- macro function_code_getter_index(function, use_nullable_struct) %}
     {% set has_return = (function.return.name != 'void') %}
@@ -179,16 +225,26 @@ STARFISH_RELEASE_ASSERT_NOT_REACHED();
     {{ handle_return(function.return, has_return, use_nullable_struct) }}
 {% endmacro -%}
 
-{% macro function_code_getter_name(function, use_nullable_struct) %}
+{%- macro function_code_getter_name(function, use_nullable_struct) %}
     {{ gen_check_getter_code() }}
 {% endmacro -%}
 
-{%- if not function.name == '_unnamed_' %}
+{%- if not function.name == '_unnamed_' and not function.custom %}
+{% set has_flag = function.flags and function.flags|length > 0 %}
+    {% if has_flag %}
+#if defined({{function.flags[0]}})
+        {%- for idx in range(1, function.flags|length) %}
+            {{-  ' && defined(%s)'|format(function.flags[idx]) -}}
+        {% endfor %}
+    {% endif %}
+
 static ESValue {{ function.name }}Function(ESVMInstance* instance)
 {
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
     {% set use_nullable_struct = (function.return.kind in ['StringType', 'Any', 'PrimitiveType']) and function.return.nullable %}
-    {% if not function.is_item_getter %}
+    {% if function.arguments|length > 0 and function.arguments[0].ellipsis %}
+        {{- function_code_ellipsis(function, use_nullable_struct) -}}
+    {% elif not function.is_item_getter %}
         {{- function_code_normal(function, use_nullable_struct) -}}
     {% elif function.arguments[0].type.kind == 'StringType' %}
         {{- function_code_getter_name(function, use_nullable_struct) -}}
@@ -199,6 +255,17 @@ static ESValue {{ function.name }}Function(ESVMInstance* instance)
         PLEASE CHECK IDL AND GENERATOR
     {% endif %}
 }
+    {% if has_flag %}
+#else
+static ESValue {{ function.name }}Function(ESVMInstance* instance)
+{
+    auto msg = ESString::create(
+            "Does not support");
+    instance->throwError(ESValue(TypeError::create(msg)));
+    STARFISH_RELEASE_ASSERT_NOT_REACHED();
+}
+#endif
+    {% endif %}
 
 {% endif %}
 

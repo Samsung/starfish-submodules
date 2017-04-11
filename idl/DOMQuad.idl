@@ -1,7 +1,8 @@
 // https://drafts.fxtf.org/geometry/#DOMQuad
 
-[Constructor(optional DOMPointInit p1, optional DOMPointInit p2,
-             optional DOMPointInit p3, optional DOMPointInit p4),
+[
+  UnimplementedConstructor,
+  Constructor(optional DOMPointInit p1, optional DOMPointInit p2, optional DOMPointInit p3, optional DOMPointInit p4),
  Exposed=(Window,Worker)]
 interface DOMQuad {
   [Unimplemented, NewObject] static DOMQuad fromRect(optional DOMRectInit other);
