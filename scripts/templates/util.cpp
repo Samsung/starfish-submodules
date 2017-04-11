@@ -1,9 +1,14 @@
-{% macro ifdef(flag) -%}
-  {% if flag %}
+{% macro ifdef(flags) -%}
+{% if flags %}
+    {% for flag in flags %}
 #ifdef {{ flag }}
-{{ caller() }}
+    {% endfor %}
+{{ caller()|trim }}
+    {% for flag in flags %}
 #endif
+    {% endfor %}
+
   {% else %}
 {{ caller() }}
-  {% endif %}
+{% endif %}
 {%- endmacro %}

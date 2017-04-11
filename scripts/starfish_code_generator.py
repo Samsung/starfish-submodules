@@ -18,11 +18,18 @@ STARFISH_PATH = os.path.join(SCRIPT_PATH, '..', '..')
 BINDING_PATH = os.path.join(STARFISH_PATH, 'src', 'binding')
 MODULES_FILE = os.path.join(SCRIPT_PATH, "module.json")
 
+enums = {}
+
 def generate_code(root, f, args, sf_modules):
   irs = gen_ir_from_file(os.path.join(root, f))
   print("Generated IR from {}".format(f))
 
   for module in irs:
+    if module['kind'] == 'Enum':
+      enums[module['name']] = []
+      for item in module['items']:
+        enums[module['name']].append(item)
+
     if module['kind'] != 'Interface':
       continue
 
@@ -40,6 +47,7 @@ def generate_code(root, f, args, sf_modules):
     if not os.path.exists(BINDING_PATH):
       raise Exception("\"[starfish_root]/src/binding\" doesn't exist")
 
+    module['enums'] = enums
     path = module['name'] + 'Binding' + CPP_EXT
     with open(os.path.join(BINDING_PATH, path), 'w') as w:
       ret = template.render(**module)

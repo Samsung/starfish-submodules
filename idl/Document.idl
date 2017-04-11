@@ -23,12 +23,12 @@ enum VisibilityState { "hidden", "visible", "prerender", "unloaded" };
 interface Document : Node {
   // [REF1]--------------------------------------------------------------
   [STARFISH_EXP, SameObject] readonly attribute DOMImplementation implementation;
-  readonly attribute DOMString URL;
+  [Rename=urlString] readonly attribute DOMString URL;
   readonly attribute DOMString documentURI;
   [Unimplemented] readonly attribute DOMString origin;
   readonly attribute DOMString compatMode;
   readonly attribute DOMString characterSet;
-  readonly attribute DOMString charset;
+  [Rename=characterSet] readonly attribute DOMString charset;
   [Unimplemented] readonly attribute DOMString inputEncoding;
   readonly attribute DOMString contentType;
 
@@ -64,7 +64,7 @@ interface Document : Node {
 
   // [REF3]--------------------------------------------------------------
   // resource metadata management
-  [PutForwards=href, Unforgeable] readonly attribute Location? location;
+  [CustomSetter, PutForwards=href, Unforgeable] readonly attribute Location? location;
   [Unimplemented] attribute DOMString domain;
   [Unimplemented] readonly attribute DOMString referrer;
   [Unimplemented] attribute DOMString cookie;
@@ -75,7 +75,7 @@ interface Document : Node {
   // getter object (DOMString name);
   [Unimplemented, CEReactions] attribute DOMString title;
   [Unimplemented, CEReactions] attribute DOMString dir;
-  [CEReactions] attribute HTMLElement? body;
+  [CustomSetter, CEReactions] attribute HTMLElement? body;
   readonly attribute HTMLHeadElement? head;
   [Unimplemented, SameObject] readonly attribute HTMLCollection images;
   [Unimplemented, SameObject] readonly attribute HTMLCollection embeds;
@@ -94,7 +94,7 @@ interface Document : Node {
   [Unimplemented, CEReactions] void writeln(DOMString... text);
 
   // user interaction
-  readonly attribute WindowProxy? defaultView;
+  [CustomGetter] readonly attribute WindowProxy? defaultView;
   [Unimplemented] readonly attribute Element? activeElement;
   [Unimplemented] boolean hasFocus();
   [Unimplemented, CEReactions] attribute DOMString designMode;
@@ -112,7 +112,7 @@ interface Document : Node {
 
   // [REF4]--------------------------------------------------------------
   readonly attribute boolean hidden;
-  readonly attribute VisibilityState visibilityState; 
+  readonly attribute VisibilityState visibilityState;
 
 
 
