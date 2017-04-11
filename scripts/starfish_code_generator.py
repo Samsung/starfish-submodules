@@ -23,6 +23,7 @@ enums = {}
 def generate_code(root, f, args, sf_modules):
   irs = gen_ir_from_file(os.path.join(root, f))
   print("Generated IR from {}".format(f))
+  global enums
 
   for module in irs:
     if module['kind'] == 'Enum':
@@ -78,6 +79,16 @@ def filter_to_argument_syntax(prefix, start, end):
     result = result + ', ' + prefix + str(idx)
   return result
 
+def filter_first_word_capitalize(word):
+  if not (isinstance(word, str) or isinstance(word, unicode)):
+    return word
+
+  if len(word) == 0:
+    return word
+
+  return word[0].upper() + word[1:]
+
+
 if __name__ == "__main__":
   argparser = argparse.ArgumentParser()
   argparser.add_argument("-p", "--path", help="path to idl")
@@ -91,6 +102,7 @@ if __name__ == "__main__":
   env.filters['assert_true'] = filter_assert_true
   env.filters['assert_false'] = filter_assert_false
   env.filters['to_arg_syntax'] = filter_to_argument_syntax
+  env.filters['first_word_capitalize'] = filter_first_word_capitalize
 
   with open(MODULES_FILE, 'r') as r:
     sf_modules = json.loads(r.read())

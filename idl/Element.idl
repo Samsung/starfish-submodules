@@ -10,14 +10,14 @@
 [Exposed=Window]
 interface Element : Node {
   // [REF1]--------------------------------------------------------------
-  readonly attribute DOMString? namespaceURI;
+  [CustomGetter] readonly attribute DOMString? namespaceURI;
   [Unimplemented] readonly attribute DOMString? prefix;
   readonly attribute DOMString localName;
   readonly attribute DOMString tagName;
 
-  [CEReactions] attribute DOMString id;
-  [CEReactions] attribute DOMString className;
-  [CEReactions, SameObject, PutForwards=value] readonly attribute DOMTokenList classList;
+  [CustomGetter, CustomSetter, CEReactions] attribute DOMString id;
+  [CustomGetter, CustomSetter, CEReactions] attribute DOMString className;
+  [CustomGetter, CEReactions, SameObject, PutForwards=value] readonly attribute DOMTokenList classList;
   [Unimplemented, CEReactions, Unscopable] attribute DOMString slot;
 
   [Unimplemented] boolean hasAttributes();
@@ -114,7 +114,7 @@ interface Element : Node {
   // Element implements Slotable;
   // [REF5]--------------------------------------------------------------
   [Unimplemented] readonly attribute HTMLSlotElement? assignedSlot;
-  
+
 };
 
 

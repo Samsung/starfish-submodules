@@ -123,7 +123,7 @@ static ESValue {{ attribute.name }}SetterFunction(ESVMInstance* instance)
     // TODO: implement Any, Sequence, UnionType or Promise
     STARFISH_ASSERT_NOT_REACHED();
     {% endif %}
-    originalObj->set{{ util_macro.attr_name(attribute)|capitalize }}(v);
+    originalObj->set{{ util_macro.attr_name(attribute)|first_word_capitalize }}(v);
     return ESValue();
 }
 {% endif %}
