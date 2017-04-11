@@ -14,26 +14,38 @@ H_EXT = ".h"
 IR_EXT = ".txt"
 SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_PATH = os.path.join(SCRIPT_PATH, 'templates')
+IDL_PATH = os.path.join(SCRIPT_PATH, '..', 'idl')
 STARFISH_PATH = os.path.join(SCRIPT_PATH, '..', '..')
 BINDING_PATH = os.path.join(STARFISH_PATH, 'src', 'binding')
-MODULES_FILE = os.path.join(SCRIPT_PATH, "module.json")
+# MODULES_FILE = os.path.join(SCRIPT_PATH, "module.json")
+BUIILTINT_MODULE_FILE = os.path.join(IDL_PATH, 'Builtin.idl')
 
 enums = {}
+typedefs = {}
 
-def generate_code(root, f, args, sf_modules):
+def register_type(module):
+  if module['kind'] == 'Enum':
+    if module['name'] in enums:
+      return
+
+    enums[module['name']] = []
+    for item in module['items']:
+      enums[module['name']].append(item)
+  elif module['kind'] == 'Typedef':
+    if module['name'] in typedefs:
+      return
+
+    typedefs[module['name']] = module['from']
+
+def generate_code(root, f, args): #, sf_modules):
   irs = gen_ir_from_file(os.path.join(root, f))
   print("Generated IR from {}".format(f))
-  global enums
 
   for module in irs:
-    if module['kind'] == 'Enum':
-      enums[module['name']] = []
-      for item in module['items']:
-        enums[module['name']].append(item)
+    register_type(module)
 
     if module['kind'] != 'Interface':
       continue
-
     # if 'parent' in  module:
     #   parent = module['parent']
     #   if parent in sf_modules:
@@ -48,7 +60,6 @@ def generate_code(root, f, args, sf_modules):
     if not os.path.exists(BINDING_PATH):
       raise Exception("\"[starfish_root]/src/binding\" doesn't exist")
 
-    module['enums'] = enums
     path = module['name'] + 'Binding' + CPP_EXT
     with open(os.path.join(BINDING_PATH, path), 'w') as w:
       ret = template.render(**module)
@@ -88,7 +99,6 @@ def filter_first_word_capitalize(word):
 
   return word[0].upper() + word[1:]
 
-
 if __name__ == "__main__":
   argparser = argparse.ArgumentParser()
   argparser.add_argument("-p", "--path", help="path to idl")
@@ -104,15 +114,24 @@ if __name__ == "__main__":
   env.filters['to_arg_syntax'] = filter_to_argument_syntax
   env.filters['first_word_capitalize'] = filter_first_word_capitalize
 
-  with open(MODULES_FILE, 'r') as r:
-    sf_modules = json.loads(r.read())
+  # Set global variables
+  env.globals['enum'] = enums
+  env.globals['typedefs'] = typedefs
 
-    if os.path.isfile(args.path):
-      generate_code('.', args.path, args, sf_modules)
-    else:
-      for (root, dirs, files) in os.walk(args.path):
-        for f in files:
-          if os.path.splitext(f)[-1] != '.idl':
-            continue
+  irs = gen_ir_from_file(BUIILTINT_MODULE_FILE)
 
-          generate_code(root, f, args, sf_modules)
+  for module in irs:
+    register_type(module)
+
+  # with open(MODULES_FILE, 'r') as r:
+  #  sf_modules = json.loads(r.read())
+
+  if os.path.isfile(args.path):
+    generate_code('.', args.path, args) #, sf_modules)
+  else:
+    for (root, dirs, files) in os.walk(args.path):
+      for f in files:
+        if os.path.splitext(f)[-1] != '.idl':
+          continue
+
+        generate_code(root, f, args) #, sf_modules)

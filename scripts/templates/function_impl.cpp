@@ -1,140 +1,4 @@
-
-{%- macro gen_from_esvalue(index, type) -%}
-    {% if type.kind == 'StringType' %}
-        {{- 'value%d = toBrowserString(arg%d);'|format(index, index) -}}
-    {% elif type.kind == 'Any' %}
-        {{- 'value%d = jsonStringify(arg%d);'|format(index, index) -}}
-    {% elif type.kind == 'Typeref' %}
-        {{- 'CHECK_TYPEOF(arg%d, %s)'|format(index, type.name) }}
-        {{- 'value%d = (%s*)(arg%s.asESPointer()->asESObject()->extraPointerData());'|format(index, type.name, index) -}}
-    {% elif type.name == 'boolean' %}
-        {{- 'value%d = arg%d.toBoolean();'|format(index, index) -}}
-    {% elif type.name in ['long', 'short'] %}
-        {{- 'value%d = arg%d.toInt32();'|format(index, index) -}}
-    {% elif type.name in ['unsigned long', 'unsigned short'] %}
-        {{- 'value%d = arg%d.toUInt32();'|format(index, index) -}}
-    {% elif type.name in ['double', 'long long', 'unsigned long long'] %}
-        {{- 'value%d = arg%d.toNumber();'|format(index, index) -}}
-    {% endif %}
-{%- endmacro -%}
-
-{%- macro gen_type_str(type) -%}
-    {% if type.kind in ['StringType', 'Any'] %}
-        {{- 'String*' -}}
-    {% elif type.kind == 'Typeref' %}
-        {{- '%s*'|format(type.name) -}}
-    {% elif type.kind == 'PrimitiveType' %}
-        {{- type.name -}}
-    {% endif %}
-{%- endmacro -%}
-
-{%- macro handle_arg(index, arg) -%}
-    {{ '// Handle argument[%d]'|format(index) }}
-    {% if arg.default %}
-        {% if arg.type.kind == 'StringType' %}
-    {{ gen_type_str(arg.type) }} value{{ index }} = String::fromUTF8({{ arg.default }});
-        {% else %}
-    {{ gen_type_str(arg.type) }} value{{ index }} = {{ arg.default }};
-        {% endif %}
-    {% else %}
-    {{ gen_type_str(arg.type) }} value{{ index }};
-    {% endif %}
-    {% if arg.treat_null_as and arg.treat_null_as == 'EmptyString' %}
-    if (arg{{index}}.isUndefinedOrNull()) {
-        // Null/Undefined argument is treated as EmptyString
-        value{{ index }} = String::emptyString;
-    } else {
-        {{ gen_from_esvalue(index, arg.type) }}
-    }
-    {% elif arg.optional %}
-        {% if not arg.default and not uniformed_call %}
-    if (arg{{index}}.isUndefinedOrNull()) {
-        validArgCount--;
-    } else {
-        {{ gen_from_esvalue(index, arg.type) }}
-    }
-        {% else %}
-    if (!arg{{index}}.isUndefinedOrNull()) {
-        {{ gen_from_esvalue(index, arg.type) }}
-    }
-        {% endif %}
-    {%- elif arg.type.kind == 'StringType' %}
-    // NOTE ESNull or ESUndefined to "null" or "undefined"
-    {{ gen_from_esvalue(index, arg.type) }}
-    {% else %}
-    if (arg{{index}}.isUndefinedOrNull()) {
-        instance->throwError(ESValue(
-                TypeError::create(ESString::create("Wrong argument"))));
-        STARFISH_RELEASE_ASSERT_NOT_REACHED();
-    } else {
-        {{ gen_from_esvalue(index, arg.type) }}
-    }
-    {% endif %}
-{% endmacro -%}
-
-{%- macro gen_return_type_str(type) -%}
-    {%- if type.name != 'void' %}
-        {% if type.kind in ['StringType', 'Any'] %}
-            {{- 'String*' -}}
-        {% elif type.kind == 'Typeref' %}
-            {{- '%s*'|format(type.name) -}}
-        {% elif type.kind == 'PrimitiveType' %}
-            {{- type.name -}}
-        {% endif %}
-    {% endif -%}
-{%- endmacro -%}
-
-{%- macro declare_return_value(type, use_nullable_struct) -%}
-    {% if use_nullable_struct %}
-        {{- 'Nullable<%s> result;'|format(gen_return_type_str(type)) -}}
-    {% elif type.kind == 'Typeref' %}
-        {{- '%s result = nullptr;'|format(gen_return_type_str(type)) -}}
-    {% elif type.name != 'void' %}
-        {{- '%s result;'|format(gen_return_type_str(type)) -}}
-    {% endif %}
-{%- endmacro -%}
-
-{%- macro gen_return_assert(type) -%}
-    {% if type.kind == 'Typeref' and not type.nullable -%}
-STARFISH_ASSERT(result != nullptr);
-    {%- endif %}
-{%- endmacro -%}
-
-{%- macro gen_return_code(type, var_name) -%}
-    {% if type.kind == 'StringType' %}
-return toJSString({{var_name}});
-    {%- elif type.kind == 'Any' %}
-return parseJSON({{var_name}});
-    {%- elif type.kind == 'Typeref' %}
-return {{var_name}}->scriptValue();
-    {%- elif type.name in ['boolean', 'long', 'short', 'unsigned long', 'unsigned short', 'double', 'long long', 'unsigned long long'] %}
-return ESValue({{var_name}});
-    {%- else %}
-STARFISH_RELEASE_ASSERT_NOT_REACHED();
-    {% endif %}
-{%- endmacro -%}
-
-{%- macro handle_return(return_type, has_return, use_nullable_struct) -%}
-    {% if not has_return -%}
-    return ESValue(ESValue::ESUndefined);
-    {%- elif use_nullable_struct -%}
-    if (!result.hasValue()) {
-        return ESValue(ESValue::ESNull);
-    } else {
-        {{ gen_return_type_str(return_type) }} result_value = result.getValue();
-        {{ gen_return_code(return_type, 'result_value') }}
-    }
-    {%- elif return_type.nullable -%}
-    if (result == nullptr) {
-        return ESValue(ESValue::ESNull);
-    } else {
-        {{ gen_return_code(return_type, 'result') }}
-    }
-    {%- else -%}
-    {{ gen_return_assert(return_type) }}
-    {{ gen_return_code(return_type, 'result') }}
-    {%- endif %}
-{%- endmacro -%}
+{% import 'util.cpp' as util_macro %}
 
 {%- macro gen_check_getter_code() -%}
     if (instance->currentExecutionContext()->argumentCount() < 1) {
@@ -180,13 +44,13 @@ STARFISH_RELEASE_ASSERT_NOT_REACHED();
     {% if not uniformed_call %}
     size_t validArgCount = {{ function.arguments|length }};
     {% endif %}
-    {{ declare_return_value(function.return, use_nullable_struct) }}
+    {{ util_macro.declare_return_value(function.return, use_nullable_struct) }}
     {% for arg in function.arguments %}
     ESValue arg{{loop.index - 1}} = instance->currentExecutionContext()->readArgument({{loop.index - 1}});
     {% endfor %}
 
     {% for arg in function.arguments %}
-    {{ handle_arg(loop.index - 1, arg) }}
+    {{ util_macro.handle_arg(loop.index - 1, arg) }}
     {{- 'Error : Wrong argument type' | assert_true(arg.type.name in ['void']) -}}
     {{- 'Error : Unimplemented argument type' | assert_true(arg.type.name in ['object', 'Sequence', 'UnionType', 'Promise']) -}}
     {% endfor %}
@@ -204,7 +68,7 @@ STARFISH_RELEASE_ASSERT_NOT_REACHED();
         {{ gen_native_call_code(max_arg, min_passing_count, function, return_left, uniformed_call) }}
     }
     {% endif %}
-    {{ handle_return(function.return, has_return, use_nullable_struct) }}
+    {{ util_macro.handle_return(function.return, has_return, use_nullable_struct) }}
 {% endmacro -%}
 
 {%- macro function_code_ellipsis(function, use_nullable_struct) %}
@@ -213,8 +77,8 @@ STARFISH_RELEASE_ASSERT_NOT_REACHED();
     try {
         for (int i = 0; i < argCount; i++) {
             ESValue arg0 = instance->currentExecutionContext()->readArgument(i);
-            {{ '%s %s'| format(gen_type_str(function.arguments[0].type),
-                               gen_from_esvalue(0, function.arguments[0].type)) }}
+            {{ '%s %s'| format(util_macro.gen_type_str(function.arguments[0].type),
+                               util_macro.gen_from_esvalue(0, function.arguments[0].type)) }}
             originalObj->{{function.name}}(value0);
         }
     } catch (DOMException* e) {
@@ -224,8 +88,8 @@ STARFISH_RELEASE_ASSERT_NOT_REACHED();
     {% else %}
     for (int i = 0; i < argCount; i++) {
         ESValue arg0 = instance->currentExecutionContext()->readArgument(i);
-        {{ '%s %s'| format(gen_type_str(function.arguments[0].type),
-                           gen_from_esvalue(0, function.arguments[0].type)) }}
+        {{ '%s %s'| format(util_macro.gen_type_str(function.arguments[0].type),
+                           util_macro.gen_from_esvalue(0, function.arguments[0].type)) }}
         originalObj->{{function.name}}(value0);
     }
     {% endif %}
@@ -235,7 +99,7 @@ STARFISH_RELEASE_ASSERT_NOT_REACHED();
 {%- macro function_code_getter_index(function, use_nullable_struct) %}
     {% set has_return = (function.return.name != 'void') %}
     {{ gen_check_getter_code() }}
-    {{ declare_return_value(function.return, use_nullable_struct) }}
+    {{ util_macro.declare_return_value(function.return, use_nullable_struct) }}
     ESValue arg0 = instance->currentExecutionContext()->readArgument(0);
     uint32_t idx = arg0.toIndex();
     if (idx == ESValue::ESInvalidIndexValue) {
@@ -246,7 +110,7 @@ STARFISH_RELEASE_ASSERT_NOT_REACHED();
         idx = std::isnan(__number) ? 0 : (uint32_t)__number;
     }
     result = originalObj->{{function.name}}(idx);
-    {{ handle_return(function.return, has_return, use_nullable_struct) }}
+    {{ util_macro.handle_return(function.return, has_return, use_nullable_struct) }}
 {% endmacro -%}
 
 {%- macro function_code_getter_name(function, use_nullable_struct) %}
