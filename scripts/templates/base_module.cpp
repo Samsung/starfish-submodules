@@ -20,15 +20,11 @@
 #include "Binding.h"
 #include "binding/escargot/ScriptBindingInstanceDataEscargot.h"
 
-{% if has_custom %}
-{{ '#include \"%sCustomBinding.h\"'|format(name) }}
-{% endif %}
-
 namespace StarFish {
 
 using namespace escargot;
 
-{% if constructor and not constructor.custom and not constructor.unimplemented%}
+{% if constructor and not constructor.unimplemented%}
 // Implement for constructor
 {% include 'constructor_impl.cpp' ignore missing %}
 {% endif %}

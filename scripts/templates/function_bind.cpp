@@ -1,7 +1,7 @@
 {% import 'util.cpp' as util_macro %}
 
 {% call util_macro.ifdef(function.flag) %}
-    {% set fn_name = '%s%sCustom'|format(function.name, name)
+    {% set fn_name = '%s%s'|format(function.name, name)
                       if function.custom else function.name %}
     ESString* {{ function.name }}String = ESString::create("{{ function.name }}");
     {% if function.static %}

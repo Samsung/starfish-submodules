@@ -424,13 +424,19 @@ def _gen_ir_Operation(node):
     result['return'] = return_ir
 
   result['arguments'] = args_ir if args_ir else []
-  min_count = None;
+  min_passing_count = None;
+  min_passed_count = None;
   if not args_ir is None:
-    min_count = 0;
+    min_passing_count = 0;
+    min_passed_count = 0
     for arg in args_ir:
-      if (not arg.get('optional')) or arg.get('default'):
-        min_count += 1
-  _set_prop_to_dict(result, 'min_arg_count', min_count)
+      if (not arg.get('optional')):
+        min_passing_count += 1
+        min_passed_count += 1
+      elif arg.get('default'):
+        min_passing_count += 1
+  _set_prop_to_dict(result, 'min_passing_count', min_passing_count)
+  _set_prop_to_dict(result, 'min_passed_count', min_passed_count)
   return result
 
 def _gen_ir_Stringifier(node):

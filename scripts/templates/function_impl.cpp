@@ -39,22 +39,37 @@
     {% else %}
     {{ gen_type_str(arg.type) }} value{{ index }};
     {% endif %}
+    {% if arg.treat_null_as and arg.treat_null_as == 'EmptyString' %}
     if (arg{{index}}.isUndefinedOrNull()) {
-        {% if arg.optional %}
-            {% if not arg.default and not uniformed_call%}
-        validArgCount--;
-            {% endif %}
-        {% elif arg.treat_null_as and arg.treat_null_as == 'EmptyString' %}
+        // Null/Undefined argument is treated as EmptyString
         value{{ index }} = String::emptyString;
+    } else {
+        {{ gen_from_esvalue(index, arg.type) }}
+    }
+    {% elif arg.optional %}
+        {% if not arg.default and not uniformed_call %}
+    if (arg{{index}}.isUndefinedOrNull()) {
+        validArgCount--;
+    } else {
+        {{ gen_from_esvalue(index, arg.type) }}
+    }
         {% else %}
+    if (!arg{{index}}.isUndefinedOrNull()) {
+        {{ gen_from_esvalue(index, arg.type) }}
+    }
+        {% endif %}
+    {%- elif arg.type.kind == 'StringType' %}
+    // NOTE ESNull or ESUndefined to "null" or "undefined"
+    {{ gen_from_esvalue(index, arg.type) }}
+    {% else %}
+    if (arg{{index}}.isUndefinedOrNull()) {
         instance->throwError(ESValue(
                 TypeError::create(ESString::create("Wrong argument"))));
         STARFISH_RELEASE_ASSERT_NOT_REACHED();
-        {% endif %}
     } else {
         {{ gen_from_esvalue(index, arg.type) }}
-        {# Need to clamp #}
     }
+    {% endif %}
 {% endmacro -%}
 
 {%- macro gen_return_type_str(type) -%}
@@ -130,15 +145,15 @@ STARFISH_RELEASE_ASSERT_NOT_REACHED();
     }
 {%- endmacro -%}
 
-{%- macro gen_native_call_code(max_arg, min_arg, function, return_left, uniformed_call) -%}
+{%- macro gen_native_call_code(max_arg, min_passing_count, function, return_left, uniformed_call) -%}
     {% if max_arg == 0 -%}
         {{return_left}}originalObj->{{function.name}}();
     {%- elif uniformed_call -%}
         {{return_left}}originalObj->{{function.name}}({{ 'arg'|to_arg_syntax(0, max_arg) }});
     {%- else -%}
-        if (validArgCount == {{min_arg|string}}) {
-            {{return_left}}originalObj->{{function.name}}({{'arg'|to_arg_syntax(0, min_arg)}});
-        {% for count in range(min_arg + 1, max_arg + 1) %}
+        if (validArgCount == {{min_passing_count|string}}) {
+            {{return_left}}originalObj->{{function.name}}({{'arg'|to_arg_syntax(0, min_passing_count)}});
+        {% for count in range(min_passing_count + 1, max_arg + 1) %}
         } else if (validArgCount == {{count|string}}) {
             {{return_left}}originalObj->{{function.name}}({{'arg'|to_arg_syntax(0, count)}});
         {% endfor %}
@@ -148,11 +163,19 @@ STARFISH_RELEASE_ASSERT_NOT_REACHED();
 
 {%- macro function_code_normal(function, use_nullable_struct) -%}
     {% set max_arg = function.arguments|length %}
-    {% set min_arg = function.min_arg_count|default(0) %}
-    {% set uniformed_call = (max_arg == min_arg) %}
+    {% set min_passing_count = function.min_passing_count|default(0) %}
+    {% set min_passed_count = function.min_passed_count|default(0) %}
+    {% set uniformed_call = (max_arg == min_passing_count) %}
     {% set has_return = (function.return.name != 'void') %}
     {% set return_left = '' if not has_return else 'result = ' %}
-
+    {% if min_passed_count != 0 %}
+    size_t argCount = instance->currentExecutionContext()->argumentCount();
+    if (argCount < {{ min_passed_count }}) {
+        auto msg = ESString::create("Not enough arguments");
+        instance->throwError(ESValue(TypeError::create(msg)));
+        STARFISH_RELEASE_ASSERT_NOT_REACHED();
+    }
+    {% endif %}
     // This function has {{'' if uniformed_call else 'not '}}uniformed function call
     {% if not uniformed_call %}
     size_t validArgCount = {{ function.arguments|length }};
@@ -167,17 +190,18 @@ STARFISH_RELEASE_ASSERT_NOT_REACHED();
     {{- 'Error : Wrong argument type' | assert_true(arg.type.name in ['void']) -}}
     {{- 'Error : Unimplemented argument type' | assert_true(arg.type.name in ['object', 'Sequence', 'UnionType', 'Promise']) -}}
     {% endfor %}
+
     // Call native function
     {% if function.raises_exception %}
     try {
-        {{ gen_native_call_code(max_arg, min_arg, function, return_left, uniformed_call) }}
+        {{ gen_native_call_code(max_arg, min_passing_count, function, return_left, uniformed_call) }}
     } catch (DOMException* e) {
         ESVMInstance::currentInstance()->throwError(e->scriptValue());
         STARFISH_RELEASE_ASSERT_NOT_REACHED();
     }
     {% else %}
     {
-        {{ gen_native_call_code(max_arg, min_arg, function, return_left, uniformed_call) }}
+        {{ gen_native_call_code(max_arg, min_passing_count, function, return_left, uniformed_call) }}
     }
     {% endif %}
     {{ handle_return(function.return, has_return, use_nullable_struct) }}
@@ -229,15 +253,18 @@ STARFISH_RELEASE_ASSERT_NOT_REACHED();
     {{ gen_check_getter_code() }}
 {% endmacro -%}
 
-{%- if not function.name == '_unnamed_' and not function.custom %}
-{% set has_flag = function.flags and function.flags|length > 0 %}
+{%- if not function.name == '_unnamed_' %}
+    {% set has_flag = function.flags and function.flags|length > 0 %}
     {% if has_flag %}
 #if defined({{function.flags[0]}})
         {%- for idx in range(1, function.flags|length) %}
             {{-  ' && defined(%s)'|format(function.flags[idx]) -}}
         {% endfor %}
-    {% endif %}
 
+    {% endif %}
+    {% if function.custom %}
+extern ESValue {{ function.name }}{{ name }}Function(ESVMInstance* instance);
+    {% else %}
 static ESValue {{ function.name }}Function(ESVMInstance* instance)
 {
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
@@ -255,6 +282,7 @@ static ESValue {{ function.name }}Function(ESVMInstance* instance)
         PLEASE CHECK IDL AND GENERATOR
     {% endif %}
 }
+    {% endif %}
     {% if has_flag %}
 #else
 static ESValue {{ function.name }}Function(ESVMInstance* instance)

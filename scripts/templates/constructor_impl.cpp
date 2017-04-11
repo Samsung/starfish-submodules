@@ -39,37 +39,51 @@
     {% else %}
     {{ gen_type_str(arg.type) }} value{{ index }};
     {% endif %}
+    {% if arg.treat_null_as and arg.treat_null_as == 'EmptyString' %}
     if (arg{{index}}.isUndefinedOrNull()) {
-        {% if arg.optional %}
-            {% if not arg.default and not uniformed_call%}
-        validArgCount--;
-            {% endif %}
-        {% elif arg.treat_null_as and arg.treat_null_as == 'EmptyString' %}
         value{{ index }} = String::emptyString;
+    } else {
+        {{ gen_from_esvalue(index, arg.type) }}
+    }
+    {% elif arg.optional %}
+        {% if not arg.default and not uniformed_call %}
+    if (arg{{index}}.isUndefinedOrNull()) {
+        validArgCount--;
+    } else {
+        {{ gen_from_esvalue(index, arg.type) }}
+    }
         {% else %}
+    if (!arg{{index}}.isUndefinedOrNull()) {
+        {{ gen_from_esvalue(index, arg.type) }}
+    }
+        {% endif %}
+    {%- elif arg.type.kind == 'StringType' %}
+    // NOTE ESNull or ESUndefined to "null" or "undefined"
+    {{ gen_from_esvalue(index, arg.type) }}
+    {% else %}
+    if (arg{{index}}.isUndefinedOrNull()) {
         instance->throwError(ESValue(
                 TypeError::create(ESString::create("Wrong argument"))));
         STARFISH_RELEASE_ASSERT_NOT_REACHED();
-        {% endif %}
     } else {
         {{ gen_from_esvalue(index, arg.type) }}
-        {# Need to clamp #}
     }
+    {% endif %}
 {% endmacro -%}
 
-{%- macro gen_native_call_code(max_arg, min_arg, class_name, function, uniformed_call) -%}
+{%- macro gen_native_call_code(max_arg, min_passing_count, class_name, function, uniformed_call) -%}
     {% if max_arg == 0 -%}
     result = new {{ class_name }}(Window->document());
     {%- elif uniformed_call -%}
     result = new {{ class_name }}(Window->document(), {{ 'arg'|to_arg_syntax(0, max_arg) }});
     {%- else -%}
-    if (validArgCount == {{min_arg|string}}) {
-        {% if min_arg == 0 %}
+    if (validArgCount == {{min_passing_count|string}}) {
+        {% if min_passing_count == 0 %}
         result = new {{ class_name }}(Window->document());
         {% else %}
-        result = new {{ class_name }}(Window->document(), {{'arg'|to_arg_syntax(0, min_arg)}});
+        result = new {{ class_name }}(Window->document(), {{'arg'|to_arg_syntax(0, min_passing_count)}});
         {% endif %}
-        {% for count in range(min_arg + 1, max_arg + 1) %}
+        {% for count in range(min_passing_count + 1, max_arg + 1) %}
     } else if (validArgCount == {{count|string}}) {
         result = new {{ class_name }}(Window->document(), {{'arg'|to_arg_syntax(0, count)}});
         {% endfor %}
@@ -79,9 +93,17 @@
 
 {%- macro function_code_normal(class_name, function) -%}
     {% set max_arg = function.arguments|length %}
-    {% set min_arg = function.min_arg_count|default(0) %}
-    {% set uniformed_call = (max_arg == min_arg) %}
-
+    {% set min_passing_count = function.min_passing_count|default(0) %}
+    {% set min_passed_count = function.min_passed_count|default(0) %}
+    {% set uniformed_call = (max_arg == min_passing_count) %}
+    {% if min_passed_count != 0 %}
+    size_t argCount = instance->currentExecutionContext()->argumentCount();
+    if (argCount < {{ min_passed_count }}) {
+        auto msg = ESString::create("Not enough arguments");
+        instance->throwError(ESValue(TypeError::create(msg)));
+        STARFISH_RELEASE_ASSERT_NOT_REACHED();
+    }
+    {% endif %}
     // This function has {{'' if uniformed_call else 'not '}}uniformed function call
     {% if not uniformed_call %}
     size_t validArgCount = {{ function.arguments|length }};
@@ -96,12 +118,16 @@
     {{- 'Error : Unimplemented argument type' | assert_true(arg.type.name in ['object', 'Sequence', 'UnionType', 'Promise']) -}}
     {% endfor %}
     {{ class_name }}* result = nullptr;
-    {{ gen_native_call_code(max_arg, min_arg, class_name, function, uniformed_call) }}
+    {{ gen_native_call_code(max_arg, min_passing_count, class_name, function, uniformed_call) }}
     return result->scriptValue();
 {% endmacro -%}
 
-static ESValue {{ name|lower }}Function(ESVMInstance* instance)
+{% if constructor.custom %}
+extern ESValue {{ name|lower }}Constructor(ESVMInstance* instance);
+{% else %}
+static ESValue {{ name|lower }}Constructor(ESVMInstance* instance)
 {
     {{- function_code_normal(name, constructor) -}}
 }
+{% endif %}
 
