@@ -25,7 +25,7 @@ interface Element : Node {
   [Unimplemented] sequence<DOMString> getAttributeNames();
   DOMString? getAttribute(DOMString qualifiedName);
   [Unimplemented] DOMString? getAttributeNS(DOMString? namespace, DOMString localName);
-  [CEReactions] void setAttribute(DOMString qualifiedName, DOMString value);
+  [CEReactions, RaisesException] void setAttribute(DOMString qualifiedName, DOMString value);
   [Unimplemented, CEReactions] void setAttributeNS(DOMString? namespace, DOMString qualifiedName, DOMString value);
   [CEReactions] void removeAttribute(DOMString qualifiedName);
   [Unimplemented, CEReactions] void removeAttributeNS(DOMString? namespace, DOMString localName);
@@ -44,9 +44,9 @@ interface Element : Node {
   [Unimplemented] Element? closest(DOMString selectors);
   [Unimplemented] boolean matches(DOMString selectors);
 
-  HTMLCollection getElementsByTagName(DOMString qualifiedName);
+  [STARFISH_TC_COVERAGE] HTMLCollection getElementsByTagName(DOMString qualifiedName);
   [Unimplemented] HTMLCollection getElementsByTagNameNS(DOMString? namespace, DOMString localName);
-  HTMLCollection getElementsByClassName(DOMString classNames);
+  [STARFISH_TC_COVERAGE] HTMLCollection getElementsByClassName(DOMString classNames);
 
   [Unimplemented, CEReactions] Element? insertAdjacentElement(DOMString where, Element element); // historical
   [Unimplemented] void insertAdjacentText(DOMString where, DOMString data); // historical
@@ -90,8 +90,8 @@ interface Element : Node {
   [Unimplemented, CEReactions, Unscopable] void prepend((Node or DOMString)... nodes);
   [Unimplemented, CEReactions, Unscopable] void append((Node or DOMString)... nodes);
 
-  Element? querySelector(DOMString selectors);
-  [STARFISH_ENABLE_WASU, NewObject] NodeList querySelectorAll(DOMString selectors);
+  [STARFISH_TC_COVERAGE, RaisesException] Element? querySelector(DOMString selectors);
+  [STARFISH_TC_COVERAGE, STARFISH_ENABLE_WASU, NewObject, RaisesException] NodeList querySelectorAll(DOMString selectors);
 
 
   // TODO Support Implements

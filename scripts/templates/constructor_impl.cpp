@@ -41,6 +41,7 @@
     {% endif %}
     {% if arg.treat_null_as and arg.treat_null_as == 'EmptyString' %}
     if (arg{{index}}.isUndefinedOrNull()) {
+        // Null/Undefined argument is treated as EmptyString
         value{{ index }} = String::emptyString;
     } else {
         {{ gen_from_esvalue(index, arg.type) }}
@@ -57,10 +58,7 @@
         {{ gen_from_esvalue(index, arg.type) }}
     }
         {% endif %}
-    {%- elif arg.type.kind == 'StringType' %}
-    // NOTE ESNull or ESUndefined to "null" or "undefined"
-    {{ gen_from_esvalue(index, arg.type) }}
-    {% else %}
+    {%- elif arg.type.kind == 'Typeref' %}
     if (arg{{index}}.isUndefinedOrNull()) {
         instance->throwError(ESValue(
                 TypeError::create(ESString::create("Wrong argument"))));
@@ -68,6 +66,8 @@
     } else {
         {{ gen_from_esvalue(index, arg.type) }}
     }
+    {% else %}
+    {{ gen_from_esvalue(index, arg.type) }}
     {% endif %}
 {% endmacro -%}
 
@@ -75,17 +75,17 @@
     {% if max_arg == 0 -%}
     result = new {{ class_name }}(Window->document());
     {%- elif uniformed_call -%}
-    result = new {{ class_name }}(Window->document(), {{ 'arg'|to_arg_syntax(0, max_arg) }});
+    result = new {{ class_name }}(Window->document(), {{ 'value'|to_arg_syntax(0, max_arg) }});
     {%- else -%}
     if (validArgCount == {{min_passing_count|string}}) {
         {% if min_passing_count == 0 %}
         result = new {{ class_name }}(Window->document());
         {% else %}
-        result = new {{ class_name }}(Window->document(), {{'arg'|to_arg_syntax(0, min_passing_count)}});
+        result = new {{ class_name }}(Window->document(), {{'value'|to_arg_syntax(0, min_passing_count)}});
         {% endif %}
         {% for count in range(min_passing_count + 1, max_arg + 1) %}
     } else if (validArgCount == {{count|string}}) {
-        result = new {{ class_name }}(Window->document(), {{'arg'|to_arg_syntax(0, count)}});
+        result = new {{ class_name }}(Window->document(), {{'value'|to_arg_syntax(0, count)}});
         {% endfor %}
     }
     {%- endif %}

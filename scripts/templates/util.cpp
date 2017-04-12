@@ -106,10 +106,7 @@
         {{ gen_from_esvalue(index, arg.type) }}
     }
         {% endif %}
-    {%- elif arg.type.kind == 'StringType' %}
-    // NOTE ESNull or ESUndefined to "null" or "undefined"
-    {{ gen_from_esvalue(index, arg.type) }}
-    {% else %}
+    {%- elif arg.type.kind == 'Typeref' %}
     if (arg{{index}}.isUndefinedOrNull()) {
         instance->throwError(ESValue(
                 TypeError::create(ESString::create("Wrong argument"))));
@@ -117,7 +114,10 @@
     } else {
         {{ gen_from_esvalue(index, arg.type) }}
     }
+    {% else %}
+    {{ gen_from_esvalue(index, arg.type) }}
     {% endif %}
+
 {% endmacro -%}
 
 {%- macro declare_typeref_return_value(type, use_nullable_struct) -%}

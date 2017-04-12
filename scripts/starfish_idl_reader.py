@@ -134,7 +134,10 @@ def _hd_extattr_treatnull(target, extattr):
   return False
 
 def _hd_extattr_flags(target, extattr):
-  if 'STARFISH_' in extattr.GetName():
+  if extattr.GetName() == 'STARFISH_TC_COVERAGE':
+    target['check_tc_coverage'] = True
+    return True
+  elif 'STARFISH_' in extattr.GetName():
     # STARFISH_ENABLE_TEST
     # STARFISH_EXP
     # STARFISH_ENABLE_WASU

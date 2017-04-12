@@ -237,8 +237,8 @@ interface Document : Node {
   readonly attribute Element? lastElementChild;
   readonly attribute unsigned long childElementCount;
 
-  Element? querySelector(DOMString selectors);
-  [STARFISH_ENABLE_WASU, NewObject] NodeList querySelectorAll(DOMString selectors);
+  [RaisesException] Element? querySelector(DOMString selectors);
+  [STARFISH_ENABLE_WASU, NewObject, RaisesException] NodeList querySelectorAll(DOMString selectors);
 };
 
 Document implements GlobalEventHandlers;
