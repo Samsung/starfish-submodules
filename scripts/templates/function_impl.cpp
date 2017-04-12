@@ -1,21 +1,35 @@
 
-{%- macro gen_from_esvalue(index, type) -%}
+{%- macro gen_from_esvalue(type, aname, vname) -%}
     {% if type.kind == 'StringType' %}
-        {{- 'value%d = toBrowserString(arg%d);'|format(index, index) -}}
+        {{- '%s = toBrowserString(%s);'|format(vname, aname) -}}
     {% elif type.kind == 'Any' %}
-        {{- 'value%d = jsonStringify(arg%d);'|format(index, index) -}}
+        {{- '%s = jsonStringify(%s);'|format(vname, aname) -}}
     {% elif type.kind == 'Typeref' %}
-        {{- 'CHECK_TYPEOF(arg%d, %s)'|format(index, type.name) }}
-        {{- 'value%d = (%s*)(arg%s.asESPointer()->asESObject()->extraPointerData());'|format(index, type.name, index) -}}
+        {{- 'CHECK_TYPEOF(%s, %s)'|format(aname, type.name) }}
+        {{- '%s = (%s*)(%s.asESPointer()->asESObject()->extraPointerData());'|format(vname, type.name, aname) -}}
     {% elif type.name == 'boolean' %}
-        {{- 'value%d = arg%d.toBoolean();'|format(index, index) -}}
+        {{- '%s = %s.toBoolean();'|format(vname, aname) -}}
     {% elif type.name in ['long', 'short'] %}
-        {{- 'value%d = arg%d.toInt32();'|format(index, index) -}}
+        {{- '%s = %s.toInt32();'|format(vname, aname) -}}
     {% elif type.name in ['unsigned long', 'unsigned short'] %}
-        {{- 'value%d = arg%d.toUInt32();'|format(index, index) -}}
+        {{- '%s = %s.toUInt32();'|format(vname, aname) -}}
     {% elif type.name in ['double', 'long long', 'unsigned long long'] %}
-        {{- 'value%d = arg%d.toNumber();'|format(index, index) -}}
+        {{- '%s = %s.toNumber();'|format(vname, aname) -}}
+    {% elif type.kind == 'Dictionary' %}
+        {{- handle_dictionary(type, vname, aname) -}}
     {% endif %}
+{%- endmacro -%}
+
+{%- macro handle_dictionary(type, vname, aname) -%}
+    {
+    {% for key in type.data['keys'] %}
+    ESValue subarg{{loop.index}} = {{aname}}.asESPointer()->asESObject()->get(ESString::create("{{ key.name }}"));
+    {% endfor %}
+    {% for key in type.data['keys'] %}
+    {{ handle_arg(key, 'subarg%d'|format(loop.index), 'subvalue%d'|format(loop.index)) -}}
+    {% endfor %}
+    {{vname}} = {{type.name}}({{'subvalue'|to_arg_syntax(0, type.data['keys']|length)}});
+    }
 {%- endmacro -%}
 
 {%- macro gen_type_str(type) -%}
@@ -23,51 +37,51 @@
         {{- 'String*' -}}
     {% elif type.kind == 'Typeref' %}
         {{- '%s*'|format(type.name) -}}
-    {% elif type.kind == 'PrimitiveType' %}
+    {% elif type.kind in ['PrimitiveType', 'Dictionary'] %}
         {{- type.name -}}
     {% endif %}
 {%- endmacro -%}
 
-{%- macro handle_arg(index, arg) -%}
-    {{ '// Handle argument[%d]'|format(index) }}
+{%- macro handle_arg(arg, aname, vname) -%}
+    {{ '// Handle argument %s'|format(aname) }}
     {% if arg.default %}
         {% if arg.type.kind == 'StringType' %}
-    {{ gen_type_str(arg.type) }} value{{ index }} = String::fromUTF8({{ arg.default }});
+    {{ gen_type_str(arg.type) }} {{ vname }} = String::fromUTF8({{ arg.default }});
         {% else %}
-    {{ gen_type_str(arg.type) }} value{{ index }} = {{ arg.default }};
+    {{ gen_type_str(arg.type) }} {{ vname }} = {{ arg.default }};
         {% endif %}
     {% else %}
-    {{ gen_type_str(arg.type) }} value{{ index }};
+    {{ gen_type_str(arg.type) }} {{ vname }};
     {% endif %}
     {% if arg.treat_null_as and arg.treat_null_as == 'EmptyString' %}
-    if (arg{{index}}.isUndefinedOrNull()) {
+    if ({{ aname }}.isUndefinedOrNull()) {
         // Null/Undefined argument is treated as EmptyString
-        value{{ index }} = String::emptyString;
+        {{ vname }} = String::emptyString;
     } else {
-        {{ gen_from_esvalue(index, arg.type) }}
+        {{ gen_from_esvalue(arg.type, aname, vname) }}
     }
-    {% elif arg.optional %}
+    {% elif arg.optional or arg.default %}
         {% if not arg.default and not uniformed_call %}
-    if (arg{{index}}.isUndefinedOrNull()) {
+    if ({{ aname }}.isUndefinedOrNull()) {
         validArgCount--;
     } else {
-        {{ gen_from_esvalue(index, arg.type) }}
+        {{ gen_from_esvalue(arg.type, aname, vname) }}
     }
         {% else %}
-    if (!arg{{index}}.isUndefinedOrNull()) {
-        {{ gen_from_esvalue(index, arg.type) }}
+    if (!{{ aname }}.isUndefinedOrNull()) {
+        {{ gen_from_esvalue(arg.type, aname, vname) }}
     }
         {% endif %}
     {%- elif arg.type.kind == 'Typeref' %}
-    if (arg{{index}}.isUndefinedOrNull()) {
+    if ({{ aname }}.isUndefinedOrNull()) {
         instance->throwError(ESValue(
                 TypeError::create(ESString::create("Wrong argument"))));
         STARFISH_RELEASE_ASSERT_NOT_REACHED();
     } else {
-        {{ gen_from_esvalue(index, arg.type) }}
+        {{ gen_from_esvalue(arg.type, aname, vname) }}
     }
     {% else %}
-    {{ gen_from_esvalue(index, arg.type) }}
+    {{ gen_from_esvalue(arg.type, aname, vname) }}
     {% endif %}
 
 {% endmacro -%}
@@ -188,13 +202,14 @@ STARFISH_RELEASE_ASSERT_NOT_REACHED();
     {% if not uniformed_call %}
     size_t validArgCount = {{ function.arguments|length }};
     {% endif %}
-    {{ util_macro.declare_return_value(function.return, use_nullable_struct) }}
+    {# TODO Use util_macro #}
+    {{ declare_return_value(function.return, use_nullable_struct) }}
     {% for arg in function.arguments %}
     ESValue arg{{loop.index - 1}} = instance->currentExecutionContext()->readArgument({{loop.index - 1}});
     {% endfor %}
 
     {% for arg in function.arguments %}
-    {{ util_macro.handle_arg(loop.index - 1, arg) }}
+    {{ handle_arg(arg, 'arg%d'|format(loop.index - 1), 'value%d'|format(loop.index - 1)) }}
     {{- 'Error : Wrong argument type' | assert_true(arg.type.name in ['void']) -}}
     {{- 'Error : Unimplemented argument type' | assert_true(arg.type.name in ['object', 'Sequence', 'UnionType', 'Promise']) -}}
     {% endfor %}
@@ -221,8 +236,9 @@ STARFISH_RELEASE_ASSERT_NOT_REACHED();
     try {
         for (int i = 0; i < argCount; i++) {
             ESValue arg0 = instance->currentExecutionContext()->readArgument(i);
-            {{ '%s %s'| format(util_macro.gen_type_str(function.arguments[0].type),
-                               util_macro.gen_from_esvalue(0, function.arguments[0].type)) }}
+            {# TODO Use util_macro #}
+            {{ '%s %s'| format(gen_type_str(function.arguments[0].type),
+                               gen_from_esvalue(0, function.arguments[0].type)) }}
             originalObj->{{function.name}}(value0);
         }
     } catch (DOMException* e) {
@@ -232,8 +248,9 @@ STARFISH_RELEASE_ASSERT_NOT_REACHED();
     {% else %}
     for (int i = 0; i < argCount; i++) {
         ESValue arg0 = instance->currentExecutionContext()->readArgument(i);
-        {{ '%s %s'| format(util_macro.gen_type_str(function.arguments[0].type),
-                           util_macro.gen_from_esvalue(0, function.arguments[0].type)) }}
+        {# TODO Use util_macro #}
+        {{ '%s %s'| format(gen_type_str(function.arguments[0].type),
+                           gen_from_esvalue(0, function.arguments[0].type)) }}
         originalObj->{{function.name}}(value0);
     }
     {% endif %}
@@ -244,7 +261,8 @@ STARFISH_RELEASE_ASSERT_NOT_REACHED();
 {%- macro function_code_getter_index(class_name, function, use_nullable_struct) %}
     {% set has_return = (function.return.name != 'void') %}
     {{ gen_check_getter_code() }}
-    {{ util_macro.declare_return_value(function.return, use_nullable_struct) }}
+    {# TODO Use util_macro #}
+    {{ declare_return_value(function.return, use_nullable_struct) }}
     ESValue arg0 = instance->currentExecutionContext()->readArgument(0);
     uint32_t idx = arg0.toIndex();
     if (idx == ESValue::ESInvalidIndexValue) {

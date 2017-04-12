@@ -100,6 +100,8 @@ def _is_class(node, class_name):
 def _value_to_str(value, type):
   if 'String' in type:
     return '\"' + str(value) + '\"'
+  elif type == 'boolean':
+    return str(value).lower()
   return value
 
 def _set_prop_to_dict(target, prop_name, v):
@@ -256,6 +258,16 @@ def _gen_basic_named(node):
 
 def _gen_ir_not_implemented(node):
   return { 'kind': 'NOT_IMPLEMENTED' }
+
+def _gen_ir_Dictionary(node):
+  # print __dump_node(node)
+  result = _gen_basic_named(node)
+  keys = []
+  for child in node.GetChildren():
+    if _is_class(child, 'Key'):
+      keys.append(_gen_ir_Argument(child))
+  _set_prop_to_dict(result, 'keys', keys)
+  return result
 
 def _gen_ir_Typedef(node):
   result = _gen_basic_named(node)
@@ -460,6 +472,24 @@ def _gen_ir_Stringifier(node):
   _set_prop_to_dict(result, 'stringifier', True)
   return result
 
+def _append_to_functions(obj, fns):
+  index = None
+  for idx, fn in enumerate(fns):
+    if obj.get('name') == fn.get('name'):
+      index = idx
+      break
+  if index:
+    if fns[index].get('kind') == 'Operation':
+      newFn = {}
+      _set_prop_to_dict(newFn, 'kind', 'MultiOperation')
+      _set_prop_to_dict(newFn, 'name', fns[index].get('name'))
+      _set_prop_to_dict(newFn, 'operations', [fns[index], obj])
+      fns[index] = newFn
+    elif fns[index].get('kind') == 'MultiOperation':
+      fns[index].get('operations').append(obj)
+  else:
+    fns.append(obj)
+
 def _gen_ir_Interface(node):
   # print __dump_node(node)
   global _found_custom_in_interface
@@ -481,7 +511,7 @@ def _gen_ir_Interface(node):
         if op_ir.get('enumerable') is None:
           op_ir['enumerable'] = True
         item_getters.append(op_ir)
-      functions.append(op_ir)
+      _append_to_functions(op_ir, functions)
     elif _is_class(child, 'Stringifier'):
       child_ir = _gen_ir_Stringifier(child)
       if child_ir['kind'] == 'Attribute':
@@ -515,6 +545,73 @@ def _gen_ir_Interface(node):
     _set_prop_to_dict(result, 'item_getters', item_getters)
   return result
 
+def _change_types(type_ir, dicts, cbs):
+  if type_ir.get('kind') == 'Typeref':
+      for dictionary in dicts:
+        if type_ir.get('name') == dictionary.get('name'):
+          type_ir['kind'] = 'Dictionary'
+          type_ir['data'] = dictionary
+          return
+      for cb in cbs:
+        if type_ir.get('name') == cb.get('name'):
+          type_ir['kind'] = 'Callback'
+          type_ir['data'] = cb
+          return
+
+
+def _set_to_callback_type(type_ir, cbs):
+  if type_ir.get('kind') == 'Typeref':
+      for cb in cbs:
+        if type_ir.get('name') == cb.get('name'):
+          type_ir['kind'] = 'Callback'
+          type_ir['data'] = cb
+
+def _handle_post(irs):
+  dictionaries = []
+  interfaces = []
+  callbacks = []
+  for ir in irs:
+    kind = ir['kind']
+    if kind == 'Dictionary':
+      dictionaries.append(ir)
+    elif kind == 'Interface':
+      interfaces.append(ir)
+    elif kind == 'Callback':
+      callbacks.append(ir)
+  if len(dictionaries) is 0:
+    return
+  # Assume dictionary only presents as input type
+  for interface in interfaces:
+    # Check const -> skip
+    # Check attr
+    for attr in interface.get('attributes'):
+      getter = attr.get('getter')
+      _change_types(getter.get('return'), dictionaries, callbacks)
+      if attr.get('setter') is None:
+        continue
+      arg_type = attr.get('setter').get('arguments')[0].get('type')
+      _change_types(arg_type, dictionaries, callbacks)
+    # Check operation
+    for fn in interface.get('functions'):
+      if fn.get('kind') == 'Operation':
+        for arg in fn.get('arguments', []):
+          arg_type = arg.get('type')
+          _change_types(arg_type, dictionaries, callbacks)
+        _change_types(fn.get('return'), dictionaries, callbacks)
+      elif fn.get('kind') == 'multiOperation':
+        for subfn in fn.get('operations', []):
+          for arg in subfn.get('arguments', []):
+            arg_type = arg.get('type')
+            _change_types(arg_type, dictionaries, callbacks)
+          _change_types(subfn.get('return'), dictionaries, callbacks)
+    # Check constructor
+    constructor = interface.get('constructor', None)
+    if constructor is None:
+      continue
+    for arg in constructor.get('arguments', []):
+      arg_type = arg.get('type')
+      _change_types(arg_type, dictionaries, callbacks)
+
 ##########################################################
 def gen_ir(node):
   # print __dump_node(node)
@@ -533,6 +630,7 @@ def gen_ir_from_file(file_path, debug=False):
   result = []
   for top_node in nodes.GetChildren():
     result.append(gen_ir(top_node))
+  _handle_post(result)
   return result
 
 ##########################################################

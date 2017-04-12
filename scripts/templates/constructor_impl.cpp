@@ -91,10 +91,14 @@
     {%- endif %}
 {%- endmacro -%}
 
-{%- macro function_code_normal(class_name, function) -%}
-    {% set max_arg = function.arguments|length %}
-    {% set min_passing_count = function.min_passing_count|default(0) %}
-    {% set min_passed_count = function.min_passed_count|default(0) %}
+{% if constructor.custom %}
+extern ESValue {{ name|lower }}Constructor(ESVMInstance* instance);
+{% else %}
+static ESValue {{ name|lower }}Constructor(ESVMInstance* instance)
+{
+    {% set max_arg = constructor.arguments|length %}
+    {% set min_passing_count = constructor.min_passing_count|default(0) %}
+    {% set min_passed_count = constructor.min_passed_count|default(0) %}
     {% set uniformed_call = (max_arg == min_passing_count) %}
     {% if min_passed_count != 0 %}
     size_t argCount = instance->currentExecutionContext()->argumentCount();
@@ -106,28 +110,20 @@
     {% endif %}
     // This function has {{'' if uniformed_call else 'not '}}uniformed function call
     {% if not uniformed_call %}
-    size_t validArgCount = {{ function.arguments|length }};
+    size_t validArgCount = {{ constructor.arguments|length }};
     {% endif %}
-    {% for arg in function.arguments %}
+    {% for arg in constructor.arguments %}
     ESValue arg{{loop.index - 1}} = instance->currentExecutionContext()->readArgument({{loop.index - 1}});
     {% endfor %}
 
-    {% for arg in function.arguments %}
+    {% for arg in constructor.arguments %}
     {{ handle_arg(loop.index - 1, arg) }}
     {{- 'Error : Wrong argument type' | assert_true(arg.type.name in ['void']) -}}
     {{- 'Error : Unimplemented argument type' | assert_true(arg.type.name in ['object', 'Sequence', 'UnionType', 'Promise']) -}}
     {% endfor %}
-    {{ class_name }}* result = nullptr;
-    {{ gen_native_call_code(max_arg, min_passing_count, class_name, function, uniformed_call) }}
+    {{ name }}* result = nullptr;
+    {{ gen_native_call_code(max_arg, min_passing_count, name, constructor, uniformed_call) }}
     return result->scriptValue();
-{% endmacro -%}
-
-{% if constructor.custom %}
-extern ESValue {{ name|lower }}Constructor(ESVMInstance* instance);
-{% else %}
-static ESValue {{ name|lower }}Constructor(ESVMInstance* instance)
-{
-    {{- function_code_normal(name, constructor) -}}
 }
 {% endif %}
 
