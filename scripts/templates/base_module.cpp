@@ -24,6 +24,12 @@ namespace StarFish {
 
 using namespace escargot;
 
+{% if used_dictionary %}
+// Converters for dictionary
+  {%- for dictionary in used_dictionary %}
+{% include 'dictionary_impl.cpp' ignore missing %}
+  {% endfor %}
+{% endif %}
 {% if constructor and not constructor.unimplemented%}
 // Implement for constructor
 {% include 'constructor_impl.cpp' ignore missing %}

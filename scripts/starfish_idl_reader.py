@@ -102,6 +102,8 @@ def _value_to_str(value, type):
     return '\"' + str(value) + '\"'
   elif type == 'boolean':
     return str(value).lower()
+  elif type == 'NULL':
+    return 'nullptr'
   return value
 
 def _set_prop_to_dict(target, prop_name, v):
@@ -551,20 +553,14 @@ def _change_types(type_ir, dicts, cbs):
         if type_ir.get('name') == dictionary.get('name'):
           type_ir['kind'] = 'Dictionary'
           type_ir['data'] = dictionary
+          dictionary['_check'] = True
           return
       for cb in cbs:
         if type_ir.get('name') == cb.get('name'):
           type_ir['kind'] = 'Callback'
           type_ir['data'] = cb
+          cb['_check'] = True
           return
-
-
-def _set_to_callback_type(type_ir, cbs):
-  if type_ir.get('kind') == 'Typeref':
-      for cb in cbs:
-        if type_ir.get('name') == cb.get('name'):
-          type_ir['kind'] = 'Callback'
-          type_ir['data'] = cb
 
 def _handle_post(irs):
   dictionaries = []
@@ -612,6 +608,12 @@ def _handle_post(irs):
       arg_type = arg.get('type')
       _change_types(arg_type, dictionaries, callbacks)
 
+    used_dictionary = []
+    for dictionary in dictionaries:
+      if dictionary.pop('_check', None):
+        used_dictionary.append(dictionary)
+    if len(used_dictionary) > 0:
+      interface['used_dictionary'] = used_dictionary
 ##########################################################
 def gen_ir(node):
   # print __dump_node(node)
