@@ -1,7 +1,10 @@
 // https://html.spec.whatwg.org/multipage/embedded-content.html#the-img-element
 // NOTE Using DOMString instead of USVString
 
-[HTMLConstructor, NamedConstructor=Image(optional unsigned long width, optional unsigned long height)]
+[
+  HTMLConstructor,
+  ConstructorCallWith=Document,
+  NamedConstructor=Image(optional unsigned long width, optional unsigned long height)]
 interface HTMLImageElement : HTMLElement {
   [Unimplemented, CEReactions] attribute DOMString alt;
   [CEReactions] attribute DOMString src;

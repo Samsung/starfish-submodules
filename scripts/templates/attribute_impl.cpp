@@ -9,12 +9,9 @@ static ESValue {{ attribute.name }}GetterFunction(ESVMInstance* instance)
 {
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
     {% set getter_type = attribute.getter.return %}
-    {% set use_nullable_struct = (attribute.getter.return.kind in ['StringType', 'Any', 'PrimitiveType'])
-                                  and attribute.getter.return.nullable %}
-    {% set has_return = (attribute.getter.return.name != 'void') %}
-    {{ util_macro.declare_return_value(attribute.getter.return, use_nullable_struct) }}
+    {{ util_macro.gen_declare_return_value(attribute.getter.return) }}
     result = originalObj->{{ util_macro.attr_name(attribute) }}();
-    {{ util_macro.handle_return(attribute.getter.return, has_return, use_nullable_struct) }}
+    {{ util_macro.handle_return(attribute.getter.return) }}
     {{- 'Error : Unimplemented return type' | assert_true(attribute.getter.return.name in ['object', 'Sequence', 'UnionType', 'Promise']) }}
 }
 {% endif %}
@@ -29,7 +26,7 @@ static ESValue {{ attribute.name }}SetterFunction(ESVMInstance* instance)
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
     {% set arg = attribute.setter.arguments[0] %}
     ESValue arg0 = instance->currentExecutionContext()->readArgument(0);
-    {{ util_macro.handle_arg(0, arg) }}
+    {{ util_macro.handle_arg(arg, 'arg0', 'value0')|trim }}
     {{- 'Error : Wrong argument type' | assert_true(arg.type.name in ['void']) }}
     {{- 'Error : Unimplemented argument type' | assert_true(arg.type.name in ['object', 'Sequence', 'UnionType', 'Promise']) }}
     originalObj->set{{ util_macro.attr_name(attribute)|first_word_capitalize }}(value0);

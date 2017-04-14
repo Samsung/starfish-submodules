@@ -6,7 +6,7 @@ callback PositionErrorCallback = void (PositionError positionError);
 
 [NoInterfaceObject]
 interface Geolocation { 
-  void getCurrentPosition(PositionCallback successCallback,
+  [Custom] void getCurrentPosition(PositionCallback successCallback,
                           optional PositionErrorCallback errorCallback,
                           optional PositionOptions options);
 

@@ -18,7 +18,8 @@ typedef (HTMLScriptElement or SVGScriptElement) HTMLOrSVGScriptElement;
 enum VisibilityState { "hidden", "visible", "prerender", "unloaded" };
 
 
-[Constructor,
+[UnimplementedConstructor,
+ Constructor,
  Exposed=Window]
 interface Document : Node {
   // [REF1]--------------------------------------------------------------
@@ -251,6 +252,7 @@ Document implements ParentNode
 interface XMLDocument : Document {};
 
 // [REF1]
+[Unimplemented]
 dictionary ElementCreationOptions {
   DOMString is;
 };

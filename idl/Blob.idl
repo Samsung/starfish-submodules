@@ -16,7 +16,7 @@ interface Blob {
             optional DOMString contentType);
 };
 
-dictionary BlobPropertyBag {
+[Unimplemented] dictionary BlobPropertyBag {
   DOMString type = "";
 };
 

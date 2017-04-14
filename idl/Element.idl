@@ -59,7 +59,9 @@ interface Element : Node {
 
 
   // [REF7]--------------------------------------------------------------
-  sequence<DOMRect> getClientRects();
+  // NOTE using DOMRectList instead of sequence<DOMRect>
+  // sequence<DOMRect> getClientRects();
+  DOMRectList getClientRects();
   [NewObject] DOMRect getBoundingClientRect();
   [Unimplemented] void scrollIntoView();
   [Unimplemented] void scrollIntoView((boolean or object) arg);
@@ -119,6 +121,7 @@ interface Element : Node {
 
 
 // [REF1]----------------------------------------------------------------
+[Unimplemented]
 dictionary ShadowRootInit {
   required ShadowRootMode mode;
 };

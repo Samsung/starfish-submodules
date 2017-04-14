@@ -7,7 +7,7 @@ import json
 import sys
 
 from jinja2 import Environment, FileSystemLoader
-from starfish_idl_reader import gen_ir_from_file
+from starfish_idl_reader import gen_ir_from_file, get_interfaces
 
 CPP_EXT = ".cpp"
 H_EXT = ".h"
@@ -20,29 +20,29 @@ BINDING_PATH = os.path.join(STARFISH_PATH, 'src', 'binding')
 # MODULES_FILE = os.path.join(SCRIPT_PATH, "module.json")
 BUIILTINT_MODULE_FILE = os.path.join(IDL_PATH, 'Builtin.idl')
 
-enums = {}
-typedefs = {}
+# NOTE Moved type matching code to starfish_idl_reader
+# enums = {}
+# typedefs = {}
+# def register_type(module):
+#   if module['kind'] == 'Enum':
+#     if module['name'] in enums:
+#       return
 
-def register_type(module):
-  if module['kind'] == 'Enum':
-    if module['name'] in enums:
-      return
-
-    enums[module['name']] = []
-    for item in module['items']:
-      enums[module['name']].append(item)
-  elif module['kind'] == 'Typedef':
-    if module['name'] in typedefs:
-      return
-
-    typedefs[module['name']] = module['from']
+#     enums[module['name']] = []
+#     for item in module['data']:
+#       enums[module['name']].append(item)
+#   elif module['kind'] == 'Typedef':
+#     if module['name'] in typedefs:
+#       return
+#     typedefs[module['name']] = module['from']
 
 def generate_code(root, f, args): #, sf_modules):
-  irs = gen_ir_from_file(os.path.join(root, f))
+  irs = gen_ir_from_file(os.path.join(root, f), dep_irs=builin_irs)
+  interfaces = get_interfaces(irs)
   print("Generated IR from {}".format(f))
 
-  for module in irs:
-    register_type(module)
+  for module in interfaces:
+    # register_type(module)
 
     if module['kind'] != 'Interface':
       continue
@@ -114,14 +114,17 @@ if __name__ == "__main__":
   env.filters['to_arg_syntax'] = filter_to_argument_syntax
   env.filters['first_word_capitalize'] = filter_first_word_capitalize
 
-  # Set global variables
-  env.globals['enum'] = enums
-  env.globals['typedefs'] = typedefs
+  # NOTE Moved type matching code to starfish_idl_reader
+  # # Set global variables
+  # env.globals['enum'] = enums
+  # env.globals['typedefs'] = typedefs
 
-  irs = gen_ir_from_file(BUIILTINT_MODULE_FILE)
+  global builin_irs
+  builin_irs = gen_ir_from_file(BUIILTINT_MODULE_FILE)
 
-  for module in irs:
-    register_type(module)
+  # NOTE Moved type matching code to starfish_idl_reader
+  # for module in irs:
+  #   register_type(module)
 
   # with open(MODULES_FILE, 'r') as r:
   #  sf_modules = json.loads(r.read())

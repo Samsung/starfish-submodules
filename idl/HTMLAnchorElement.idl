@@ -3,17 +3,17 @@
 
 [HTMLConstructor]
 interface HTMLAnchorElement : HTMLElement {
-  [Unimplement, CEReactions] attribute DOMString target;
-  [Unimplement, CEReactions] attribute DOMString download;
-  [Unimplement, CEReactions] attribute DOMString ping;
-  [Unimplement, CEReactions] attribute DOMString rel;
-  [Unimplement, SameObject, PutForwards=value] readonly attribute DOMTokenList relList;
-  [Unimplement, CEReactions] attribute DOMString hreflang;
-  [Unimplement, CEReactions] attribute DOMString type;
+  [Unimplemented, CEReactions] attribute DOMString target;
+  [Unimplemented, CEReactions] attribute DOMString download;
+  [Unimplemented, CEReactions] attribute DOMString ping;
+  [Unimplemented, CEReactions] attribute DOMString rel;
+  [Unimplemented, SameObject, PutForwards=value] readonly attribute DOMTokenList relList;
+  [Unimplemented, CEReactions] attribute DOMString hreflang;
+  [Unimplemented, CEReactions] attribute DOMString type;
 
-  [Unimplement, CEReactions] attribute DOMString text;
+  [Unimplemented, CEReactions] attribute DOMString text;
 
-  [Unimplement, CEReactions] attribute DOMString referrerPolicy;
+  [Unimplemented, CEReactions] attribute DOMString referrerPolicy;
 };
 
 // TODO Support impements

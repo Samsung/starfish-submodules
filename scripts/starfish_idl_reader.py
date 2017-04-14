@@ -6,6 +6,7 @@ from functools import partial
 
 from starfish_idl_lexer import StarfishIDLLexer
 from starfish_idl_parser import StarfishIDLParser
+from starfish_ir_handler import StarfishIRHandler
 
 def CHECK_STRING_T(v, msg=""):
   if type(v) is not types.StringType:
@@ -92,8 +93,6 @@ def __dump_node(node):
   return result
 
 ##########################################################
-_found_custom_in_interface = False
-
 def _is_class(node, class_name):
   return node.GetClass() == class_name
 
@@ -152,26 +151,33 @@ def _hd_extattr_flags(target, extattr):
   return False
 
 def _hd_extattr_constructor(target, extattr):
-  global _found_custom_in_interface
   if extattr.GetName() == 'NamedConstructor':
     # NamedConstructor
     for child in extattr.GetChildren():
       if _is_class(child, 'Call'):
         constructor = _gen_ir_Operation(child)
         constructor.pop('kind', None)
-        target['named_constructor'] = constructor
+        _set_prop_to_dict(constructor, 'prototype', 'Object')
+        _set_prop_to_dict(target, 'constructor', constructor)
         return True
+  elif extattr.GetName() == 'HTMLConstructor':
+    target['HTMLConstructor'] = True
+    return True
   elif extattr.GetName() == 'UnimplementedConstructor':
     target['_unimple_cst'] = True
+    return True
+  elif extattr.GetName() == 'ConstructorCallWith':
+    target['_call_with'] = extattr.GetProperty('VALUE')
     return True
   elif 'Constructor' in extattr.GetName():
     # Constructor
     constructor = _gen_ir_Operation(extattr)
     constructor.pop('kind', None)
+    prototype = 'Error' if 'Exception' in extattr.GetName() else 'Object'
     _set_prop_to_dict(constructor, 'name', '')
+    _set_prop_to_dict(constructor, 'prototype', prototype)
     _set_prop_to_dict(target, 'constructor', constructor)
     if 'Custom' in extattr.GetName():
-      _found_custom_in_interface = True
       _set_prop_to_dict(constructor, 'custom', True)
     return True
   return False
@@ -191,12 +197,6 @@ def _hd_extattr_cereactions(target, extattr):
 def _hd_extattr_object_opt(target, extattr):
   if extattr.GetName() == 'NewObject' or extattr.GetName() == 'SameObject':
     target['object_option'] = extattr.GetName()
-    return True
-  return False
-
-def _hd_extattr_htmlconstructor(target, extattr):
-  if extattr.GetName() == 'HTMLConstructor':
-    target['HTMLConstructor'] = True
     return True
   return False
 
@@ -225,22 +225,17 @@ def _hd_extattr_no_interfaceobj(target, extattr):
   return False
 
 def _hd_extattr_custom(target, extattr):
-  global _found_custom_in_interface
   if extattr.GetName() == 'Custom':
     target['custom'] = True
-    _found_custom_in_interface = True
     return True
   return False
 
 def _hd_extattr_custom_getter_setter(target, extattr):
-  global _found_custom_in_interface
   if extattr.GetName() == 'CustomGetter':
     target['custom_getter'] = True
-    _found_custom_in_interface = True
     return True
   elif extattr.GetName() == 'CustomSetter':
     target['custom_setter'] = True
-    _found_custom_in_interface = True
     return True
   return False
 
@@ -268,6 +263,11 @@ def _gen_ir_Dictionary(node):
   for child in node.GetChildren():
     if _is_class(child, 'Key'):
       keys.append(_gen_ir_Argument(child))
+    elif _is_class(child, 'ExtAttributes'):
+      _handle_extattrs(result,
+                       child.GetChildren(),
+                       [_hd_extattr_flags,
+                        _hd_extattr_unimplemented])
   _set_prop_to_dict(result, 'keys', keys)
   return result
 
@@ -292,7 +292,7 @@ def _gen_ir_Enum(node):
       _handle_extattrs(result,
                        child.GetChildren(),
                        [_hd_extattr_flags])
-  result['items'] = items
+  result['data'] = items
   return result
 
 def _gen_ir_Type(node):
@@ -309,7 +309,7 @@ def _gen_ir_Type(node):
       subtypes = []
       for subt in child.GetChildren():
         subtypes.append(_gen_ir_Type(subt))
-      result['subtypes'] = subtypes
+      result['data'] = subtypes
     elif _is_class(child, 'Any'):
       result['kind'] = child.GetClass()
       result['name'] = child.GetClass()
@@ -494,8 +494,6 @@ def _append_to_functions(obj, fns):
 
 def _gen_ir_Interface(node):
   # print __dump_node(node)
-  global _found_custom_in_interface
-  _found_custom_in_interface = None
   result = _gen_basic_named(node)
   _set_prop_to_dict(result, 'global_expose', True)
   constants = []
@@ -532,88 +530,21 @@ def _gen_ir_Interface(node):
                        [_hd_extattr_flags,
                         _hd_extattr_constructor,
                         _hd_extattr_unimplemented,
-                        _hd_extattr_htmlconstructor,
                         _hd_extattr_no_interfaceobj])
 
+  
+  call_with = result.pop('_call_with', None)
   unimple_cst = result.pop('_unimple_cst', None)
   constructor = result.get('constructor')
   if constructor:
     _set_prop_to_dict(constructor, 'unimplemented', unimple_cst)
+    _set_prop_to_dict(constructor, 'call_with', call_with)
   _set_prop_to_dict(result, 'constants', constants)
   _set_prop_to_dict(result, 'attributes', attributes)
   _set_prop_to_dict(result, 'functions', functions)
-  _set_prop_to_dict(result, 'has_custom', _found_custom_in_interface)
   if len(item_getters) > 0:
     _set_prop_to_dict(result, 'item_getters', item_getters)
   return result
-
-def _change_types(type_ir, dicts, cbs):
-  if type_ir.get('kind') == 'Typeref':
-      for dictionary in dicts:
-        if type_ir.get('name') == dictionary.get('name'):
-          type_ir['kind'] = 'Dictionary'
-          type_ir['data'] = dictionary
-          dictionary['_check'] = True
-          return
-      for cb in cbs:
-        if type_ir.get('name') == cb.get('name'):
-          type_ir['kind'] = 'Callback'
-          type_ir['data'] = cb
-          cb['_check'] = True
-          return
-
-def _handle_post(irs):
-  dictionaries = []
-  interfaces = []
-  callbacks = []
-  for ir in irs:
-    kind = ir['kind']
-    if kind == 'Dictionary':
-      dictionaries.append(ir)
-    elif kind == 'Interface':
-      interfaces.append(ir)
-    elif kind == 'Callback':
-      callbacks.append(ir)
-  if len(dictionaries) is 0:
-    return
-  # Assume dictionary only presents as input type
-  for interface in interfaces:
-    # Check const -> skip
-    # Check attr
-    for attr in interface.get('attributes'):
-      getter = attr.get('getter')
-      _change_types(getter.get('return'), dictionaries, callbacks)
-      if attr.get('setter') is None:
-        continue
-      arg_type = attr.get('setter').get('arguments')[0].get('type')
-      _change_types(arg_type, dictionaries, callbacks)
-    # Check operation
-    for fn in interface.get('functions'):
-      if fn.get('kind') == 'Operation':
-        for arg in fn.get('arguments', []):
-          arg_type = arg.get('type')
-          _change_types(arg_type, dictionaries, callbacks)
-        _change_types(fn.get('return'), dictionaries, callbacks)
-      elif fn.get('kind') == 'multiOperation':
-        for subfn in fn.get('operations', []):
-          for arg in subfn.get('arguments', []):
-            arg_type = arg.get('type')
-            _change_types(arg_type, dictionaries, callbacks)
-          _change_types(subfn.get('return'), dictionaries, callbacks)
-    # Check constructor
-    constructor = interface.get('constructor', None)
-    if constructor is None:
-      continue
-    for arg in constructor.get('arguments', []):
-      arg_type = arg.get('type')
-      _change_types(arg_type, dictionaries, callbacks)
-
-    used_dictionary = []
-    for dictionary in dictionaries:
-      if dictionary.pop('_check', None):
-        used_dictionary.append(dictionary)
-    if len(used_dictionary) > 0:
-      interface['used_dictionary'] = used_dictionary
 ##########################################################
 def gen_ir(node):
   # print __dump_node(node)
@@ -624,7 +555,7 @@ def gen_ir(node):
   except KeyError:
     return _gen_ir_not_implemented(node)
 
-def gen_ir_from_file(file_path, debug=False):
+def gen_ir_from_file(file_path, dep_irs = [], debug=False):
   # TODO Use singleton lexer, parser
   lexer = StarfishIDLLexer(debug=debug)
   parser = StarfishIDLParser(lexer, debug=debug)
@@ -632,7 +563,15 @@ def gen_ir_from_file(file_path, debug=False):
   result = []
   for top_node in nodes.GetChildren():
     result.append(gen_ir(top_node))
-  _handle_post(result)
+  handler = StarfishIRHandler()
+  handler.get_typed_interfaces(result + dep_irs)
+  return result
+
+def get_interfaces(irs):
+  result = []
+  for ir in irs:
+    if ir.get('kind') == 'Interface':
+      result.append(ir)
   return result
 
 ##########################################################

@@ -1,6 +1,7 @@
 // https://dom.spec.whatwg.org/#interface-documentfragment
 
-[Constructor,
+[UnimplementedConstructor,
+ Constructor,
  Exposed=Window]
 interface DocumentFragment : Node {
   // TODO Support Implements

@@ -13,6 +13,12 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+{% if flags and flags|length > 0 %}
+#if defined({{flags[0]}})
+    {%- for idx in range(1, flags|length) %}
+        {{-  ' && defined(%s)'|format(flags[idx]) -}}
+    {% endfor %}
+{% endif %}
 
 #include "StarFishConfig.h"
 #include "ScriptBindingInstance.h"
@@ -25,9 +31,10 @@ namespace StarFish {
 using namespace escargot;
 
 {% if used_dictionary %}
-// Converters for dictionary
   {%- for dictionary in used_dictionary %}
+    {% if not dictionary.unimplemented %}
 {% include 'dictionary_impl.cpp' ignore missing %}
+    {% endif %}
   {% endfor %}
 {% endif %}
 {% if constructor and not constructor.unimplemented%}
@@ -46,7 +53,11 @@ using namespace escargot;
 // Implement for functions
   {% for function in functions %}
     {% if not function.unimplemented %}
+      {% if function.kind == 'Operation' %}
 {% include 'function_impl.cpp' ignore missing %}
+      {% elif function.kind == 'MultiOperation' %}
+{% include 'function_multiform_impl.cpp' ignore missing %}
+      {% endif %}
     {% endif %}
   {% endfor %}
 {% endif %}
@@ -74,5 +85,8 @@ ESFunctionObject* binding{{ name }}(
 {% endif %}
     return {{ name }}Function;
 }
+{% include 'constructor_named_bind.cpp' ignore missing %}
 }
-
+{% if flags and flags|length > 0 %}
+#endif
+{% endif %}

@@ -12,6 +12,7 @@ interface DOMRect : DOMRectReadOnly {
   inherit attribute unrestricted double height;
 };
 
+[Unimplemented]
 dictionary DOMRectInit {
   unrestricted double x = 0;
   unrestricted double y = 0;

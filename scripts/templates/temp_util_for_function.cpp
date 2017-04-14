@@ -1,73 +1,157 @@
-{%- macro gen_from_esvalue(type, aname, vname) -%}
-    {% if type.kind == 'StringType' %}
-        {{- '%s = toBrowserString(%s);'|format(vname, aname) -}}
+{################## 'HANDLE ARGUMENTS' ##################}
+{%- macro gen_check_type(type, aname) -%}
+    {% if type.kind == 'Typeref' -%}
+        CHECK_TYPEOF({{aname}}, {{type.name}});
+    {% endif %}
+{% endmacro -%}
+
+{%- macro gen_esvalue_to_native(type, aname) -%}
+    {% if type.kind in ['StringType', 'Enum'] %}
+        {{- 'toBrowserString(%s)'|format(aname) -}}
     {% elif type.kind == 'Any' %}
-        {{- '%s = jsonStringify(%s);'|format(vname, aname) -}}
+        {{- 'jsonStringify(%s)'|format(aname) -}}
     {% elif type.kind == 'Typeref' %}
-        {{- 'CHECK_TYPEOF(%s, %s)'|format(aname, type.name) }}
-        {{ '%s = (%s*)(%s.asESPointer()->asESObject()->extraPointerData());'|format(vname, type.name, aname) -}}
-    {% elif type.name == 'boolean' %}
-        {{- '%s = %s.toBoolean();'|format(vname, aname) -}}
-    {% elif type.name in ['long', 'short'] %}
-        {{- '%s = %s.toInt32();'|format(vname, aname) -}}
-    {% elif type.name in ['unsigned long', 'unsigned short'] %}
-        {{- '%s = %s.toUInt32();'|format(vname, aname) -}}
-    {% elif type.name in ['double', 'long long', 'unsigned long long'] %}
-        {{- '%s = %s.toNumber();'|format(vname, aname) -}}
+        {{- '(%s*)(%s.asESPointer()->asESObject()->extraPointerData())'|format(type.name, aname) -}}
     {% elif type.kind == 'Dictionary' %}
-        {{- '%s = to%sFromESValue(%s);'|format(vname, type.name, aname) -}}
-    {% endif %}
-{%- endmacro -%}
-
-{%- macro gen_type_str(type) -%}
-    {% if type.kind in ['StringType', 'Any'] %}
-        {{- 'String*' -}}
-    {% elif type.kind == 'Typeref' %}
-        {{- '%s*'|format(type.name) -}}
-    {% elif type.kind in ['PrimitiveType', 'Dictionary'] %}
-        {{- type.name -}}
-    {% endif %}
-{%- endmacro -%}
-
-{%- macro handle_arg(arg, aname, vname) -%}
-    {{ '// Handle argument %s'|format(aname) }}
-    {% if arg.default %}
-        {% if arg.type.kind == 'StringType' %}
-    {{ gen_type_str(arg.type) }} {{ vname }} = String::fromUTF8({{ arg.default }});
-        {% else %}
-    {{ gen_type_str(arg.type) }} {{ vname }} = {{ arg.default }};
+        {{- 'to%sFromESValue(instance, %s)'|format(type.name, aname) -}}
+    {% elif type.kind == 'Callback' %}
+        {{- 'new %s(%s)'|format(type.name, aname) -}}
+    {% elif type.kind == 'PrimitiveType' %}
+        {% if type.name == 'boolean' %}
+            {{- '%s.toBoolean()'|format(aname) -}}
+        {% elif type.name in ['long', 'short'] %}
+            {{- '%s.toInt32()'|format(aname) -}}
+        {% elif type.name in ['unsigned long', 'unsigned short'] %}
+            {{- '%s.toUint32()'|format(aname) -}}
+        {% elif type.name in ['double', 'long long', 'unsigned long long'] %}
+            {{- '%s.toNumber()'|format(aname) -}}
         {% endif %}
-    {% else %}
-    {{ gen_type_str(arg.type) }} {{ vname }};
     {% endif %}
-    {% if arg.treat_null_as and arg.treat_null_as == 'EmptyString' %}
-    if ({{ aname }}.isUndefinedOrNull()) {
-        // Null/Undefined argument is treated as EmptyString
-        {{ vname }} = String::emptyString;
-    } else {
-        {{ gen_from_esvalue(arg.type, aname, vname) }}
+{%- endmacro -%}
+
+{%- macro gen_type_str(type, use_nullable) -%}
+    {% if type.kind in ['StringType', 'Any', 'Enum'] %}
+        {% set type_str = 'String*'%}
+    {% elif type.kind in ['Typeref', 'Callback'] %}
+        {% set type_str = '%s*'|format(type.name)%}
+    {% elif type.name == 'boolean' %}
+        {% set type_str = 'bool'%}
+    {% elif type.kind in ['PrimitiveType', 'Dictionary'] %}
+        {% set type_str  = type.name %}
+    {% endif %}
+    {% if use_nullable %}
+        {{- 'Nullable<%s>'|format(type_str) -}}
+    {% else %}
+        {{- '%s'|format(type_str) -}}
+    {% endif %}
+{%- endmacro -%}
+
+{%- macro handle_arg(arg, aname, vname) %}
+    {% set use_nullable = (arg.type.kind in ['StringType','Any', 'PrimitiveType', 'Enum'])
+                           and arg.type.nullable %}
+    {% set type_exp = gen_type_str(arg.type, use_nullable) %}
+    {{ '// Handle argument %s'|format(aname) }}
+    {###### Declaring native variable of an argument ######}
+    {% if arg.default and arg.type.kind in ['StringType', 'Enum'] %}
+    {{ '%s %s = String::fromUTF8(%s);'|format(type_exp, vname, arg.default) }}
+    {% elif arg.default %}
+    {{ '%s %s = %s;'|format(type_exp, vname, arg.default) }}
+    {% elif arg.type.kind in ['StringType', 'Enum'] and not use_nullable %}
+    {{ '%s %s = String::emptyString;'|format(type_exp, vname) }}
+    {% elif arg.type.kind in ['Typeref', 'Callback'] %}
+    {{ '%s %s = nullptr;'|format(type_exp, vname) }}
+    {% else %}
+    {{ '%s %s;'|format(type_exp, vname) }}
+    {% endif %}
+    {###### Assigning native variable of an argument ######}
+    {% set assign_exp = '%s%s = %s;'|format(gen_check_type(arg.type, aname),
+                              vname, gen_esvalue_to_native(arg.type, aname)) %}
+    {%- if (arg.treat_null_as == 'EmptyString') or arg.default %}
+    {# '(1) Has-TreatNullAs or Has-DefaultValue' #}
+    {# '    (NOTE TreatNullAs may not be with optional)' #}
+    if (!{{ aname }}.isUndefinedOrNull()) {
+        {{ assign_exp|indent(8) }}
     }
-    {% elif arg.optional or arg.default %}
-        {% if not arg.default and not uniformed_call %}
+    {%- elif arg.optional %}
+    {# '(2) Optional + No-DefaultValue' #}
     if ({{ aname }}.isUndefinedOrNull()) {
         validArgCount--;
     } else {
-        {{ gen_from_esvalue(arg.type, aname, vname) }}
+        {{ assign_exp|indent(8) }}
     }
-        {% else %}
+    {%- elif arg.type.nullable %}
+    {# '(4) Non-optional + Nullable' #}
     if (!{{ aname }}.isUndefinedOrNull()) {
-        {{ gen_from_esvalue(arg.type, aname, vname) }}
+        {{ assign_exp|indent(8) }}
     }
-        {% endif %}
-    {%- elif arg.type.kind == 'Typeref' %}
+    {%- elif arg.type.kind in ['Typeref', 'Callback'] %}
+    {# '(5) Non-optional + Non-Nullable + RefTypes' #}
     if ({{ aname }}.isUndefinedOrNull()) {
         instance->throwError(ESValue(
                 TypeError::create(ESString::create("Wrong argument"))));
         STARFISH_RELEASE_ASSERT_NOT_REACHED();
     } else {
-        {{ gen_from_esvalue(arg.type, aname, vname) }}
+        {{ assign_exp|indent(8) }}
     }
-    {% else %}
-    {{ gen_from_esvalue(arg.type, aname, vname) }}
+    {%- else %}
+    {# '(6) Non-optional + Non-Nullable + Non-RefTypes' #}
+    {{ assign_exp|indent(4) }}
     {% endif %}
 {% endmacro -%}
+
+
+{################## 'HANDLE RETURNS' ##################}
+{%- macro gen_declare_return_value(type) -%}
+    {% set use_nullable = (type.kind in ['StringType', 'Any', 'PrimitiveType']) and type.nullable %}
+    {% set type_exp = gen_type_str(type, use_nullable) %}
+    {% if type.kind in ['Typeref', 'Callback'] %}
+    {{- '%s result = nullptr;'|format(type_exp) -}}
+    {% elif type.kind in ['StringType', 'Enum'] %}
+    {{- '%s result = String::emptyString;'|format(type_exp) -}}
+    {% elif type.name != 'void' %}
+    {{- '%s result;'|format(type_exp) -}}
+    {% endif %}
+{%- endmacro -%}
+
+{%- macro gen_return_assert(type) %}
+    {% if type.kind in ['Typeref', 'Callback'] and not type.nullable %}
+STARFISH_ASSERT(result != nullptr);
+    {% endif %}
+{% endmacro -%}
+
+{%- macro gen_return_code(type, var_name) -%}
+    {%- if type.kind in ['StringType', 'Enum'] %}
+return toJSString({{var_name}});
+    {%- elif type.kind == 'Any' %}
+return parseJSON({{var_name}});
+    {%- elif type.kind == 'Typeref' %}
+return {{var_name}}->scriptValue();
+    {%- elif type.kind == 'Dictionary' %}
+return toESValueFrom{{type.name}}(instance, var_name);
+    {%- elif type.name in ['boolean', 'long', 'short', 'unsigned long', 'unsigned short', 'double', 'long long', 'unsigned long long'] %}
+return ESValue({{var_name}});
+    {%- else %}
+STARFISH_RELEASE_ASSERT_NOT_REACHED();
+    {% endif %}
+{%- endmacro -%}
+
+{%- macro handle_return(return_type) -%}
+    {% set use_nullable = (return_type.kind in ['StringType', 'Any', 'PrimitiveType']) and return_type.nullable %}
+    {% if return_type.name == 'void' -%}
+    return ESValue(ESValue::ESUndefined);
+    {%- elif use_nullable -%}
+    if (!result.hasValue()) {
+        return ESValue(ESValue::ESNull);
+    }
+    {{ gen_type_str(return_type, False) }} result_value = result.getValue();
+    {{ gen_return_code(return_type, 'result_value') }}
+    {%- elif return_type.nullable -%}
+    if (result == nullptr) {
+        return ESValue(ESValue::ESNull);
+    }
+    {{ gen_return_code(return_type, 'result') }}
+    {%- else -%}
+    {{ gen_return_assert(return_type) }}
+    {{ gen_return_code(return_type, 'result') }}
+    {%- endif %}
+{%- endmacro -%}
