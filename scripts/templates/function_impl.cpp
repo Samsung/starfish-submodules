@@ -10,20 +10,44 @@
     }
 {%- endmacro -%}
 
-{%- macro gen_native_call_code(max_arg, min_passing_count, function, return_left, uniformed_call) -%}
+{%- macro gen_native_call_impl(max_arg, min_passing_count, name, return_type, uniformed_call) -%}
+    {% set return_left = '' if return_type.name == 'void' else 'result = ' %}
     {% if max_arg == 0 -%}
-    {{return_left}}originalObj->{{function.name}}();
+{{return_left}}originalObj->{{name}}();
     {%- elif uniformed_call -%}
-    {{return_left}}originalObj->{{function.name}}({{ 'value'|to_arg_syntax(0, max_arg) }});
+{{return_left}}originalObj->{{name}}({{ 'value'|to_arg_syntax(0, max_arg) }});
     {%- else -%}
-    if (validArgCount == {{min_passing_count|string}}) {
-        {{return_left}}originalObj->{{function.name}}({{'value'|to_arg_syntax(0, min_passing_count)}});
+if (validArgCount == {{min_passing_count|string}}) {
+    {{return_left}}originalObj->{{name}}({{'value'|to_arg_syntax(0, min_passing_count)}});
         {% for count in range(min_passing_count + 1, max_arg + 1) %}
-    } else if (validArgCount == {{count|string}}) {
-        {{return_left}}originalObj->{{function.name}}({{'value'|to_arg_syntax(0, count)}});
+} else if (validArgCount == {{count|string}}) {
+    {{return_left}}originalObj->{{name}}({{'value'|to_arg_syntax(0, count)}});
         {% endfor %}
-    }
+}
     {%- endif -%}
+{%- endmacro -%}
+
+{%- macro gen_native_call(max_arg, min_passing_count, name, return_type, uniformed_call) -%}
+// Call native function (nargs: {{max_arg if uniformed_call else '%s-%s'|format(min_passing_count, max_arg)}})
+    {% set spaces = 8 if function.raises_exception else 4 %}
+    {% if function.raises_exception %}
+    try {
+    {% endif %}
+    {% if return_type.kind == 'Promise' and not return_type.data.kind in pointer_kinds %}
+#ifdef USE_ES6_FEATURE
+{{ gen_native_call_impl(max_arg, min_passing_count, name, return_type, uniformed_call)|indent(spaces, True) }}
+#else
+{{ gen_native_call_impl(max_arg, min_passing_count, name, return_type.data, uniformed_call)|indent(spaces, True) }}
+#endif
+    {% else %}
+{{ gen_native_call_impl(max_arg, min_passing_count, name, return_type, uniformed_call)|indent(spaces, True) }}
+    {% endif %}
+    {% if function.raises_exception %}
+    } catch (DOMException* e) {
+        ESVMInstance::currentInstance()->throwError(e->scriptValue());
+        STARFISH_RELEASE_ASSERT_NOT_REACHED();
+    }
+    {%- endif %}
 {%- endmacro -%}
 
 {%- macro gen_tc_coverage_code(class_name, function) -%}
@@ -40,7 +64,6 @@
     {% set min_passed_count = function.min_passed_count|default(0) %}
     {% set uniformed_call = (max_arg == min_passing_count) %}
     {% set has_return = (function.return.name != 'void') %}
-    {% set return_left = '' if not has_return else 'result = ' %}
     {% if min_passed_count != 0 %}
     size_t argCount = instance->currentExecutionContext()->argumentCount();
     if (argCount < {{ min_passed_count }}) {
@@ -52,29 +75,19 @@
     {% if not uniformed_call %}
     size_t validArgCount = {{ function.arguments|length }};
     {% endif %}
-    {{ util_macro.gen_declare_return_value(function.return) }}
+    {{ util_macro.gen_declare_return_value(function.return)|trim }}
     {% for arg in function.arguments %}
     ESValue arg{{loop.index - 1}} = instance->currentExecutionContext()->readArgument({{loop.index - 1}});
     {% endfor %}
     {% for arg in function.arguments -%}
     {{ util_macro.handle_arg(arg, 'arg%d'|format(loop.index - 1), 'value%d'|format(loop.index - 1)) }}
     {% endfor %}
-    // Call native function (nargs: {{max_arg if uniformed_call else '%s-%s'|format(min_passing_count, max_arg)}})
-    {% if function.raises_exception %}
-    try {
-        {{ gen_native_call_code(max_arg, min_passing_count, function, return_left, uniformed_call) }}
-    } catch (DOMException* e) {
-        ESVMInstance::currentInstance()->throwError(e->scriptValue());
-        STARFISH_RELEASE_ASSERT_NOT_REACHED();
-    }
-    {% else %}
-    {{ gen_native_call_code(max_arg, min_passing_count, function, return_left, uniformed_call) }}
-    {% endif %}
-    {{ util_macro.handle_return(function.return) }}
+    {{ gen_native_call(max_arg, min_passing_count, function.name, function.return, uniformed_call) }}
+    {{ util_macro.handle_return(function.return)|trim }}
 {% endmacro -%}
 
 {%- macro function_code_ellipsis(class_name, function) %}
-    {% set use_nullable = (function.return.kind in ['StringType', 'Any', 'PrimitiveType']) and function.return.nullable %}
+    {% set use_nullable = (function.return.kind in nullable_kinds) and function.return.nullable %}
     size_t argCount = instance->currentExecutionContext()->argumentCount();
     {% set type_exp = util_macro.gen_type_str(function.arguments[0].type, use_nullable) %}
     {% set assign_exp = util_macro.gen_esvalue_to_native(function.arguments[0].type, 'arg') %}
@@ -103,7 +116,7 @@
     {% set has_return = (function.return.name != 'void') %}
     // Class item getter by index
     {{ gen_check_getter_code() }}
-    {{ util_macro.gen_declare_return_value(function.return) }}
+    {{ util_macro.gen_declare_return_value(function.return)|trim }}
     ESValue arg0 = instance->currentExecutionContext()->readArgument(0);
     uint32_t idx = arg0.toIndex();
     if (idx == ESValue::ESInvalidIndexValue) {
@@ -114,7 +127,7 @@
         idx = std::isnan(__number) ? 0 : (uint32_t)__number;
     }
     result = originalObj->{{function.name}}(idx);
-    {{ util_macro.handle_return(function.return) }}
+    {{ util_macro.handle_return(function.return)|trim }}
 {% endmacro -%}
 
 {%- if not function.name == '_unnamed_' %}

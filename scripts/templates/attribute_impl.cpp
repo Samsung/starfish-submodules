@@ -9,9 +9,9 @@ static ESValue {{ attribute.name }}GetterFunction(ESVMInstance* instance)
 {
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
     {% set getter_type = attribute.getter.return %}
-    {{ util_macro.gen_declare_return_value(attribute.getter.return) }}
+    {{ util_macro.gen_declare_return_value(attribute.getter.return)|trim }}
     result = originalObj->{{ util_macro.attr_name(attribute) }}();
-    {{ util_macro.handle_return(attribute.getter.return) }}
+    {{ util_macro.handle_return(attribute.getter.return)|trim }}
     {{- 'Error : Unimplemented return type' | assert_true(attribute.getter.return.name in ['object', 'Sequence', 'UnionType', 'Promise']) }}
 }
 {% endif %}

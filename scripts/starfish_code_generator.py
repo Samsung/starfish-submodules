@@ -19,7 +19,9 @@ STARFISH_PATH = os.path.join(SCRIPT_PATH, '..', '..')
 BINDING_PATH = os.path.join(STARFISH_PATH, 'src', 'binding')
 # MODULES_FILE = os.path.join(SCRIPT_PATH, "module.json")
 BUIILTINT_MODULE_FILE = os.path.join(IDL_PATH, 'Builtin.idl')
-
+NULLABLE_TYPE_KINDS = ['StringType', 'PrimitiveType', 'Enum', 'Dictionary']
+STRING_KINDS = ['StringType', 'Enum']
+POINTER_KINDS = ['Typeref', 'Callback', 'Promise']
 # NOTE Moved type matching code to starfish_idl_reader
 # enums = {}
 # typedefs = {}
@@ -115,9 +117,12 @@ if __name__ == "__main__":
   env.filters['first_word_capitalize'] = filter_first_word_capitalize
 
   # NOTE Moved type matching code to starfish_idl_reader
-  # # Set global variables
+  # Set global variables
   # env.globals['enum'] = enums
   # env.globals['typedefs'] = typedefs
+  env.globals['nullable_kinds'] = NULLABLE_TYPE_KINDS
+  env.globals['string_kinds'] = STRING_KINDS
+  env.globals['pointer_kinds'] = POINTER_KINDS
 
   global builin_irs
   builin_irs = gen_ir_from_file(BUIILTINT_MODULE_FILE)

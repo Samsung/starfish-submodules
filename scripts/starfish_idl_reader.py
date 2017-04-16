@@ -300,15 +300,22 @@ def _gen_ir_Type(node):
   result = {}
   _set_boolean_prop(result, node, 'NULLABLE', 'nullable')
   for child in node.GetChildren():
-    if _is_class(child, 'UnionType') or\
-       _is_class(child, 'Sequence') or\
+    if _is_class(child, 'Sequence') or\
        _is_class(child, 'Promise'):
-      # Union | Sequence
+      # Sequence | Promise
+      result['kind'] = child.GetClass()
+      result['name'] = child.GetClass()
+      for subt in child.GetChildren():
+        if subt.GetClass() == 'Type':
+          result['data'] = _gen_ir_Type(subt)
+          break;
+    elif _is_class(child, 'UnionType'):
       result['kind'] = child.GetClass()
       result['name'] = child.GetClass()
       subtypes = []
       for subt in child.GetChildren():
-        subtypes.append(_gen_ir_Type(subt))
+        if subt.GetClass() == 'Type':
+          subtypes.append(_gen_ir_Type(subt))
       result['data'] = subtypes
     elif _is_class(child, 'Any'):
       result['kind'] = child.GetClass()

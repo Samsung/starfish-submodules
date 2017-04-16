@@ -89,3 +89,5 @@ interface HTMLMediaElement : HTMLElement {
 	attribute EventHandler onratechange;
 	attribute EventHandler onvolumechange;
 };
+
+enum TextTrackKind { "subtitles",  "captions",  "descriptions",  "chapters",  "metadata" };

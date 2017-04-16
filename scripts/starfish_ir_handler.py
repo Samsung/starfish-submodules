@@ -25,9 +25,11 @@ class StarfishIRHandler():
         if type_ir.get('name') == enum.get('name'):
           parent[type_key] = enum
           return
-    elif type_ir.get('kind') in ['UnionType', 'Sequence', 'Promise']:
+    elif type_ir.get('kind') == 'UnionType':
       for idx, subtype_ir in enumerate(type_ir.get('data', [])):
         self._change_types(type_ir.get('data'), idx)
+    elif type_ir.get('kind') in ['Sequence', 'Promise']:
+      self._change_types(type_ir, 'data')
 
   def _check_attr(self, attr):
     self._change_types(attr.get('getter'), 'return')

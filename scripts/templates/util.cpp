@@ -33,10 +33,10 @@
 {%- endmacro %}
 
 {%- macro gen_esvalue_to_native(type, aname) -%}
-    {% if type.kind in ['StringType', 'Enum'] %}
+    {% if type.kind in string_kinds %}
         {{- 'toBrowserString(%s)'|format(aname) -}}
     {% elif type.kind == 'Any' %}
-        {{- 'jsonStringify(%s)'|format(aname) -}}
+        {{- '%s'|format(aname) -}}
     {% elif type.kind == 'Typeref' %}
         {{- '(%s*)(%s.asESPointer()->asESObject()->extraPointerData())'|format(type.name, aname) -}}
     {% elif type.kind == 'Dictionary' %}
@@ -57,12 +57,16 @@
 {%- endmacro -%}
 
 {%- macro gen_type_str(type, use_nullable) -%}
-    {% if type.kind in ['StringType', 'Any', 'Enum'] %}
+    {% if type.kind in string_kinds %}
         {% set type_str = 'String*'%}
-    {% elif type.kind in ['Typeref', 'Callback'] %}
+    {% elif type.kind == 'Any' %}
+        {% set type_str = 'ScriptValue'%}
+    {% elif type.kind in pointer_kinds %}
         {% set type_str = '%s*'|format(type.name)%}
-    {% elif type.kind in ['PrimitiveType', 'Dictionary'] %}
+    {% elif type.kind == 'PrimitiveType' %}
         {% set type_str  = gen_primitive_type_str(type) %}
+    {% else %}
+        {% set type_str = '%s'|format(type.name)%}
     {% endif %}
     {% if use_nullable %}
         {{- 'Nullable<%s>'|format(type_str) -}}
@@ -78,18 +82,22 @@
 {% endmacro -%}
 
 {%- macro handle_arg(arg, aname, vname) %}
-    {% set use_nullable = (arg.type.kind in ['StringType','Any', 'PrimitiveType', 'Enum'])
-                           and arg.type.nullable %}
+    {% set use_nullable = arg.type.kind in nullable_kinds and arg.type.nullable %}
     {% set type_exp = gen_type_str(arg.type, use_nullable) %}
     {{ '// Handle argument %s'|format(aname) }}
     {###### Declaring native variable of an argument ######}
-    {% if arg.default and arg.type.kind in ['StringType', 'Enum'] %}
+    {% if arg.default %}
+        {% if arg.type.kind in string_kinds and arg.default == 'nullptr' %}
+        {# THE ARG SHOULD HAVE NULLABLE OPTION #}
+    {{ '%s %s;'|format(type_exp, vname) }}
+        {% elif arg.type.kind in string_kinds %}
     {{ '%s %s = String::fromUTF8(%s);'|format(type_exp, vname, arg.default) }}
-    {% elif arg.default %}
+        {% else %}
     {{ '%s %s = %s;'|format(type_exp, vname, arg.default) }}
-    {% elif arg.type.kind in ['StringType', 'Enum'] and not use_nullable%}
+        {% endif %}
+    {% elif arg.type.kind in string_kinds and not use_nullable%}
     {{ '%s %s = String::emptyString;'|format(type_exp, vname) }}
-    {% elif arg.type.kind in ['Typeref', 'Callback'] %}
+    {% elif arg.type.kind in pointer_kinds %}
     {{ '%s %s = nullptr;'|format(type_exp, vname) }}
     {% else %}
     {{ '%s %s;'|format(type_exp, vname) }}
@@ -115,7 +123,7 @@
     if (!{{ aname }}.isUndefinedOrNull()) {
         {{ assign_exp|indent(8) }}
     }
-    {%- elif arg.type.kind in ['Typeref', 'Callback'] %}
+    {%- elif arg.type.kind in pointer_kinds %}
     {# '(5) Non-optional + Non-Nullable + RefTypes' #}
     if ({{ aname }}.isUndefinedOrNull()) {
         instance->throwError(ESValue(
@@ -131,30 +139,45 @@
 {% endmacro -%}
 
 {################## 'HANDLE RETURNS' ##################}
-{%- macro gen_declare_return_value(type) -%}
-    {% set use_nullable = (type.kind in ['StringType', 'Any', 'PrimitiveType']) and type.nullable %}
+{%- macro gen_declare_return_value_impl(type) -%}
+    {% set use_nullable = type.kind in nullable_kinds and type.nullable %}
     {% set type_exp = gen_type_str(type, use_nullable) %}
-    {% if type.kind in ['Typeref', 'Callback'] %}
+    {% if type.kind in pointer_kinds %}
     {{- '%s result = nullptr;'|format(type_exp) -}}
-    {% elif type.kind in ['StringType', 'Enum'] %}
+    {% elif type.kind in string_kinds %}
     {{- '%s result = String::emptyString;'|format(type_exp) -}}
     {% elif type.name != 'void' %}
     {{- '%s result;'|format(type_exp) -}}
     {% endif %}
 {%- endmacro -%}
 
+{%- macro gen_declare_return_value(type) -%}
+// Declare return value (empty when void)
+    {% if type.kind == 'Promise' %}
+#ifdef USE_ES6_FEATURE
+    {{ gen_declare_return_value_impl(type) }}
+        {% if type.data.name != 'void' %}
+#else
+    {{ gen_declare_return_value_impl(type.data) }}
+        {% endif %}
+#endif
+    {% else %}
+    {{ gen_declare_return_value_impl(type) }}
+    {% endif %}
+{%- endmacro -%}
+
 {%- macro gen_return_assert(type) %}
-    {% if type.kind in ['Typeref', 'Callback'] and not type.nullable %}
+    {% if type.kind in pointer_kinds and not type.nullable %}
 STARFISH_ASSERT(result != nullptr);
     {% endif %}
 {% endmacro -%}
 
 {%- macro gen_return_code(type, var_name) -%}
-    {%- if type.kind in ['StringType', 'Enum'] %}
+    {%- if type.kind in string_kinds %}
 return toJSString({{var_name}});
     {%- elif type.kind == 'Any' %}
-return parseJSON({{var_name}});
-    {%- elif type.kind == 'Typeref' %}
+return {{var_name}};
+    {%- elif type.kind in pointer_kinds %}
 return {{var_name}}->scriptValue();
     {%- elif type.kind == 'Dictionary' %}
 return toESValueFrom{{type.name}}(instance, var_name);
@@ -165,8 +188,8 @@ STARFISH_RELEASE_ASSERT_NOT_REACHED();
     {% endif %}
 {%- endmacro -%}
 
-{%- macro handle_return(return_type) -%}
-    {% set use_nullable = (return_type.kind in ['StringType', 'Any', 'PrimitiveType']) and return_type.nullable %}
+{%- macro handle_return_impl(return_type) -%}
+    {% set use_nullable = return_type.kind in nullable_kinds and return_type.nullable %}
     {% if return_type.name == 'void' -%}
     return ESValue(ESValue::ESUndefined);
     {%- elif use_nullable -%}
@@ -181,7 +204,20 @@ STARFISH_RELEASE_ASSERT_NOT_REACHED();
     }
     {{ gen_return_code(return_type, 'result') }}
     {%- else -%}
-    {{ gen_return_assert(return_type) }}
+    {{ gen_return_assert(return_type)|trim }}
     {{ gen_return_code(return_type, 'result') }}
     {%- endif %}
+{%- endmacro -%}
+
+{%- macro handle_return(return_type) -%}
+// Return ESValue from native value
+    {% if return_type.kind == 'Promise' and not return_type.data.kind in pointer_kinds %}
+#ifdef USE_ES6_FEATURE
+    return result->scriptValue();
+#else
+    {{ handle_return_impl(return_type.data)|trim }}
+#endif
+    {% else %}
+    {{ handle_return_impl(return_type)|trim }}
+    {% endif %}
 {%- endmacro -%}
