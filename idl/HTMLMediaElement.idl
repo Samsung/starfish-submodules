@@ -67,27 +67,27 @@ interface HTMLMediaElement : HTMLElement {
 
   // TODO
   // Move belows to HTMLElement
-  attribute EventHandler onprogress;
-	attribute EventHandler onsuspend;
-	attribute EventHandler onabort;
-	attribute EventHandler onemptied;
-	attribute EventHandler onstalled;
-	attribute EventHandler onloadedmetadata;
-	attribute EventHandler onloadeddata;
-	attribute EventHandler onloadstart;
-	attribute EventHandler oncanplay;
-	attribute EventHandler oncanplaythrough;
-	attribute EventHandler onplaying;
-	attribute EventHandler onwaiting;
-	attribute EventHandler onseeking;
-	attribute EventHandler onseeked;
-	attribute EventHandler onended;
-	attribute EventHandler ondurationchange;
-	attribute EventHandler ontimeupdate;
-	attribute EventHandler onplay;
-	attribute EventHandler onpause;
-	attribute EventHandler onratechange;
-	attribute EventHandler onvolumechange;
+  [CustomGetter, CustomSetter] attribute EventHandler onprogress;
+	[CustomGetter, CustomSetter] attribute EventHandler onsuspend;
+	[CustomGetter, CustomSetter] attribute EventHandler onabort;
+	[CustomGetter, CustomSetter] attribute EventHandler onemptied;
+	[CustomGetter, CustomSetter] attribute EventHandler onstalled;
+	[CustomGetter, CustomSetter] attribute EventHandler onloadedmetadata;
+	[CustomGetter, CustomSetter] attribute EventHandler onloadeddata;
+	[CustomGetter, CustomSetter] attribute EventHandler onloadstart;
+	[CustomGetter, CustomSetter] attribute EventHandler oncanplay;
+	[CustomGetter, CustomSetter] attribute EventHandler oncanplaythrough;
+	[CustomGetter, CustomSetter] attribute EventHandler onplaying;
+	[CustomGetter, CustomSetter] attribute EventHandler onwaiting;
+	[CustomGetter, CustomSetter] attribute EventHandler onseeking;
+	[CustomGetter, CustomSetter] attribute EventHandler onseeked;
+	[CustomGetter, CustomSetter] attribute EventHandler onended;
+	[CustomGetter, CustomSetter] attribute EventHandler ondurationchange;
+	[CustomGetter, CustomSetter] attribute EventHandler ontimeupdate;
+	[CustomGetter, CustomSetter] attribute EventHandler onplay;
+	[CustomGetter, CustomSetter] attribute EventHandler onpause;
+	[CustomGetter, CustomSetter] attribute EventHandler onratechange;
+	[CustomGetter, CustomSetter] attribute EventHandler onvolumechange;
 };
 
 enum TextTrackKind { "subtitles",  "captions",  "descriptions",  "chapters",  "metadata" };

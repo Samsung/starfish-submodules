@@ -67,6 +67,14 @@ ESFunctionObject* binding{{ name }}(
     // Bind for constructor
 {% include 'constructor_bind.cpp' ignore missing %}
 
+{% if constants %}
+    // Bind for constants
+  {% for constant in constants %}
+    {% if not constant.unimplemented %}
+{% include 'constant_bind.cpp' ignore missing %}
+    {% endif %}
+  {% endfor %}
+{% endif %}
 {% if attributes %}
     // Bind for attributes
   {% for attribute in attributes %}

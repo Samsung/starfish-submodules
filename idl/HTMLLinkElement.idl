@@ -3,21 +3,21 @@
 
 [HTMLConstructor]
 interface HTMLLinkElement : HTMLElement {
-  [CEReactions] attribute DOMString href;
-  [Unimplement, CEReactions] attribute DOMString? crossOrigin;
-  [CEReactions] attribute DOMString rel;
-  [Unimplement, CEReactions] attribute RequestDestination as; // (default "")
-  [Unimplement, SameObject, PutForwards=value] readonly attribute DOMTokenList relList;
-  [Unimplement, CEReactions] attribute DOMString media;
-  [Unimplement, CEReactions] attribute DOMString nonce;
-  [Unimplement, CEReactions] attribute DOMString integrity;
-  [Unimplement, CEReactions] attribute DOMString hreflang;
-  [CEReactions] attribute DOMString type;
-  [Unimplement, SameObject, PutForwards=value] readonly attribute DOMTokenList sizes;
-  [Unimplement, CEReactions] attribute DOMString referrerPolicy;
-  [Unimplement, CEReactions] attribute DOMString scope;
-  [Unimplement, CEReactions] attribute WorkerType workerType;
-  [Unimplement, CEReactions] attribute boolean useCache;
+  [CustomGetter, CustomSetter, CEReactions] attribute DOMString href;
+  [Unimplemented, CEReactions] attribute DOMString? crossOrigin;
+  [CustomGetter, CustomSetter, CEReactions] attribute DOMString rel;
+  [Unimplemented, CEReactions] attribute RequestDestination as; // (default "")
+  [Unimplemented, SameObject, PutForwards=value] readonly attribute DOMTokenList relList;
+  [Unimplemented, CEReactions] attribute DOMString media;
+  [Unimplemented, CEReactions] attribute DOMString nonce;
+  [Unimplemented, CEReactions] attribute DOMString integrity;
+  [Unimplemented, CEReactions] attribute DOMString hreflang;
+  [CustomGetter, CustomSetter, CEReactions] attribute DOMString type;
+  [Unimplemented, SameObject, PutForwards=value] readonly attribute DOMTokenList sizes;
+  [Unimplemented, CEReactions] attribute DOMString referrerPolicy;
+  [Unimplemented, CEReactions] attribute DOMString scope;
+  [Unimplemented, CEReactions] attribute WorkerType workerType;
+  [Unimplemented, CEReactions] attribute boolean useCache;
 };
 
 // TODO Support implements

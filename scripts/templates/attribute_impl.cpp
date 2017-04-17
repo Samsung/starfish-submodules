@@ -1,11 +1,13 @@
 {% import 'util.cpp' as util_macro %}
-{% call util_macro.ifdef(attribute.flags) %}
+{% import 'util_for_attribute.cpp' as util_for_attribute_macro %}
+
+{%- call util_macro.ifdef(attribute.flags) %}
 {% with %}
 {% if attribute.getter %}
 {% if attribute.custom_getter %}
-extern ESValue {{ attribute.name }}{{ name }}GetterFunction(ESVMInstance* instance);
+extern ESValue {{ util_for_attribute_macro.getter_function(attribute, name) }}(ESVMInstance* instance);
 {% else %}
-static ESValue {{ attribute.name }}GetterFunction(ESVMInstance* instance)
+static ESValue {{ util_for_attribute_macro.getter_function(attribute, name) }}(ESVMInstance* instance)
 {
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
     {% set getter_type = attribute.getter.return %}
@@ -19,9 +21,9 @@ static ESValue {{ attribute.name }}GetterFunction(ESVMInstance* instance)
 {% if attribute.setter %}
 
 {% if attribute.custom_setter %}
-extern ESValue {{ attribute.name }}{{ name }}SetterFunction(ESVMInstance* instance);
+extern ESValue {{ util_for_attribute_macro.setter_function(attribute, name) }}(ESVMInstance* instance);
 {% else %}
-static ESValue {{ attribute.name }}SetterFunction(ESVMInstance* instance)
+static ESValue {{ util_for_attribute_macro.setter_function(attribute, name) }}(ESVMInstance* instance)
 {
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
     {% set arg = attribute.setter.arguments[0] %}
