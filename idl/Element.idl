@@ -15,8 +15,8 @@ interface Element : Node {
   readonly attribute DOMString localName;
   readonly attribute DOMString tagName;
 
-  [CustomGetter, CustomSetter, CEReactions] attribute DOMString id;
-  [CustomGetter, CustomSetter, CEReactions] attribute DOMString className;
+  [CEReactions, Rename=idAttr] attribute DOMString id;
+  [CEReactions] attribute DOMString className;
   [CustomGetter, CEReactions, SameObject, PutForwards=value] readonly attribute DOMTokenList classList;
   [Unimplemented, CEReactions, Unscopable] attribute DOMString slot;
 
