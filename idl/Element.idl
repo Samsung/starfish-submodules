@@ -117,6 +117,8 @@ interface Element : Node {
   // [REF5]--------------------------------------------------------------
   [Unimplemented] readonly attribute HTMLSlotElement? assignedSlot;
 
+  // FIXME added style forcely, I didn't find any explanation or mention about style attribute
+  [CustomGetter, CustomSetter] attribute CSSStyleDeclaration style;
 };
 
 
