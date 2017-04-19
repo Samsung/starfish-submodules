@@ -35,7 +35,7 @@
 {%- macro gen_esvalue_to_native(type, aname) -%}
     {% if type.kind in string_kinds %}
         {{- 'toBrowserString(%s)'|format(aname) -}}
-    {% elif type.kind == ['Any'] %}
+    {% elif type.kind == 'Any' %}
         {{- '%s'|format(aname) -}}
     {% elif type.kind == 'Typeref' %}
         {{- '(%s*)(%s.asESPointer()->asESObject()->extraPointerData())'|format(type.name, aname) -}}
