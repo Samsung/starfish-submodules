@@ -1,4 +1,5 @@
 {% import 'util.cpp' as util_macro %}
+{%- if not function.name == '_unnamed_' %}
 {% call util_macro.ifdef(function.flag) %}
     {% set fn_name = '%s%s'|format(function.name, name)
                       if function.custom else function.name %}
@@ -25,3 +26,4 @@
                             {{ writable }}, {{ enumerable }}, {{ configurable }},
                             {{fn_name}}ESFn);
 {% endcall %}
+{% endif %}

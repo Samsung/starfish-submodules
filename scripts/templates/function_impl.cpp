@@ -9,37 +9,39 @@
     }
 {%- endmacro -%}
 
-{%- macro gen_native_call_impl(max_arg, min_passing_count, name, return_type, uniformed_call) -%}
+{%- macro gen_native_call_impl(return_type, uniformed_call) -%}
     {% set return_left = '' if return_type.name == 'void' else 'result = ' %}
+    {% set calling = '%s::'|format(name) if function.static else 'originalObj->' %}
+    {% set max_arg = function.arguments|length %}
     {% if max_arg == 0 -%}
-{{return_left}}originalObj->{{name}}();
+{{return_left}}{{calling}}{{function.name}}();
     {%- elif uniformed_call -%}
-{{return_left}}originalObj->{{name}}({{ 'value'|to_arg_syntax(0, max_arg) }});
+{{return_left}}{{calling}}{{function.name}}({{ 'value'|to_arg_syntax(0, max_arg) }});
     {%- else -%}
-if (validArgCount == {{min_passing_count|string}}) {
-    {{return_left}}originalObj->{{name}}({{'value'|to_arg_syntax(0, min_passing_count)}});
-        {% for count in range(min_passing_count + 1, max_arg + 1) %}
+if (validArgCount == {{function.min_passing_count|string}}) {
+    {{return_left}}{{calling}}{{function.name}}({{'value'|to_arg_syntax(0, function.min_passing_count)}});
+        {% for count in range(function.min_passing_count + 1, max_arg + 1) %}
 } else if (validArgCount == {{count|string}}) {
-    {{return_left}}originalObj->{{name}}({{'value'|to_arg_syntax(0, count)}});
+    {{return_left}}{{calling}}{{function.name}}({{'value'|to_arg_syntax(0, count)}});
         {% endfor %}
 }
     {%- endif -%}
 {%- endmacro -%}
 
-{%- macro gen_native_call(max_arg, min_passing_count, name, return_type, uniformed_call) -%}
-// Call native function (nargs: {{max_arg if uniformed_call else '%s-%s'|format(min_passing_count, max_arg)}})
+{%- macro gen_native_call(return_type, uniformed_call) -%}
+// Call native function (nargs: {{function.arguments|length if uniformed_call else '%s-%s'|format(min_passing_count, max_arg)}})
     {% set spaces = 8 if function.raises_exception else 4 %}
     {% if function.raises_exception %}
     try {
     {% endif %}
     {% if return_type.kind == 'Promise' and not return_type.data.kind in pointer_kinds %}
 #ifdef USE_ES6_FEATURE
-{{ gen_native_call_impl(max_arg, min_passing_count, name, return_type, uniformed_call)|indent(spaces, True) }}
+{{ gen_native_call_impl(return_type, uniformed_call)|indent(spaces, True) }}
 #else
-{{ gen_native_call_impl(max_arg, min_passing_count, name, return_type.data, uniformed_call)|indent(spaces, True) }}
+{{ gen_native_call_impl(return_type.data, uniformed_call)|indent(spaces, True) }}
 #endif
     {% else %}
-{{ gen_native_call_impl(max_arg, min_passing_count, name, return_type, uniformed_call)|indent(spaces, True) }}
+{{ gen_native_call_impl(return_type, uniformed_call)|indent(spaces, True) }}
     {% endif %}
     {% if function.raises_exception %}
     } catch (DOMException* e) {
@@ -49,19 +51,9 @@ if (validArgCount == {{min_passing_count|string}}) {
     {%- endif %}
 {%- endmacro -%}
 
-{%- macro gen_tc_coverage_code(class_name, function) -%}
-    {%- if function.check_tc_coverage -%}
-#ifdef STARFISH_TC_COVERAGE
-    STARFISH_LOG_INFO("{{ class_name }}&&&{{ function.name }}\n");
-#endif
-    {%- endif -%}
-{%- endmacro -%}
-
-{%- macro function_code_normal(class_name, function) -%}
-    {% set max_arg = function.arguments|length %}
-    {% set min_passing_count = function.min_passing_count|default(0) %}
+{%- macro function_code_normal() -%}
     {% set min_passed_count = function.min_passed_count|default(0) %}
-    {% set uniformed_call = (max_arg == min_passing_count) %}
+    {% set uniformed_call = (function.arguments|length == function.min_passing_count) %}
     {% set has_return = (function.return.name != 'void') %}
     {% if min_passed_count != 0 %}
     size_t argCount = instance->currentExecutionContext()->argumentCount();
@@ -81,11 +73,11 @@ if (validArgCount == {{min_passing_count|string}}) {
     {% for arg in function.arguments -%}
     {{ util_macro.handle_arg(arg, 'arg%d'|format(loop.index - 1), 'value%d'|format(loop.index - 1)) }}
     {% endfor %}
-    {{ gen_native_call(max_arg, min_passing_count, function.name, function.return, uniformed_call) }}
+    {{ gen_native_call(function.return, uniformed_call) }}
     {{ util_macro.handle_return(function.return)|trim }}
 {% endmacro -%}
 
-{%- macro function_code_ellipsis(class_name, function) %}
+{%- macro function_code_ellipsis() %}
     {% set use_nullable = (function.return.kind in nullable_kinds) and function.return.nullable %}
     size_t argCount = instance->currentExecutionContext()->argumentCount();
     {% set type_exp = util_macro.gen_type_str(function.arguments[0].type, use_nullable) %}
@@ -111,7 +103,7 @@ if (validArgCount == {{min_passing_count|string}}) {
     return ESValue(ESValue::ESUndefined);
 {% endmacro -%}
 
-{%- macro function_code_getter_index(class_name, function) %}
+{%- macro function_code_getter_index() %}
     {% set has_return = (function.return.name != 'void') %}
     // Class item getter by index
     {{ gen_check_getter_code() }}
@@ -146,12 +138,12 @@ static ESValue {{ fnname }}Function(ESVMInstance* instance)
 {
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
     {% if function.arguments|length > 0 and function.arguments[0].ellipsis %}
-        {{- function_code_ellipsis(name, function) -}}
+        {{- function_code_ellipsis() -}}
     {% elif function.is_item_getter and
         function.arguments[0].type.name in ['unsigned long', 'unsigned short']  %}
-        {{- function_code_getter_index(name, function) -}}
+        {{- function_code_getter_index() -}}
     {% else %}
-        {{- function_code_normal(name, function) -}}
+        {{- function_code_normal() -}}
     {% endif %}
 }
     {% endif %}
