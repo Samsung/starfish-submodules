@@ -23,7 +23,17 @@
 #include "StarFishConfig.h"
 #include "ScriptBindingInstance.h"
 
-#include "Binding.h"
+{% for item in used_dictionary %}
+  {% if not item.unimplemented %}
+#include "{{item.name}}.h"
+  {% endif %}
+{% endfor %}
+{% for item in used_typeref %}
+  {% if not item.unimplemented %}
+#include "{{item}}.h"
+  {% endif %}
+{% endfor %}
+#include "{{name}}.h"
 #include "binding/escargot/ScriptBindingInstanceDataEscargot.h"
 
 namespace StarFish {

@@ -80,54 +80,9 @@ interface Element : Node {
   readonly attribute long clientWidth;
   readonly attribute long clientHeight;
 
-
-  // TODO Support Implements
-  // Element implements ParentNode;
-  // [REF2]--------------------------------------------------------------
-  [SameObject] readonly attribute HTMLCollection children;
-  readonly attribute Element? firstElementChild;
-  readonly attribute Element? lastElementChild;
-  readonly attribute unsigned long childElementCount;
-
-  [Unimplemented, CEReactions, Unscopable] void prepend((Node or DOMString)... nodes);
-  [Unimplemented, CEReactions, Unscopable] void append((Node or DOMString)... nodes);
-
-  [STARFISH_TC_COVERAGE, RaisesException] Element? querySelector(DOMString selectors);
-  [STARFISH_TC_COVERAGE, STARFISH_ENABLE_WASU, NewObject, RaisesException] NodeList querySelectorAll(DOMString selectors);
-
-
-  // TODO Support Implements
-  // Element implements NonDocumentTypeChildNode;
-  // [REF3]--------------------------------------------------------------
-  readonly attribute Element? previousElementSibling;
-  readonly attribute Element? nextElementSibling;
-
-
-  // TODO Support Implements
-  // Element implements ChildNode;
-  // [REF4]--------------------------------------------------------------
-  [Unimplemented, CEReactions, Unscopable] void before((Node or DOMString)... nodes);
-  [Unimplemented, CEReactions, Unscopable] void after((Node or DOMString)... nodes);
-  [Unimplemented, CEReactions, Unscopable] void replaceWith((Node or DOMString)... nodes);
-  [CEReactions, Unscopable] void remove();
-
-
-  // TODO Support Implements
-  // Element implements Slotable;
-  // [REF5]--------------------------------------------------------------
-  [Unimplemented] readonly attribute HTMLSlotElement? assignedSlot;
-
   // FIXME added style forcely, I didn't find any explanation or mention about style attribute
   [CustomGetter, CustomSetter] attribute CSSStyleDeclaration style;
 };
-
-
-// [REF1]----------------------------------------------------------------
-[Unimplemented]
-dictionary ShadowRootInit {
-  required ShadowRootMode mode;
-};
-
 
 // TODO Support implements
 Element implements ParentNode;

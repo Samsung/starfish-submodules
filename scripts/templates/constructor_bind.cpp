@@ -4,13 +4,13 @@
         ESFunctionObject::create(nullptr,
                                  {{ name|lower }}Constructor,
                                  {{ name }}String,
-                                 {{ constructor.arguments|length|default(0) }}, true, true);
+                                 {{ constructor.min_passed_count|default(0) }}, true, true);
     {% else %}
     ESFunctionObject* {{ name }}Function =
         ESFunctionObject::create(nullptr,
                                  errorOnConstructorFunction,
                                  {{ name }}String,
-                                 1, true, true);
+                                 0, true, true);
     {% endif %}
     {{ name }}Function->defineAccessorProperty(
         ESVMInstance::currentInstance()->strings().prototype.string(),

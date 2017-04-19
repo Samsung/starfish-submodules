@@ -5,15 +5,6 @@ interface DocumentType : Node {
   readonly attribute DOMString name;
   readonly attribute DOMString publicId;
   readonly attribute DOMString systemId;
-
-  // TODO Support Implements
-  // DocumentType implements ChildNode;  
-  // https://dom.spec.whatwg.org/#childnode
-  [Unimplemented, CEReactions, Unscopable] void before((Node or DOMString)... nodes);
-  [Unimplemented, CEReactions, Unscopable] void after((Node or DOMString)... nodes);
-  [Unimplemented, CEReactions, Unscopable] void replaceWith((Node or DOMString)... nodes);
-  [CEReactions, Unscopable] void remove();
 };
 
-// TODO Support Implements
 DocumentType implements ChildNode;

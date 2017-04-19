@@ -33,9 +33,9 @@
 {%- endmacro %}
 
 {%- macro gen_esvalue_to_native(type, aname) -%}
-    {% if type.kind == 'StringType' %}
+    {% if type.kind in string_kinds %}
         {{- 'toBrowserString(%s)'|format(aname) -}}
-    {% elif type.kind == ['Any', 'Enum'] %}
+    {% elif type.kind == ['Any'] %}
         {{- '%s'|format(aname) -}}
     {% elif type.kind == 'Typeref' %}
         {{- '(%s*)(%s.asESPointer()->asESObject()->extraPointerData())'|format(type.name, aname) -}}
@@ -57,7 +57,7 @@
 {%- endmacro -%}
 
 {%- macro gen_type_str(type, use_nullable) -%}
-    {% if type.kind == 'StringType' %}
+    {% if type.kind in string_kinds %}
         {% set type_str = 'String*'%}
     {% elif type.kind == 'Any' %}
         {% set type_str = 'ScriptValue'%}
@@ -87,15 +87,15 @@
     {{ '// Handle argument %s'|format(aname) }}
     {###### Declaring native variable of an argument ######}
     {% if arg.default %}
-        {% if arg.type.kind == 'StringType' and arg.default == 'nullptr' %}
+        {% if arg.type.kind in string_kinds and arg.default == 'nullptr' %}
         {# THE ARG SHOULD HAVE NULLABLE OPTION #}
     {{ '%s %s;'|format(type_exp, vname) }}
-        {% elif arg.type.kind == 'StringType' %}
+        {% elif arg.type.kind in string_kinds %}
     {{ '%s %s = String::fromUTF8(%s);'|format(type_exp, vname, arg.default) }}
         {% else %}
     {{ '%s %s = %s;'|format(type_exp, vname, arg.default) }}
         {% endif %}
-    {% elif arg.type.kind == 'StringType' and not use_nullable %}
+    {% elif arg.type.kind in string_kinds and not use_nullable %}
     {{ '%s %s = String::emptyString;'|format(type_exp, vname) }}
     {% elif arg.type.kind in pointer_kinds %}
     {{ '%s %s = nullptr;'|format(type_exp, vname) }}
@@ -144,7 +144,7 @@
     {% set type_exp = gen_type_str(type, use_nullable) %}
     {% if type.kind in pointer_kinds %}
     {{- '%s result = nullptr;'|format(type_exp) -}}
-    {% elif type.kind == 'StringType' %}
+    {% elif type.kind in string_kinds %}
     {{- '%s result = String::emptyString;'|format(type_exp) -}}
     {% elif type.name != 'void' %}
     {{- '%s result;'|format(type_exp) -}}
@@ -173,7 +173,7 @@ STARFISH_ASSERT(result != nullptr);
 {% endmacro -%}
 
 {%- macro gen_return_code(type, var_name) -%}
-    {%- if type.kind in ['StringType', 'Enum'] %}
+    {%- if type.kind in string_kinds %}
 return toJSString({{var_name}});
     {%- elif type.kind == 'Any' %}
 return {{var_name}};

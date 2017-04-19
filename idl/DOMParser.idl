@@ -13,11 +13,5 @@ enum SupportedType {
   Constructor,
   ConstructorCallWith=Starfish
 ] interface DOMParser {
-  // NOTE Using DOMString instead of SupportedType
-  // [NewObject] Document parseFromString(DOMString str, SupportedType type);
-  [RaisesException, NewObject] Document parseFromString(DOMString str, DOMString type);
+  [RaisesException, NewObject] Document parseFromString(DOMString str, SupportedType type);
 };
-
-
-
-

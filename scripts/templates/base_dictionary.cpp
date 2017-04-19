@@ -1,0 +1,70 @@
+/*
+ * Copyright (c) 2017 Samsung Electronics Co., Ltd
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+{% if flags and flags|length > 0 %}
+#if defined({{flags[0]}})
+    {%- for idx in range(1, flags|length) %}
+        {{-  ' && defined(%s)'|format(flags[idx]) -}}
+    {% endfor %}
+{% endif %}
+
+#include "StarFishConfig.h"
+#include "ScriptBindingInstance.h"
+
+{% for item in used_dictionary %}
+  {% if not item.unimplemented %}
+#include "{{item.name}}.h"
+  {% endif %}
+{% endfor %}
+{% for item in used_typeref %}
+  {% if not item.unimplemented %}
+#include "{{item}}.h"
+  {% endif %}
+{% endfor %}
+#include "{{name}}.h"
+#include "binding/escargot/ScriptBindingInstanceDataEscargot.h"
+
+namespace StarFish {
+
+using namespace escargot;
+{% import 'util.cpp' as util_macro %}
+
+{{name}} to{{name}}FromESValue(ESVMInstance* instance, ESValue& from)
+{
+	if (!from.isObject()) {
+		auto msg = ESString::create("Failed to generate {{name}} from non-object");
+        instance->throwError(ESValue(TypeError::create(msg)));
+        STARFISH_RELEASE_ASSERT_NOT_REACHED();
+	}
+{% for key in members %}
+    ESValue arg{{loop.index - 1}} = from.asESPointer()->asESObject()->get(ESString::create("{{ key.name }}"));
+{% endfor %}
+{% for key in members -%}
+    {{ util_macro.handle_arg(key, 'arg%d'|format(loop.index - 1), 'value%d'|format(loop.index - 1)) }}
+{% endfor %}
+    return {{name}}({{'value'|to_arg_syntax(0, members|length)}});
+}
+
+ESValue toESValueFrom{{name}}(ESVMInstance* instance, {{name}}& from)
+{
+    // NOTE Please let me know when this function needed (ji.yang)
+    STARFISH_RELEASE_ASSERT_NOT_REACHED();
+    return ESValue(ESValue::ESNull);
+}
+}
+{% if flags and flags|length > 0 %}
+#endif
+{% endif %}
+

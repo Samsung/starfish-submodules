@@ -1,45 +1,57 @@
 #!/usr/bin/env python
+import sys
 
+def _extend_property_array(target, refer, propname):
+  target_array = target.get(propname)
+  ref_array = refer.get(propname)
+  for item in ref_array:
+    target_array.append(item)
+
+def _append_if_new(to_array, item):
+  if not (item in to_array):
+    to_array.append(item)
 
 class StarfishIRHandler():
-  def _change_types(self, parent, type_key):
+  def _change_types(self, parent, type_key, unimpl):
     type_ir = parent[type_key]
-    if type_ir.get('kind') == 'Typeref':
-      # Deadlock?
-      for td in self.typedefs:
-        if type_ir.get('name') == td.get('name'):
-          parent[type_key] = td.get('from')
-          return
-      for dict in self.dictionaries:
-        if type_ir.get('name') == dict.get('name'):
-          type_ir['kind'] = 'Dictionary'
-          type_ir['data'] = dict
-          dict['_check'] = True
-          return
-      for cb in self.callbacks:
-        if type_ir.get('name') == cb.get('name'):
-          type_ir['kind'] = 'Callback'
-          type_ir['data'] = cb
-          return
-      for enum in self.enums:
-        if type_ir.get('name') == enum.get('name'):
-          parent[type_key] = enum
-          return
-    elif type_ir.get('kind') == 'UnionType':
+    name = type_ir.get('name')
+    kind = type_ir.get('kind')
+    if kind == 'Typeref':
+      if name in self.typedefs:
+        parent[type_key] = self.typedefs[name].get('from')
+        return
+      if name in self.dictionaries:
+        type_ir['kind'] = 'Dictionary'
+        type_ir['data'] = self.dictionaries[name]
+        if not unimpl:
+          _append_if_new(self.used_dictionary, self.dictionaries[name])
+        return
+      if name in self.callbacks:
+        type_ir['kind'] = 'Callback'
+        type_ir['data'] = self.callbacks[name]
+        return
+      if name in self.enums:
+        parent[type_key] = self.enums[name]
+        return
+      if not unimpl:
+        _append_if_new(self.used_typeref, name)
+    elif kind == 'UnionType':
       for idx, subtype_ir in enumerate(type_ir.get('data', [])):
-        self._change_types(type_ir.get('data'), idx)
-    elif type_ir.get('kind') in ['Sequence', 'Promise']:
-      self._change_types(type_ir, 'data')
+        self._change_types(type_ir.get('data'), idx, unimpl)
+    elif kind in ['Sequence', 'Promise']:
+      self._change_types(type_ir, 'data', unimpl)
 
   def _check_attr(self, attr):
-    self._change_types(attr.get('getter'), 'return')
+    unimpl = attr.get('unimplemented', False)
+    self._change_types(attr.get('getter'), 'return', unimpl)
     if attr.get('setter'):
-      self._change_types(attr.get('setter').get('arguments')[0], 'type')
+      self._change_types(attr.get('setter').get('arguments')[0], 'type', unimpl)
 
   def _check_operation(self, op):
+    unimpl = op.get('unimplemented', False)
     for arg in op.get('arguments', []):
-      self._change_types(arg, 'type')
-    self._change_types(op, 'return')
+      self._change_types(arg, 'type', unimpl)
+    self._change_types(op, 'return', unimpl)
 
   def _check_multioperation(self, op):
     unimplemented_count = 0
@@ -51,11 +63,29 @@ class StarfishIRHandler():
       op['unimplemented'] = True
 
   def _check_constructor(self, constructor):
+    unimpl = constructor.get('unimplemented', False)
     for arg in constructor.get('arguments', []):
-      self._change_types(arg, 'type')
+      self._change_types(arg, 'type', unimpl)
 
   def _check_interface(self, interface):
-    # Check const -> skip
+    need_set_used = True
+    if interface.get('used_dictionary'):
+      need_set_used = False
+    if need_set_used:
+      self.used_dictionary = []
+      self.used_typeref = []
+    # Check constructor
+    constructor = interface.get('constructor', None)
+    if constructor:
+      self._check_constructor(constructor)
+      if not constructor.get('unimplemented', False):
+        call_with = constructor.get('call_with', False)
+        if call_with:
+          self.used_typeref.append('Window')
+        if call_with == 'Document':
+          self.used_typeref.append('Document')
+        elif call_with == 'Starish':
+          self.used_typeref.append('StarFish')
     # Check attr
     for attr in interface.get('attributes'):
       self._check_attr(attr)
@@ -65,58 +95,113 @@ class StarfishIRHandler():
         self._check_operation(fn)
       elif fn.get('kind') == 'MultiOperation':
         self._check_multioperation(fn)
-    # Check constructor
-    constructor = interface.get('constructor', None)
-    if constructor:
-      self._check_constructor(constructor)
-    # Update used dictionary info
-    self.used_dictionary = []
-    for dictionary in self.dictionaries:
-      if dictionary.pop('_check', None):
-        self.used_dictionary.append(dictionary)
-    if len(self.used_dictionary) > 0:
+    # Update used dictionary and typeref info
+    if need_set_used:
+      if interface.get('name') in self.used_typeref:
+        self.used_typeref.remove(interface.get('name'))
       interface['used_dictionary'] = self.used_dictionary
+      interface['used_typeref'] = self.used_typeref
+    # Handle implements
+    finished = []
+    for impl_name in interface.get('implements', []):
+      if impl_name in self.interfaces:
+        refer = self.interfaces[impl_name]
+        _extend_property_array(interface, refer, 'attributes')
+        _extend_property_array(interface, refer, 'functions')
+        _extend_property_array(interface, refer, 'constants')
+        finished.append(impl_name)
+    for impl_name in finished:
+      interface.get('implements').remove(impl_name)
 
   def _check_typedef(self, typedef):
-    self._change_types(typedef, 'from')
+    self._change_types(typedef, 'from', False)
+
+  def _handle_dictionary_parent(self, dictionary):
+    parent = dictionary.get('parent', False)
+    resolved_parent = True
+    parent_ir = None
+    if parent:
+      if parent in self.dictionaries:
+        parent_ir = self.dictionaries[parent]
+        resolved_parent = self._handle_dictionary_parent(parent_ir)
+      else:
+        resolved_parent = False
+        
+    if resolved_parent and parent_ir is not None:
+      dictionary['members'] = dictionary['members'] + parent_ir['members']
+    return resolved_parent
 
   def _check_dictionary(self, dictionary):
-    for key in dictionary.get('keys', []):
-      self._change_types(key, 'type')
+    # Handle parent
+    if self._handle_dictionary_parent(dictionary):
+      dictionary.pop('parent', None)
+    need_set_used = True
+    if dictionary.get('used_dictionary'):
+      need_set_used = False
+    if need_set_used:
+      self.used_dictionary = []
+      self.used_typeref = []
+    unimpl = dictionary.get('unimplemented', False)
+    for key in dictionary.get('members', []):
+      self._change_types(key, 'type', unimpl)
+    # Update used dictionary and typeref info
+    if need_set_used:
+      if dictionary in self.used_dictionary:
+        self.used_dictionary.remove(dictionary)
+      dictionary['used_dictionary'] = self.used_dictionary
+      dictionary['used_typeref'] = self.used_typeref
 
-  def get_typed_interfaces(self, irs):
-    self.dictionaries = []
-    self.interfaces = []
-    self.callbacks = []
-    self.typedefs = []
-    self.enums = []
-    for ir in irs:
-      kind = ir['kind']
-      if kind == 'Dictionary':
-        self.dictionaries.append(ir)
-      elif kind == 'Interface':
-        self.interfaces.append(ir)
-      elif kind == 'Callback':
-        self.callbacks.append(ir)
-      elif kind == 'Typedef':
-        self.typedefs.append(ir)
-      elif kind == 'Enum':
-        self.enums.append(ir)
-    if len(self.dictionaries) + len(self.callbacks) + \
-       len(self.typedefs) + len(self.enums) == 0:
-      return
+  def apply_types(self, type_ir, to_ir):
+    self.dictionaries = {}
+    self.interfaces = {}
+    self.callbacks = {}
+    self.typedefs = {}
+    self.enums = {}
+    self.interfaces.update(type_ir.get('interfaces', {}))
+    self.dictionaries.update(type_ir.get('dictionaries', {}))      
+    self.callbacks.update(type_ir.get('callbacks', {}))
+    self.typedefs.update(type_ir.get('typedefs', {}))
+    self.enums.update(type_ir.get('enums', {}))
     # Check typedefs
-    for typedef in self.typedefs:
-      self._check_typedef(typedef)
+    for key, value in to_ir.get('typedefs', {}).iteritems():
+      self._check_typedef(value)
     # Check callbacks
-    for cb in self.callbacks:
-      self._check_operation(cb)
+    for key, value in to_ir.get('callbacks', {}).iteritems():
+      self._check_operation(value)
     # Check dictionaries
-    for dict in self.dictionaries:
-      self._check_dictionary(dict)
+    for key, value in to_ir.get('dictionaries', {}).iteritems():
+      self._check_dictionary(value)
     # Check interfaces
-    for interface in self.interfaces:
-      self._check_interface(interface)
+    for key, value in to_ir.get('interfaces', {}).iteritems():
+      self._check_interface(value)
+    # cleaning dictionaries
+    for key, value in self.dictionaries.iteritems():
+      value.pop('_check', None)
+
+  def merge_irs(self, from_ir, to_ir):
+    result = {}
+    self.apply_types(from_ir, to_ir)
+    self.apply_types(to_ir, from_ir)
+    self.interfaces.update(from_ir.get('interfaces', {}))
+    self.dictionaries.update(from_ir.get('dictionaries', {}))      
+    self.callbacks.update(from_ir.get('callbacks', {}))
+    self.typedefs.update(from_ir.get('typedefs', {}))
+    self.enums.update(from_ir.get('enums', {}))
+    if len(self.interfaces) > 0:
+      result['interfaces'] = self.interfaces
+    if len(self.dictionaries) > 0:
+      result['dictionaries'] = self.dictionaries
+    if len(self.callbacks) > 0:
+      result['callbacks'] = self.callbacks
+    if len(self.typedefs) > 0:
+      result['typedefs'] = self.typedefs
+    if len(self.enums) > 0:
+      result['enums'] = self.enums
+    return result
+
+  def __init__(self):
+    self.used_dictionary = []
+    self.used_typeref = []
 
 
 

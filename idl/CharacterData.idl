@@ -9,15 +9,6 @@ interface CharacterData : Node {
   [Unimplemented] void insertData(unsigned long offset, DOMString data);
   [Unimplemented] void deleteData(unsigned long offset, unsigned long count);
   [Unimplemented] void replaceData(unsigned long offset, unsigned long count, DOMString data);
-
-  // TODO: Support "implements"
-  // CharacterData implements ChildNode
-  [Unscopable, RaisesException, CEReactions, CustomElementCallbacks] void remove();
-
-  // TODO: Support "implements"
-  // CharacterData implements NonDocumentTypeChildNode;
-  readonly attribute Element? previousElementSibling;
-  readonly attribute Element? nextElementSibling;
 };
 
 

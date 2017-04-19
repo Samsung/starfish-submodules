@@ -19,7 +19,7 @@
                             nullptr,
                             {{ fn_name }}Function,
                             {{ function.name }}String,
-                            {{ function.arguments|length|default(0) }}, false);
+                            {{ function.min_passed_count|default(0) }}, false);
     {{ object|trim }}->defineDataProperty(
                             {{ function.name }}String,
                             {{ writable }}, {{ enumerable }}, {{ configurable }},

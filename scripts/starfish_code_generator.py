@@ -7,7 +7,7 @@ import json
 import sys
 
 from jinja2 import Environment, FileSystemLoader
-from starfish_idl_reader import gen_ir_from_file, get_interfaces
+from starfish_idl_reader import gen_ir_from_file, merge_irs
 
 CPP_EXT = ".cpp"
 H_EXT = ".h"
@@ -20,61 +20,62 @@ BINDING_PATH = os.path.join(STARFISH_PATH, 'src', 'binding')
 # MODULES_FILE = os.path.join(SCRIPT_PATH, "module.json")
 BUIILTINT_MODULE_FILE = os.path.join(IDL_PATH, 'Builtin.idl')
 NULLABLE_TYPE_KINDS = ['StringType', 'PrimitiveType', 'Dictionary']
-# NOTE To convert enum to string, it has overloadding toJSString for each enum
-# STRING_KINDS = ['StringType']
+STRING_KINDS = ['StringType', 'Enum']
 POINTER_KINDS = ['Typeref', 'Callback', 'Promise']
-# NOTE Moved type matching code to starfish_idl_reader
-# enums = {}
-# typedefs = {}
-# def register_type(module):
-#   if module['kind'] == 'Enum':
-#     if module['name'] in enums:
-#       return
 
-#     enums[module['name']] = []
-#     for item in module['data']:
-#       enums[module['name']].append(item)
-#   elif module['kind'] == 'Typedef':
-#     if module['name'] in typedefs:
-#       return
-#     typedefs[module['name']] = module['from']
-
-def generate_code(root, f, args): #, sf_modules):
-  irs = gen_ir_from_file(os.path.join(root, f), dep_irs=builin_irs)
-  interfaces = get_interfaces(irs)
-  print("Generated IR from {}".format(f))
-
-  for module in interfaces:
-    # register_type(module)
-
-    if module['kind'] != 'Interface':
+def generate_code(ir, args): #, sf_modules):
+  interfaces = ir['interfaces']
+  for key in interfaces:
+    interface = interfaces[key]
+    if interface.get('partial_interface', False):
+      print "Skip generating code for partial interface " +\
+             interface.get('name')
       continue
-    # if 'parent' in  module:
-    #   parent = module['parent']
-    #   if parent in sf_modules:
-    #     module['parent'] = sf_modules[parent]
-    #   else:
-    #     raise Exception("please write down starfish module for \"{}\", "
-    #                     "like starfish module \"node\" for \"Node\" at \"{}\""
-    #                       .format(parent, MODULES_FILE))
+    generate_code_with_template(interface, 'base_module' + CPP_EXT, args)
 
-    template = env.get_template('base_module'+ CPP_EXT)
+  dictionaries = ir['dictionaries']
+  for key in dictionaries:
+    dictionary = dictionaries[key]
+    if dictionary.get('unimplemented', False):
+      continue
+    generate_code_with_template(dictionary, 'base_dictionary' + CPP_EXT, args)
 
-    if not os.path.exists(BINDING_PATH):
-      raise Exception("\"[starfish_root]/src/binding\" doesn't exist")
+def generate_code_with_template(ir, template, args):
+  template = env.get_template(template)
 
-    path = module['name'] + 'Binding' + CPP_EXT
+  if not os.path.exists(BINDING_PATH):
+    raise Exception("\"[starfish_root]/src/binding\" doesn't exist")
+
+  path = ir['name'] + 'Binding' + CPP_EXT
+  with open(os.path.join(BINDING_PATH, path), 'w') as w:
+    ret = template.render(**ir)
+    w.write(ret)
+    print("Generated Code for Module \"{}\"".format(ir['name']))
+    # print(ret)
+
+  if args.log_idl:
+    path = ir['name'] + 'Idl' + IR_EXT
     with open(os.path.join(BINDING_PATH, path), 'w') as w:
-      ret = template.render(**module)
-      w.write(ret)
-      print("Generated Code for Module \"{}\"".format(module['name']))
-      # print(ret)
+      w.write(pprint.pformat(ir))
+      print("Logged IR to \"{}\"".format(path))
 
-    if args.log_idl:
-      path = module['name'] + 'Idl' + IR_EXT
-      with open(os.path.join(BINDING_PATH, path), 'w') as w:
-        w.write(pprint.pformat(irs))
-        print("Logged IR to \"{}\"".format(path))
+def prerun_all(dir_path, file_alone=None):
+  result = {}
+  file_result = None
+  for (root, dirs, files) in os.walk(dir_path):
+    for f in files:
+      if os.path.splitext(f)[-1] != '.idl':
+        continue
+      file_path = os.path.join(root, f)
+      ir = gen_ir_from_file(file_path)
+      result = merge_irs(result, ir)
+      if file_path == file_alone:
+        print("Generated IR from {}".format(file_path))
+        file_result = ir
+  if file_result:
+    return result, file_result
+  else:
+    return result
 
 def filter_assert_true(errmsg, v):
   if v:
@@ -117,30 +118,17 @@ if __name__ == "__main__":
   env.filters['to_arg_syntax'] = filter_to_argument_syntax
   env.filters['first_word_capitalize'] = filter_first_word_capitalize
 
-  # NOTE Moved type matching code to starfish_idl_reader
-  # Set global variables
-  # env.globals['enum'] = enums
-  # env.globals['typedefs'] = typedefs
+  # Set globals
   env.globals['nullable_kinds'] = NULLABLE_TYPE_KINDS
-  # env.globals['string_kinds'] = STRING_KINDS
+  env.globals['string_kinds'] = STRING_KINDS
   env.globals['pointer_kinds'] = POINTER_KINDS
-
-  global builin_irs
-  builin_irs = gen_ir_from_file(BUIILTINT_MODULE_FILE)
-
-  # NOTE Moved type matching code to starfish_idl_reader
-  # for module in irs:
-  #   register_type(module)
 
   # with open(MODULES_FILE, 'r') as r:
   #  sf_modules = json.loads(r.read())
 
   if os.path.isfile(args.path):
-    generate_code('.', args.path, args) #, sf_modules)
+    all_irs, file_ir = prerun_all(os.path.dirname(args.path), args.path)
+    generate_code(file_ir, args)
   else:
-    for (root, dirs, files) in os.walk(args.path):
-      for f in files:
-        if os.path.splitext(f)[-1] != '.idl':
-          continue
-
-        generate_code(root, f, args) #, sf_modules)
+    all_irs = prerun_all(args.path)
+    generate_code(all_irs, args)
