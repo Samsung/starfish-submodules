@@ -7,18 +7,18 @@ import json
 import sys
 
 from jinja2 import Environment, FileSystemLoader
-from starfish_idl_reader import gen_ir_from_file, merge_irs
+from starfish_idl_reader import gen_ir_from_file, merge_irs, apply_types
 
 CPP_EXT = ".cpp"
 H_EXT = ".h"
 IR_EXT = ".txt"
 SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_PATH = os.path.join(SCRIPT_PATH, 'templates')
-IDL_PATH = os.path.join(SCRIPT_PATH, '..', 'idl')
+# IDL_PATH = os.path.join(SCRIPT_PATH, '..', 'idl')
 STARFISH_PATH = os.path.join(SCRIPT_PATH, '..', '..')
 BINDING_PATH = os.path.join(STARFISH_PATH, 'src', 'binding')
 # MODULES_FILE = os.path.join(SCRIPT_PATH, "module.json")
-BUIILTINT_MODULE_FILE = os.path.join(IDL_PATH, 'Builtin.idl')
+# BUIILTINT_MODULE_FILE = os.path.join(IDL_PATH, 'Builtin.idl')
 NULLABLE_TYPE_KINDS = ['StringType', 'PrimitiveType', 'Dictionary']
 STRING_KINDS = ['StringType', 'Enum']
 POINTER_KINDS = ['Typeref', 'Callback', 'Promise']
@@ -68,13 +68,15 @@ def prerun_all(dir_path, file_alone=None):
         continue
       file_path = os.path.join(root, f)
       ir = gen_ir_from_file(file_path)
-      result = merge_irs(result, ir)
+      merge_irs(result, ir)
       if file_path == file_alone:
         print("Generated IR from {}".format(file_path))
         file_result = ir
   if file_result:
+    apply_types(result, file_result)
     return result, file_result
   else:
+    apply_types(result, result)
     return result
 
 def filter_assert_true(errmsg, v):
@@ -105,10 +107,20 @@ def filter_first_word_capitalize(word):
 
 if __name__ == "__main__":
   argparser = argparse.ArgumentParser()
-  argparser.add_argument("-p", "--path", help="path to idl")
+  argparser.add_argument("root_path", help="root directiory to start")
+  argparser.add_argument("-f", "--file", help="specify an idl file")
   argparser.add_argument("-l", "--log-idl", action='store_true',
                          dest="log_idl", help="flag to log idl")
   args = argparser.parse_args()
+  # Argument validation
+  if not os.path.isdir(args.root_path):
+    print 'ERR: Invalid root path \'' + args.root_path + '\''
+    sys.exit(1)
+  if args.file is not None and \
+     not os.path.isfile(args.file) and \
+     not args.file.endswith('.idl'):
+    print 'ERR: Invalid file \'' + args.file + '\''
+    sys.exit(1)
 
   env = Environment(loader=FileSystemLoader(TEMPLATES_PATH), trim_blocks=True,
                     lstrip_blocks=True)
@@ -126,9 +138,9 @@ if __name__ == "__main__":
   # with open(MODULES_FILE, 'r') as r:
   #  sf_modules = json.loads(r.read())
 
-  if os.path.isfile(args.path):
-    all_irs, file_ir = prerun_all(os.path.dirname(args.path), args.path)
+  if args.file is not None:
+    all_irs, file_ir = prerun_all(args.root_path, args.file)
     generate_code(file_ir, args)
   else:
-    all_irs = prerun_all(args.path)
+    all_irs = prerun_all(args.root_path)
     generate_code(all_irs, args)

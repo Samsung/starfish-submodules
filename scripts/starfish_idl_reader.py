@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os.path
+import os
 import sys
 import types
 from functools import partial
@@ -292,6 +292,7 @@ class StarfishIDLReader():
                          [_hd_extattr_flags,
                           _hd_extattr_unimplemented])
     _set_prop_to_dict(result, 'members', keys)
+    _set_prop_to_dict(result, 'file_path', self.file_path)
     self.dictionaries[node.GetName()] = result
     return result
 
@@ -386,6 +387,7 @@ class StarfishIDLReader():
 
   def _gen_ir_Callback(self, node):
     result = self._gen_ir_Operation(node)
+    _set_prop_to_dict(result, 'file_path', self.file_path)
     self.callbacks[node.GetName()] = result
     return result
 
@@ -577,6 +579,7 @@ class StarfishIDLReader():
     _set_prop_to_dict(result, 'functions', functions)
     if len(item_getters) > 0:
       _set_prop_to_dict(result, 'item_getters', item_getters)
+    _set_prop_to_dict(result, 'file_path', self.file_path)
     self.interfaces[node.GetName()] = result
     return result
 
@@ -613,7 +616,8 @@ class StarfishIDLReader():
       _set_prop_to_dict(result, propname, getattr(self, propname))
     return result
 
-  def __init__(self):
+  def __init__(self, file_path):
+    self.file_path = os.path.splitext(file_path)[0]
     self.interfaces = {}
     self.dictionaries = {}
     self.implements = []
@@ -625,18 +629,25 @@ class StarfishIDLReader():
 ##########################################################
 
 def merge_irs(from_ir, to_ir):
+  for key in NODE_KIND:
+    name = _propname_from_kind(key)
+    if from_ir.get(name, False):
+      from_ir[name].update(to_ir.get(name, {}))
+    elif to_ir.get(name, False):
+      from_ir[name] = to_ir.get(name)
+
+def apply_types(type_ir, to_ir):
   handler = StarfishIRHandler()
-  return handler.merge_irs(from_ir, to_ir)
+  handler.apply_types(type_ir, to_ir)
 
 def gen_ir_from_file(file_path, debug=False):
   # TODO Use singleton lexer, parser
   lexer = StarfishIDLLexer(debug=debug)
   parser = StarfishIDLParser(lexer, debug=debug)
-  reader = StarfishIDLReader()
+  reader = StarfishIDLReader(file_path)
   top_nodes = parser.parse_file(file_path)
   result = reader.gen_ir(top_nodes)
-  handler = StarfishIRHandler()
-  handler.apply_types(result, result)
+  apply_types(result, result)
   return result
 
 # def gen_ir_from_file(file_path, dep_irs = [], dep_dirs = [], debug=False):

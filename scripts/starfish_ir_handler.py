@@ -68,24 +68,14 @@ class StarfishIRHandler():
       self._change_types(arg, 'type', unimpl)
 
   def _check_interface(self, interface):
-    need_set_used = True
-    if interface.get('used_dictionary'):
-      need_set_used = False
-    if need_set_used:
-      self.used_dictionary = []
-      self.used_typeref = []
+    self.used_dictionary = []
+    self.used_typeref = []
     # Check constructor
     constructor = interface.get('constructor', None)
     if constructor:
       self._check_constructor(constructor)
       if not constructor.get('unimplemented', False):
         call_with = constructor.get('call_with', False)
-        if call_with:
-          self.used_typeref.append('Window')
-        if call_with == 'Document':
-          self.used_typeref.append('Document')
-        elif call_with == 'Starish':
-          self.used_typeref.append('StarFish')
     # Check attr
     for attr in interface.get('attributes'):
       self._check_attr(attr)
@@ -96,11 +86,8 @@ class StarfishIRHandler():
       elif fn.get('kind') == 'MultiOperation':
         self._check_multioperation(fn)
     # Update used dictionary and typeref info
-    if need_set_used:
-      if interface.get('name') in self.used_typeref:
-        self.used_typeref.remove(interface.get('name'))
-      interface['used_dictionary'] = self.used_dictionary
-      interface['used_typeref'] = self.used_typeref
+    interface['used_dictionary'] = self._resolve_used_dictionary()
+    interface['used_typeref'] = self._resolve_used_typeref(interface.get('name'))
     # Handle implements
     finished = []
     for impl_name in interface.get('implements', []):
@@ -135,21 +122,32 @@ class StarfishIRHandler():
     # Handle parent
     if self._handle_dictionary_parent(dictionary):
       dictionary.pop('parent', None)
-    need_set_used = True
-    if dictionary.get('used_dictionary'):
-      need_set_used = False
-    if need_set_used:
-      self.used_dictionary = []
-      self.used_typeref = []
+    self.used_dictionary = []
+    self.used_typeref = []
     unimpl = dictionary.get('unimplemented', False)
     for key in dictionary.get('members', []):
       self._change_types(key, 'type', unimpl)
     # Update used dictionary and typeref info
-    if need_set_used:
-      if dictionary in self.used_dictionary:
-        self.used_dictionary.remove(dictionary)
-      dictionary['used_dictionary'] = self.used_dictionary
-      dictionary['used_typeref'] = self.used_typeref
+    dictionary['used_dictionary'] = self._resolve_used_dictionary(dictionary)
+    dictionary['used_typeref'] = self._resolve_used_typeref()
+
+  def _resolve_used_dictionary(self, except_dict=None):
+    result = []
+    for dict in self.used_dictionary:
+      if except_dict is dict:
+        continue
+      result.append(dict)
+    return result
+
+  def _resolve_used_typeref(self, except_name=None):
+    result = []
+    for name in self.used_typeref:
+      if except_name == name:
+        continue
+      if name in self.interfaces:
+        result.append(self.interfaces[name]['file_path'])
+    self.used_typeref = []
+    return result
 
   def apply_types(self, type_ir, to_ir):
     self.dictionaries = {}
@@ -177,27 +175,6 @@ class StarfishIRHandler():
     # cleaning dictionaries
     for key, value in self.dictionaries.iteritems():
       value.pop('_check', None)
-
-  def merge_irs(self, from_ir, to_ir):
-    result = {}
-    self.apply_types(from_ir, to_ir)
-    self.apply_types(to_ir, from_ir)
-    self.interfaces.update(from_ir.get('interfaces', {}))
-    self.dictionaries.update(from_ir.get('dictionaries', {}))      
-    self.callbacks.update(from_ir.get('callbacks', {}))
-    self.typedefs.update(from_ir.get('typedefs', {}))
-    self.enums.update(from_ir.get('enums', {}))
-    if len(self.interfaces) > 0:
-      result['interfaces'] = self.interfaces
-    if len(self.dictionaries) > 0:
-      result['dictionaries'] = self.dictionaries
-    if len(self.callbacks) > 0:
-      result['callbacks'] = self.callbacks
-    if len(self.typedefs) > 0:
-      result['typedefs'] = self.typedefs
-    if len(self.enums) > 0:
-      result['enums'] = self.enums
-    return result
 
   def __init__(self):
     self.used_dictionary = []
