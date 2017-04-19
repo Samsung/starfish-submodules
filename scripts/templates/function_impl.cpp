@@ -1,4 +1,3 @@
-{# TODO replace 'temp_util_for_function.cpp' to 'util.cpp' #}
 {% import 'util.cpp' as util_macro %}
 
 {%- macro gen_check_getter_code() -%}
@@ -131,6 +130,7 @@ if (validArgCount == {{min_passing_count|string}}) {
 {% endmacro -%}
 
 {%- if not function.name == '_unnamed_' %}
+    {% set fnname = '%s%s'|format(function.name, function.id) if function.id else function.name %}
     {% set has_flag = function.flags and function.flags|length > 0 %}
     {% if has_flag %}
 #if defined({{function.flags[0]}})
@@ -140,9 +140,9 @@ if (validArgCount == {{min_passing_count|string}}) {
 
     {% endif %}
     {% if function.custom %}
-extern ESValue {{ function.name }}{{ name }}Function(ESVMInstance* instance);
+extern ESValue {{ fnname }}{{ name }}Function(ESVMInstance* instance);
     {% else %}
-static ESValue {{ function.name }}Function(ESVMInstance* instance)
+static ESValue {{ fnname }}Function(ESVMInstance* instance)
 {
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
     {% if function.arguments|length > 0 and function.arguments[0].ellipsis %}
@@ -157,7 +157,7 @@ static ESValue {{ function.name }}Function(ESVMInstance* instance)
     {% endif %}
     {% if has_flag %}
 #else
-static ESValue {{ function.name }}Function(ESVMInstance* instance)
+static ESValue {{ fnname }}Function(ESVMInstance* instance)
 {
     auto msg = ESString::create("Starfish does not support it");
     instance->throwError(ESValue(TypeError::create(msg)));

@@ -54,13 +54,9 @@ class StarfishIRHandler():
     self._change_types(op, 'return', unimpl)
 
   def _check_multioperation(self, op):
-    unimplemented_count = 0
-    for subop in op.get('operations', []):
-      if subop.get('unimplemented'):
-        unimplemented_count += 1
+    operations = op.get('operations', [])
+    for subop in operations:
       self._check_operation(subop)
-    if unimplemented_count == len(op.get('operations')):
-      op['unimplemented'] = True
 
   def _check_constructor(self, constructor):
     unimpl = constructor.get('unimplemented', False)

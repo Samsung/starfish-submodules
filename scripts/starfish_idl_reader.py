@@ -511,19 +511,25 @@ class StarfishIDLReader():
     return result
 
   def _append_to_functions(self, obj, fns):
+    if obj.get('unimplemented', False):
+      fns.append(obj)
     index = None
     for idx, fn in enumerate(fns):
-      if obj.get('name') == fn.get('name'):
+      if obj.get('name') == fn.get('name') and\
+         not fn.get('unimplemented', False):
         index = idx
         break
-    if index:
+    if index is not None:
       if fns[index].get('kind') == 'Operation':
         newFn = {}
+        fns[index]['id'] = 1
+        obj['id'] = 2
         _set_prop_to_dict(newFn, 'kind', 'MultiOperation')
         _set_prop_to_dict(newFn, 'name', fns[index].get('name'))
         _set_prop_to_dict(newFn, 'operations', [fns[index], obj])
         fns[index] = newFn
       elif fns[index].get('kind') == 'MultiOperation':
+        obj['id'] = len(fns[index].get('operations'))
         fns[index].get('operations').append(obj)
     else:
       fns.append(obj)
