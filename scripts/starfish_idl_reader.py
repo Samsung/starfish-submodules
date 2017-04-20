@@ -640,7 +640,8 @@ def merge_irs(from_ir, to_ir):
     if from_ir.get(name, False):
       from_ir[name].update(to_ir.get(name, {}))
     elif to_ir.get(name, False):
-      from_ir[name] = to_ir.get(name)
+      from_ir[name] = {}
+      from_ir[name].update(to_ir.get(name))
 
 def apply_types(type_ir, to_ir):
   handler = StarfishIRHandler()
@@ -655,22 +656,6 @@ def gen_ir_from_file(file_path, debug=False):
   result = reader.gen_ir(top_nodes)
   apply_types(result, result)
   return result
-
-# def gen_ir_from_file(file_path, dep_irs = [], dep_dirs = [], debug=False):
-#   # TODO Use singleton lexer, parser
-#   if len(dep_dirs) == 0:
-#     dep_dirs.append(os.path.dirname(file_path))
-#   lexer = StarfishIDLLexer(debug=debug)
-#   parser = StarfishIDLParser(lexer, debug=debug)
-#   reader = StarfishIDLReader(dep_dirs)
-#   top_nodes = parser.parse_file(file_path)
-#   result = reader.gen_ir(top_nodes)
-#   # result = []
-#   # for top_node in nodes.GetChildren():
-#   #   result.append(reader._gen_ir_node(top_node))
-#   handler = StarfishIRHandler()
-#   handler.handle_irs([result] + dep_irs)
-#   return result
 
 ##########################################################
 if __name__ == '__main__':
