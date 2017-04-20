@@ -36,11 +36,9 @@ static ESValue {{ name|lower }}Constructor(ESVMInstance* instance)
     {% set call_with = 'callWith' if constructor.call_with else '' %}
     {% set call_with_comma = 'callWith, ' if call_with|length > 0 else '' %}
     {% if constructor.call_with  == 'Document' %}
-    Window* window = (Window*)instance->globalObject()->extraPointerData();
-    Document* callWith = window->document();
+    Document* callWith = fetchDocument(instance);
     {% elif constructor.call_with  == 'Starfish' %}
-    Window* window = (Window*)instance->globalObject()->extraPointerData();
-    StarFish* callWith = window->starFish();
+    StarFish* callWith = fetchStarFish(instance);
     {% endif %}
     // Call native function (nargs: {{max_arg if uniformed_call else '%s-%s'|format(min_passing_count, max_arg)}})
     {% if max_arg == 0 %}
