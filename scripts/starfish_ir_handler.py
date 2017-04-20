@@ -7,11 +7,23 @@ def _extend_property_array(target, refer, propname):
   for item in ref_array:
     target_array.append(item)
 
-def _append_if_new(to_array, item):
-  if not (item in to_array):
-    to_array.append(item)
-
 class StarfishIRHandler():
+  def _add_used_typeref(self, name):
+    if self.processing and self.processing['name'] == name:
+      return
+    if name in self.interfaces:
+      self.include_paths.add(self.interfaces[name]['file_path'])
+
+  def _add_used_dictionary(self, dictionary):
+    if self.processing and self.processing['name'] == dictionary['name']:
+      return
+    if dictionary.get('unimplemented', False):
+      return
+    if dictionary in self.used_dictionaries:
+      return
+    self.used_dictionaries.append(dictionary)
+    self.include_paths.add(dictionary['file_path'])
+
   def _change_types(self, parent, type_key, unimpl):
     type_ir = parent[type_key]
     name = type_ir.get('name')
@@ -21,10 +33,11 @@ class StarfishIRHandler():
         parent[type_key] = self.typedefs[name].get('from')
         return
       if name in self.dictionaries:
+        dictionary = self.dictionaries[name]
         type_ir['kind'] = 'Dictionary'
-        type_ir['data'] = self.dictionaries[name]
+        type_ir['data'] = dictionary
         if not unimpl:
-          _append_if_new(self.used_dictionary, self.dictionaries[name])
+          self._add_used_dictionary(dictionary)
         return
       if name in self.callbacks:
         type_ir['kind'] = 'Callback'
@@ -34,7 +47,7 @@ class StarfishIRHandler():
         parent[type_key] = self.enums[name]
         return
       if not unimpl:
-        _append_if_new(self.used_typeref, name)
+        self._add_used_typeref(name)
     elif kind == 'UnionType':
       for idx, subtype_ir in enumerate(type_ir.get('data', [])):
         self._change_types(type_ir.get('data'), idx, unimpl)
@@ -64,8 +77,7 @@ class StarfishIRHandler():
       self._change_types(arg, 'type', unimpl)
 
   def _check_interface(self, interface):
-    self.used_dictionary = []
-    self.used_typeref = []
+    self.processing = interface
     # Check constructor
     constructor = interface.get('constructor', None)
     if constructor:
@@ -82,8 +94,7 @@ class StarfishIRHandler():
       elif fn.get('kind') == 'MultiOperation':
         self._check_multioperation(fn)
     # Update used dictionary and typeref info
-    interface['used_dictionary'] = self._resolve_used_dictionary()
-    interface['used_typeref'] = self._resolve_used_typeref(interface.get('name'))
+    self._flush_using_info(interface)
     # Handle implements
     finished = []
     for impl_name in interface.get('implements', []):
@@ -95,9 +106,22 @@ class StarfishIRHandler():
         finished.append(impl_name)
     for impl_name in finished:
       interface.get('implements').remove(impl_name)
+    self.processing = None
 
   def _check_typedef(self, typedef):
     self._change_types(typedef, 'from', False)
+
+  def _check_dictionary(self, dictionary):
+    self.processing = dictionary
+    # Handle parent
+    if self._handle_dictionary_parent(dictionary):
+      dictionary.pop('parent', None)
+    unimpl = dictionary.get('unimplemented', False)
+    for key in dictionary.get('members', []):
+      self._change_types(key, 'type', unimpl)
+    # Update used dictionary and typeref info
+    self._flush_using_info(dictionary)
+    self.processing = None
 
   def _handle_dictionary_parent(self, dictionary):
     parent = dictionary.get('parent', False)
@@ -114,36 +138,11 @@ class StarfishIRHandler():
       dictionary['members'] = dictionary['members'] + parent_ir['members']
     return resolved_parent
 
-  def _check_dictionary(self, dictionary):
-    # Handle parent
-    if self._handle_dictionary_parent(dictionary):
-      dictionary.pop('parent', None)
-    self.used_dictionary = []
-    self.used_typeref = []
-    unimpl = dictionary.get('unimplemented', False)
-    for key in dictionary.get('members', []):
-      self._change_types(key, 'type', unimpl)
-    # Update used dictionary and typeref info
-    dictionary['used_dictionary'] = self._resolve_used_dictionary(dictionary)
-    dictionary['used_typeref'] = self._resolve_used_typeref()
-
-  def _resolve_used_dictionary(self, except_dict=None):
-    result = []
-    for dict in self.used_dictionary:
-      if except_dict is dict:
-        continue
-      result.append(dict)
-    return result
-
-  def _resolve_used_typeref(self, except_name=None):
-    result = []
-    for name in self.used_typeref:
-      if except_name == name:
-        continue
-      if name in self.interfaces:
-        result.append(self.interfaces[name]['file_path'])
-    self.used_typeref = []
-    return result
+  def _flush_using_info(self, to_obj):
+    to_obj['used_dictionaries'] = self.used_dictionaries
+    to_obj['include_paths'] = self.include_paths
+    self.used_dictionaries = []
+    self.include_paths = set()
 
   def apply_types(self, type_ir, to_ir):
     self.dictionaries = {}
@@ -173,8 +172,9 @@ class StarfishIRHandler():
       value.pop('_check', None)
 
   def __init__(self):
-    self.used_dictionary = []
-    self.used_typeref = []
+    self.processing = None
+    self.used_dictionaries = []
+    self.include_paths = set()
 
 
 

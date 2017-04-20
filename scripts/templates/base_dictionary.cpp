@@ -23,15 +23,8 @@
 #include "StarFishConfig.h"
 #include "ScriptBindingInstance.h"
 #include "binding/escargot/ScriptBindingInstanceDataEscargot.h"
-{% for item in used_dictionary %}
-  {% if not item.unimplemented %}
-#include "{{item.file_path|to_header_path}}"
-  {% endif %}
-{% endfor %}
-{% for item in used_typeref %}
-  {% if not item.unimplemented %}
+{% for item in include_paths %}
 #include "{{item|to_header_path}}"
-  {% endif %}
 {% endfor %}
 #include "{{file_path|to_header_path}}"
 

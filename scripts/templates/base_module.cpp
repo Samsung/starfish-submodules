@@ -23,15 +23,8 @@
 #include "StarFishConfig.h"
 #include "ScriptBindingInstance.h"
 #include "binding/escargot/ScriptBindingInstanceDataEscargot.h"
-{% for item in used_dictionary %}
-  {% if not item.unimplemented %}
-#include "{{item.file_path|to_header_path}}"
-  {% endif %}
-{% endfor %}
-{% for item in used_typeref %}
-  {% if not item.unimplemented %}
+{% for item in include_paths %}
 #include "{{item|to_header_path}}"
-  {% endif %}
 {% endfor %}
 #include "{{file_path|to_header_path}}"
 
@@ -39,11 +32,9 @@ namespace StarFish {
 
 using namespace escargot;
 
-{% if used_dictionary %}
-  {%- for dictionary in used_dictionary %}
-    {% if not dictionary.unimplemented %}
+{% if used_dictionaries %}
+  {%- for dictionary in used_dictionaries %}
 {% include 'dictionary_impl.cpp' ignore missing %}
-    {% endif %}
   {% endfor %}
 {% endif %}
 {% if constructor and not constructor.unimplemented%}
