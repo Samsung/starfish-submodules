@@ -23,6 +23,8 @@ NULLABLE_TYPE_KINDS = ['StringType', 'PrimitiveType', 'Dictionary']
 STRING_KINDS = ['StringType', 'Enum']
 POINTER_KINDS = ['Typeref', 'Callback', 'Promise']
 
+_root_dir=None
+
 def generate_code(ir, args): #, sf_modules):
   interfaces = ir['interfaces']
   for key in interfaces:
@@ -105,6 +107,9 @@ def filter_first_word_capitalize(word):
 
   return word[0].upper() + word[1:]
 
+def filter_to_header_path(inputtxt):
+  return inputtxt.replace(_root_dir, '') + '.h'
+
 if __name__ == "__main__":
   argparser = argparse.ArgumentParser()
   argparser.add_argument("root_path", help="root directiory to start")
@@ -129,6 +134,7 @@ if __name__ == "__main__":
   env.filters['assert_false'] = filter_assert_false
   env.filters['to_arg_syntax'] = filter_to_argument_syntax
   env.filters['first_word_capitalize'] = filter_first_word_capitalize
+  env.filters['to_header_path'] = filter_to_header_path
 
   # Set globals
   env.globals['nullable_kinds'] = NULLABLE_TYPE_KINDS
@@ -137,6 +143,9 @@ if __name__ == "__main__":
 
   # with open(MODULES_FILE, 'r') as r:
   #  sf_modules = json.loads(r.read())
+  _root_dir = args.root_path
+  if not _root_dir.endswith('/'):
+    _root_dir = _root_dir + '/'
 
   if args.file is not None:
     all_irs, file_ir = prerun_all(args.root_path, args.file)
