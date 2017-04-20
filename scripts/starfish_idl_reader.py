@@ -209,7 +209,7 @@ def _hd_extattr_custom_getter_setter(target, extattr):
 
 def _hd_extattr_raise_expection(target, extattr):
   if extattr.GetName() == 'RaisesException':
-    target['raises_exception'] = True
+    target['raises_exception'] = extattr.GetProperty('VALUE', True)
     return True
   return False
 
@@ -424,14 +424,18 @@ class StarfishIDLReader():
                           _hd_extattr_cereactions,
                           _hd_extattr_rename,
                           _hd_extattr_unforgeable,
-                          _hd_extattr_custom_getter_setter])
-
+                          _hd_extattr_custom_getter_setter,
+                          _hd_extattr_raise_expection])
+    excp = result.pop('raises_exception', None)
+    getter_excp = True if (excp or excp == 'Getter') else None
+    setter_excp = True if (excp or excp == 'Setter') else None
     # genarate getter ir
     getter = {}
     CHECK_NOT_NONE(type_ir)
     _set_prop_to_dict(getter, 'kind', 'Operation')
     _set_prop_to_dict(getter, 'name', '')
     _set_prop_to_dict(getter, 'arguments', [])
+    _set_prop_to_dict(getter, 'raises_exception', getter_excp)
     _set_prop_to_dict(type_ir, 'object_option', result.pop('object_option', None))
     _set_prop_to_dict(getter, 'return', type_ir)
     _set_prop_to_dict(result, 'getter', getter)
@@ -446,6 +450,7 @@ class StarfishIDLReader():
       _set_prop_to_dict(setter, 'kind', 'Operation')
       _set_prop_to_dict(setter, 'return', {'kind': 'PrimitiveType', 'name': 'void'})
       _set_prop_to_dict(setter, 'arguments', [arg_ir])
+      _set_prop_to_dict(setter, 'raises_exception', setter_excp)
       _set_prop_to_dict(result, 'setter', setter)
     return result
 
