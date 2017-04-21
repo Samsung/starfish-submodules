@@ -5,13 +5,9 @@
                       if function.custom else function.name %}
     ESString* {{ function.name }}String = ESString::create("{{ function.name }}");
     {% if function.static %}
-        {% set object %}
-            {{ name }}Function
-        {% endset %}
+        {% set object %}{{ name }}Function{% endset %}
     {% else %}
-        {% set object %}
-            {{ name }}Obj
-        {% endset %}
+        {% set object %}{{ name }}PrototypeObj{% endset %}
     {% endif %}
     {% set writable = function.writable|default(True)|lower %}
     {% set enumerable = function.enumerable|default(True)|lower %}
@@ -21,7 +17,7 @@
                             {{ fn_name }}Function,
                             {{ function.name }}String,
                             {{ function.min_passed_count|default(0) }}, false);
-    {{ object|trim }}->defineDataProperty(
+    {{ object }}->defineDataProperty(
                             {{ function.name }}String,
                             {{ writable }}, {{ enumerable }}, {{ configurable }},
                             {{fn_name}}ESFn);

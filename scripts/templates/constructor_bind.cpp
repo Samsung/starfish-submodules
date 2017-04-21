@@ -49,6 +49,6 @@
     {{ name }}Function->set__proto__(fetchData(scriptBindingInstance)
             ->fn{{ parent }}());
     {% endif %}
-    {% if functions and functions|length > 0 %}
-    ESObject* {{ name }}Obj = {{ name }}Function->protoType().asESPointer()->asESObject();
+    {% if (functions and functions|length > 0) or (attributes and attributes|length > 0) %}
+    ESObject* {{ name }}PrototypeObj = {{ name }}Function->protoType().asESPointer()->asESObject();
     {% endif %}
