@@ -246,9 +246,7 @@ class StarfishIDLReader():
       # NamedConstructor
       for child in extattr.GetChildren():
         if _is_class(child, 'Call'):
-          constructor = self._gen_ir_Operation(child)
-          constructor.pop('kind', None)
-          _set_prop_to_dict(constructor, 'prototype', 'Object')
+          constructor = self._gen_ir_constructor(child)
           _set_prop_to_dict(target, 'constructor', constructor)
           return True
     elif extattr.GetName() == 'HTMLConstructor':
@@ -259,31 +257,35 @@ class StarfishIDLReader():
       return True
     elif 'Constructor' in extattr.GetName():
       # Constructor
-      constructor = self._gen_ir_Operation(extattr)
-      constructor.pop('kind', None)
       prototype = 'Error' if 'Exception' in extattr.GetName() else 'Object'
+      constructor = self._gen_ir_constructor(extattr, prototype)
       _set_prop_to_dict(constructor, 'name', '')
-      _set_prop_to_dict(constructor, 'prototype', prototype)
       _set_prop_to_dict(target, 'constructor', constructor)
-      if 'Custom' in extattr.GetName():
-        _set_prop_to_dict(constructor, 'custom', True)
-      elif 'Unimplemented' in extattr.GetName():
-        _set_prop_to_dict(constructor, 'unimplemented', True)
       return True
     return False
+
+  def _gen_ir_constructor(self, node, prototype='Object'):
+    constructor = self._gen_ir_operation(node)
+    _set_prop_to_dict(constructor, 'prototype', prototype)
+    _set_prop_to_dict(constructor, 'kind', 'Operation')
+    if 'Custom' in node.GetName():
+      _set_prop_to_dict(constructor, 'custom', True)
+    elif 'Unimplemented' in node.GetName():
+      _set_prop_to_dict(constructor, 'unimplemented', True)
+    return constructor
 
   def _gen_ir_not_implemented(self, node):
     result = { 'kind': 'NOT_IMPLEMENTED' }
     self.errors.append(result)
     return result
 
-  def _gen_ir_Dictionary(self, node):
+  def _gen_ir_dictionary(self, node):
     # print dump_node(node)
     result = _gen_basic_named(node)
     keys = []
     for child in node.GetChildren():
       if _is_class(child, 'Key'):
-        keys.append(self._gen_ir_Argument(child))
+        keys.append(self._gen_ir_argument(child))
       elif _is_class(child, 'Inherit'):
         result['parent'] = child.GetName()
       elif _is_class(child, 'ExtAttributes'):
@@ -296,11 +298,11 @@ class StarfishIDLReader():
     self.dictionaries[node.GetName()] = result
     return result
 
-  def _gen_ir_Typedef(self, node):
+  def _gen_ir_typedef(self, node):
     result = _gen_basic_named(node)
     for child in node.GetChildren():
       if _is_class(child, 'Type'):
-        result['from'] = self._gen_ir_Type(child)
+        result['from'] = self._gen_ir_type(child)
       elif _is_class(child, 'ExtAttributes'):
         _handle_extattrs(result,
                          child.GetChildren(),
@@ -308,7 +310,7 @@ class StarfishIDLReader():
     self.typedefs[node.GetName()] = result
     return result
 
-  def _gen_ir_Enum(self, node):
+  def _gen_ir_enum(self, node):
     result = _gen_basic_named(node)
     items = []
     for child in node.GetChildren():
@@ -322,7 +324,7 @@ class StarfishIDLReader():
     self.enums[node.GetName()] = result
     return result
 
-  def _gen_ir_Type(self, node):
+  def _gen_ir_type(self, node):
     # print dump_node(node)
     result = {}
     _set_boolean_prop(result, node, 'NULLABLE', 'nullable')
@@ -334,7 +336,7 @@ class StarfishIDLReader():
         result['name'] = child.GetClass()
         for subt in child.GetChildren():
           if subt.GetClass() == 'Type':
-            result['data'] = self._gen_ir_Type(subt)
+            result['data'] = self._gen_ir_type(subt)
             break;
       elif _is_class(child, 'UnionType'):
         result['kind'] = child.GetClass()
@@ -342,7 +344,7 @@ class StarfishIDLReader():
         subtypes = []
         for subt in child.GetChildren():
           if subt.GetClass() == 'Type':
-            subtypes.append(self._gen_ir_Type(subt))
+            subtypes.append(self._gen_ir_type(subt))
         result['data'] = subtypes
       elif _is_class(child, 'Any'):
         result['kind'] = child.GetClass()
@@ -356,13 +358,13 @@ class StarfishIDLReader():
 
     return result
 
-  def _gen_ir_Argument(self, node):
+  def _gen_ir_argument(self, node):
     # print dump_node(node)
     result = _gen_basic_named(node)
     _set_boolean_prop(result, node, 'OPTIONAL', 'optional')
     for child in node.GetChildren():
       if _is_class(child, 'Type'):
-        result['type'] = self._gen_ir_Type(child)
+        result['type'] = self._gen_ir_type(child)
       elif _is_class(child, 'Default'):
         value = child.GetName()
         if value is None:
@@ -378,22 +380,22 @@ class StarfishIDLReader():
                           _hd_extattr_treatnull])
     return result
 
-  def _gen_ir_Arguments(self, node):
+  def _gen_ir_arguments(self, node):
     result = []
     for child in node.GetChildren():
       if _is_class(child, 'Argument'):
-        result.append(self._gen_ir_Argument(child))
+        result.append(self._gen_ir_argument(child))
     return result
 
-  def _gen_ir_Callback(self, node):
-    result = self._gen_ir_Operation(node)
+  def _gen_ir_callback(self, node):
+    result = self._gen_ir_operation(node)
     _set_prop_to_dict(result, 'file_path', self.file_path)
     self.callbacks[node.GetName()] = result
     return result
 
-  def _gen_ir_Const(self, node):
+  def _gen_ir_const(self, node):
     result = _gen_basic_named(node)
-    result['type'] = self._gen_ir_Type(node)
+    result['type'] = self._gen_ir_type(node)
     for child in node.GetChildren():
       if _is_class(child, 'Value'):
         _set_value_prop(result, child, 'NAME', 'value')
@@ -405,7 +407,7 @@ class StarfishIDLReader():
                           _hd_extattr_rename])
     return result
 
-  def _gen_ir_Attribute(self, node):
+  def _gen_ir_attribute(self, node):
     result = _gen_basic_named(node)
     _set_boolean_prop(result, node, 'INHERIT', 'inherit')
     has_setter = False if node.GetProperty('READONLY') else True
@@ -413,7 +415,7 @@ class StarfishIDLReader():
 
     for child in node.GetChildren():
       if _is_class(child, 'Type'):
-        type_ir = self._gen_ir_Type(child)
+        type_ir = self._gen_ir_type(child)
       elif _is_class(child, 'ExtAttributes'):
         _handle_extattrs(result,
                          child.GetChildren(),
@@ -454,7 +456,7 @@ class StarfishIDLReader():
       _set_prop_to_dict(result, 'setter', setter)
     return result
 
-  def _gen_ir_Operation(self, node):
+  def _gen_ir_operation(self, node):
     result = _gen_basic_named(node)
     _set_boolean_prop(result, node, 'STATIC', 'static')
     _set_boolean_prop(result, node, 'GETTER', 'is_item_getter')
@@ -462,9 +464,9 @@ class StarfishIDLReader():
     args_ir = None
     for child in node.GetChildren():
       if _is_class(child, 'Arguments'):
-        args_ir = self._gen_ir_Arguments(child)
+        args_ir = self._gen_ir_arguments(child)
       elif _is_class(child, 'Type'):
-        return_ir = self._gen_ir_Type(child)
+        return_ir = self._gen_ir_type(child)
       elif _is_class(child, 'ExtAttributes'):
         _handle_extattrs(result,
                          child.GetChildren(),
@@ -498,13 +500,13 @@ class StarfishIDLReader():
     _set_prop_to_dict(result, 'min_passed_count', min_passed_count)
     return result
 
-  def _gen_ir_Stringifier(self, node):
+  def _gen_ir_stringifier(self, node):
     result = {}
     for child in node.GetChildren():
       if _is_class(child, 'Attribute'):
-        result = self._gen_ir_Attribute(child)
+        result = self._gen_ir_attribute(child)
       elif _is_class(child, 'Operation'):
-        result = self._gen_ir_Operation(child)
+        result = self._gen_ir_operation(child)
       elif _is_class(child, 'ExtAttributes'):
         # Valid when it's placed last
         _handle_extattrs(result,
@@ -534,12 +536,12 @@ class StarfishIDLReader():
         _set_prop_to_dict(newFn, 'operations', [fns[index], obj])
         fns[index] = newFn
       elif fns[index].get('kind') == 'MultiOperation':
-        obj['id'] = len(fns[index].get('operations'))
+        obj['id'] = len(fns[index].get('operations')) + 1
         fns[index].get('operations').append(obj)
     else:
       fns.append(obj)
 
-  def _gen_ir_Interface(self, node):
+  def _gen_ir_interface(self, node):
     # print dump_node(node)
     result = _gen_basic_named(node)
     _set_prop_to_dict(result, 'global_expose', True)
@@ -560,7 +562,7 @@ class StarfishIDLReader():
           item_getters.append(op_ir)
         self._append_to_functions(op_ir, functions)
       elif _is_class(child, 'Stringifier'):
-        child_ir = self._gen_ir_Stringifier(child)
+        child_ir = self._gen_ir_stringifier(child)
         if child_ir['kind'] == 'Attribute':
           attributes.append(child_ir)
         elif child_ir['kind'] == 'Operation':
@@ -594,7 +596,7 @@ class StarfishIDLReader():
     self.interfaces[node.GetName()] = result
     return result
 
-  def _gen_ir_Implements(self, node):
+  def _gen_ir_implements(self, node):
     # print dump_node(node)
     result = _gen_basic_named(node)
     _set_prop_to_dict(result, 'refer_name', node.GetProperty('REFERENCE'))
@@ -603,7 +605,7 @@ class StarfishIDLReader():
 
   def _gen_ir_node(self, node):
     # print dump_node(node)
-    class_name = node.GetClass()
+    class_name = node.GetClass().lower()
     func_name = '_gen_ir_' + class_name
     try:
       return getattr(self, func_name)(node)

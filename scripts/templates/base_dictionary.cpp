@@ -43,10 +43,12 @@ using namespace escargot;
 {% for key in members %}
     ESValue arg{{loop.index - 1}} = from.asESPointer()->asESObject()->get(ESString::create("{{ key.name }}"));
 {% endfor %}
+    {{name}} result;
 {% for key in members -%}
     {{ util_macro.handle_arg(key, 'arg%d'|format(loop.index - 1), 'value%d'|format(loop.index - 1)) }}
+    result.set{{key.name|first_word_capitalize}}({{'value%d'|format(loop.index - 1)}});
 {% endfor %}
-    return {{name}}({{'value'|to_arg_syntax(0, members|length)}});
+    return result;
 }
 
 ESValue toESValueFrom{{name}}(ESVMInstance* instance, {{name}}& from)
