@@ -28,17 +28,18 @@
 {%- macro gen_native_call_impl(return_type, uniformed_call) -%}
     {% set return_left = '' if return_type.name == 'void' else 'result = ' %}
     {% set calling = '%s::'|format(name) if function.static else 'originalObj->' %}
+    {% set fnname = function.name if function.rename|length == 0 else function.rename %}
     {% set max_arg = function.arguments|length %}
     {% if max_arg == 0 -%}
-{{return_left}}{{calling}}{{function.name}}();
+{{return_left}}{{calling}}{{fnname}}();
     {%- elif uniformed_call -%}
-{{return_left}}{{calling}}{{function.name}}({{ 'value'|to_arg_syntax(0, max_arg) }});
+{{return_left}}{{calling}}{{fnname}}({{ 'value'|to_arg_syntax(0, max_arg) }});
     {%- else -%}
 if (validArgCount == {{function.min_passing_count|string}}) {
-    {{return_left}}{{calling}}{{function.name}}({{'value'|to_arg_syntax(0, function.min_passing_count)}});
+    {{return_left}}{{calling}}{{fnname}}({{'value'|to_arg_syntax(0, function.min_passing_count)}});
         {% for count in range(function.min_passing_count + 1, max_arg + 1) %}
 } else if (validArgCount == {{count|string}}) {
-    {{return_left}}{{calling}}{{function.name}}({{'value'|to_arg_syntax(0, count)}});
+    {{return_left}}{{calling}}{{fnname}}({{'value'|to_arg_syntax(0, count)}});
         {% endfor %}
 }
     {%- endif -%}
@@ -153,13 +154,7 @@ if (validArgCount == {{function.min_passing_count|string}}) {
 {%- if not function.name == '_unnamed_' %}
     {% set fnname = '%s%s'|format(function.name, function.id) if function.id else function.name %}
     {% set has_flag = function.flags and function.flags|length > 0 %}
-    {% if has_flag %}
-#if defined({{function.flags[0]}})
-        {%- for idx in range(1, function.flags|length) %}
-            {{-  ' && defined(%s)'|format(function.flags[idx]) -}}
-        {% endfor %}
-
-    {% endif %}
+    {% call util_macro.ifdef(function.flags) %}
     {% if function.custom %}
 extern ESValue {{ gen_function_name(function) }}(ESVMInstance* instance);
     {% else %}
@@ -177,16 +172,7 @@ static ESValue {{ gen_function_name(function) }}(ESVMInstance* instance)
     {% endif %}
 }
     {% endif %}
-    {% if has_flag %}
-#else
-static ESValue {{ gen_function_name(function) }}(ESVMInstance* instance)
-{
-    auto msg = ESString::create("Starfish does not support it");
-    instance->throwError(ESValue(TypeError::create(msg)));
-    STARFISH_RELEASE_ASSERT_NOT_REACHED();
-}
-#endif
-    {% endif %}
+    {% endcall %}
 
 {% endif %}
 

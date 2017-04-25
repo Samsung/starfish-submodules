@@ -131,81 +131,83 @@
 {% endmacro -%}
 
 {################## 'HANDLE RETURNS' ##################}
-{%- macro gen_declare_return_value_impl(type) -%}
+{%- macro gen_declare_return_value_impl(type, vname) -%}
     {% set use_nullable = type.kind in nullable_kinds and type.nullable %}
     {% set type_exp = gen_type_str(type, use_nullable) %}
     {% if type.kind in pointer_kinds %}
-    {{- '%s result = nullptr;'|format(type_exp) -}}
+    {{- '%s %s = nullptr;'|format(type_exp, vname) -}}
     {% elif type.kind in string_kinds %}
-    {{- '%s result = String::emptyString;'|format(type_exp) -}}
+    {{- '%s %s = String::emptyString;'|format(type_exp, vname) -}}
     {% elif type.name != 'void' %}
-    {{- '%s result;'|format(type_exp) -}}
+    {{- '%s %s;'|format(type_exp, vname) -}}
     {% endif %}
 {%- endmacro -%}
 
-{%- macro gen_declare_return_value(type) -%}
-// Declare return value (empty when void)
+{%- macro gen_declare_return_value(type, vname='result') -%}
+// Declare native value (empty when type is void)
     {% if type.kind == 'Promise' %}
 #ifdef USE_ES6_FEATURE
-    {{ gen_declare_return_value_impl(type) }}
+    {{ gen_declare_return_value_impl(type, vname) }}
         {% if type.data.name != 'void' %}
 #else
-    {{ gen_declare_return_value_impl(type.data) }}
+    {{ gen_declare_return_value_impl(type.data, vname) }}
         {% endif %}
 #endif
     {% else %}
-    {{ gen_declare_return_value_impl(type) }}
+    {{ gen_declare_return_value_impl(type, vname) }}
     {% endif %}
 {%- endmacro -%}
 
-{%- macro gen_return_assert(type) %}
+{%- macro gen_return_assert(type, vname='result') %}
     {% if type.kind in pointer_kinds and not type.nullable %}
-STARFISH_ASSERT(result != nullptr);
+STARFISH_ASSERT({{ vname }} != nullptr);
     {% endif %}
 {% endmacro -%}
 
-{%- macro gen_return_code(type, var_name) -%}
+{%- macro gen_native_to_esvalue(type, var_name='result') -%}
     {%- if type.kind in string_kinds %}
-return toJSString({{var_name}});
+toJSString({{var_name}})
     {%- elif type.kind == 'Any' %}
-return {{var_name}};
+{{var_name}}
     {%- elif type.kind in pointer_kinds %}
-return {{var_name}}->scriptValue();
+{{var_name}}->scriptValue()
     {%- elif type.kind == 'Dictionary' %}
-return toESValueFrom{{type.name}}(instance, var_name);
+toESValueFrom{{type.name}}(instance, var_name)
     {%- elif type.name in ['boolean', 'long', 'short', 'unsigned long', 'unsigned short', 'double', 'long long', 'unsigned long long'] %}
-return ESValue({{var_name}});
-    {%- else %}
-STARFISH_RELEASE_ASSERT_NOT_REACHED();
-    {% endif %}
+ESValue({{var_name}})
+    {%- endif %}
 {%- endmacro -%}
 
-{%- macro handle_return_impl(return_type) -%}
+{%- macro gen_return_code(type, vname='result') -%}
+return {{ gen_native_to_esvalue(type, vname) }};
+{%- endmacro -%}
+
+{%- macro handle_return_impl(return_type, vname='result') -%}
     {% set use_nullable = return_type.kind in nullable_kinds and return_type.nullable %}
     {% if return_type.name == 'void' -%}
     return ESValue(ESValue::ESUndefined);
     {%- elif use_nullable -%}
-    if (!result.hasValue()) {
+    if (!{{ vname }}.hasValue()) {
         return ESValue(ESValue::ESNull);
     }
-    {{ gen_type_str(return_type, False) }} result_value = result.getValue();
-    {{ gen_return_code(return_type, 'result_value') }}
+    {{ gen_type_str(return_type, False) }} {{ vname }}_value = {{ vname }}.getValue();
+    {{ gen_return_code(return_type, '%s_value'|format(vname)) }}
     {%- elif return_type.nullable -%}
-    if (result == nullptr) {
+    if ({{ vname }} == nullptr) {
         return ESValue(ESValue::ESNull);
     }
-    {{ gen_return_code(return_type, 'result') }}
+    {{ gen_return_code(return_type, vname) }}
     {%- else -%}
     {{ gen_return_assert(return_type)|trim }}
-    {{ gen_return_code(return_type, 'result') }}
+    {{ gen_return_code(return_type, vname) }}
     {%- endif %}
 {%- endmacro -%}
 
-{%- macro handle_return(return_type) -%}
+{%- macro handle_return(return_type, vname='result') -%}
 // Return ESValue from native value
     {% if return_type.kind == 'Promise' and not return_type.data.kind in pointer_kinds %}
 #ifdef USE_ES6_FEATURE
-    return result->scriptValue();
+    return {{ vname }}->scriptValue();
 #else
     {{ handle_return_impl(return_type.data)|trim }}
 #endif

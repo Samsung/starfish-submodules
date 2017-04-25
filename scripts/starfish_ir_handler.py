@@ -56,12 +56,16 @@ class StarfishIRHandler():
 
   def _check_attr(self, attr):
     unimpl = attr.get('unimplemented', False)
+    if attr.get('raises_exception', False):
+      self.has_exception = True
     self._change_types(attr.get('getter'), 'return', unimpl)
     if attr.get('setter'):
       self._change_types(attr.get('setter').get('arguments')[0], 'type', unimpl)
 
   def _check_operation(self, op):
     unimpl = op.get('unimplemented', False)
+    if op.get('raises_exception', False):
+      self.has_exception = True
     for arg in op.get('arguments', []):
       self._change_types(arg, 'type', unimpl)
     self._change_types(op, 'return', unimpl)
@@ -77,7 +81,7 @@ class StarfishIRHandler():
       self._change_types(arg, 'type', unimpl)
 
   def _check_interface(self, interface):
-    self.processing = interface
+    self._init_using_info(interface)
     # Check constructor
     constructor = interface.get('constructor', None)
     if constructor:
@@ -106,13 +110,12 @@ class StarfishIRHandler():
         finished.append(impl_name)
     for impl_name in finished:
       interface.get('implements').remove(impl_name)
-    self.processing = None
 
   def _check_typedef(self, typedef):
     self._change_types(typedef, 'from', False)
 
   def _check_dictionary(self, dictionary):
-    self.processing = dictionary
+    self._init_using_info(dictionary)
     # Handle parent
     if self._handle_dictionary_parent(dictionary):
       dictionary.pop('parent', None)
@@ -121,7 +124,6 @@ class StarfishIRHandler():
       self._change_types(key, 'type', unimpl)
     # Update used dictionary and typeref info
     self._flush_using_info(dictionary)
-    self.processing = None
 
   def _handle_dictionary_parent(self, dictionary):
     parent = dictionary.get('parent', False)
@@ -138,11 +140,23 @@ class StarfishIRHandler():
       dictionary['members'] = dictionary['members'] + parent_ir['members']
     return resolved_parent
 
+  def _init_using_info(self, from_obj):
+    self.processing = from_obj
+    if from_obj.get('used_dictionaries', None) is None:
+      from_obj['used_dictionaries'] = []
+    if from_obj.get('include_paths', None) is None:
+      from_obj['include_paths'] = set()
+    self.used_dictionaries = from_obj['used_dictionaries']
+    self.include_paths = from_obj['include_paths']
+    self.has_exception = None
+
   def _flush_using_info(self, to_obj):
-    to_obj['used_dictionaries'] = self.used_dictionaries
-    to_obj['include_paths'] = self.include_paths
+    if self.has_exception is not None:
+      self.include_paths.add('dom/DOMException')
+    self.include_paths.discard(self.processing['file_path'])
     self.used_dictionaries = []
     self.include_paths = set()
+    self.processing = None
 
   def apply_types(self, type_ir, to_ir):
     self.dictionaries = {}
@@ -175,6 +189,7 @@ class StarfishIRHandler():
     self.processing = None
     self.used_dictionaries = []
     self.include_paths = set()
+    self.has_exception = None
 
 
 

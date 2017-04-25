@@ -17,6 +17,9 @@
                             {{ fn_name }}Function,
                             {{ function.name }}String,
                             {{ function.min_passed_count|default(0) }}, false);
+    {% if function.force_deny_strict %}
+    {{fn_name}}ESFn->codeBlock()->m_forceDenyStrictMode = true;
+    {% endif %}
     {{ object }}->defineDataProperty(
                             {{ function.name }}String,
                             {{ writable }}, {{ enumerable }}, {{ configurable }},

@@ -33,13 +33,18 @@ namespace StarFish {
 using namespace escargot;
 {% import 'util.cpp' as util_macro %}
 
+{% if used_dictionaries %}
+  {%- for dictionary in used_dictionaries %}
+{% include 'dictionary_impl.cpp' ignore missing %}
+  {% endfor %}
+{% endif %}
 {{name}} to{{name}}FromESValue(ESVMInstance* instance, ESValue& from)
 {
-	if (!from.isObject()) {
-		auto msg = ESString::create("Failed to generate {{name}} from non-object");
+    if (!from.isObject()) {
+        auto msg = ESString::create("Failed to generate {{name}} from non-object");
         instance->throwError(ESValue(TypeError::create(msg)));
         STARFISH_RELEASE_ASSERT_NOT_REACHED();
-	}
+    }
 {% for key in members %}
     ESValue arg{{loop.index - 1}} = from.asESPointer()->asESObject()->get(ESString::create("{{ key.name }}"));
 {% endfor %}
@@ -53,9 +58,32 @@ using namespace escargot;
 
 ESValue toESValueFrom{{name}}(ESVMInstance* instance, {{name}}& from)
 {
-    // NOTE Please let me know when this function needed (ji.yang)
-    STARFISH_RELEASE_ASSERT_NOT_REACHED();
-    return ESValue(ESValue::ESNull);
+    ESObject* result = ESObject::create();
+{% for key in members %}
+    {% set vname = 'value%d'|format(loop.index - 1) %}
+    {% set use_nullable = key.type.kind in nullable_kinds and key.type.nullable %}
+    {{ util_macro.gen_declare_return_value(key.type, vname)|trim }}
+    {{ vname }} = from.{{ key.name }}();
+    {% if use_nullable %}
+    if (!{{ vname }}.hasValue()) {
+        result->set(ESString::create("{{ key.name }}"), ESValue(ESValue::ESNull));
+    } else {
+        result->set(ESString::create("{{ key.name }}"), {{ util_macro.gen_native_to_esvalue(key.type, '%s->getValue()'|format(vname)) }});
+    }
+    {% elif key.type.nullable %}
+    if ({{ vname }} == nullptr) {
+        result->set(ESString::create("{{ key.name }}"), ESValue(ESValue::ESNull));
+    } else {
+        result->set(ESString::create("{{ key.name }}"), {{ vname }}->scriptValue());
+    }
+    {% elif key.type.kind in pointer_kinds %}
+    STARFISH_ASSERT({{ vname }} != nullptr);
+    result->set(ESString::create("{{ key.name }}"), {{ util_macro.gen_native_to_esvalue(key.type, vname) }});
+    {% else %}
+    result->set(ESString::create("{{ key.name }}"), {{ util_macro.gen_native_to_esvalue(key.type, vname) }});
+    {% endif %}
+{% endfor %}
+    return ESValue(result);
 }
 }
 {% if flags and flags|length > 0 %}

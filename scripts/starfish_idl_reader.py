@@ -219,6 +219,12 @@ def _hd_extattr_partial_interface(target, extattr):
     return True
   return False
 
+def _hd_extattr_force_deny_strict(target, extattr):
+  if extattr.GetName() == 'ForceDenyStrictMode':
+    target['force_deny_strict'] = True
+    return True
+  return False
+
 def _gen_basic_named(node):
   return {
     'name': node.GetName(),
@@ -478,7 +484,8 @@ class StarfishIDLReader():
                           _hd_extattr_unforgeable,
                           _hd_extattr_notenumerable,
                           _hd_extattr_custom,
-                          _hd_extattr_raise_expection])
+                          _hd_extattr_raise_expection,
+                          _hd_extattr_force_deny_strict])
 
     if return_ir is not None:
       _set_prop_to_dict(return_ir, 'object_option', result.pop('object_option', None))
@@ -538,7 +545,8 @@ class StarfishIDLReader():
                             _hd_extattr_notenumerable,
                             _hd_extattr_custom,
                             _hd_extattr_custom_getter_setter,
-                            _hd_extattr_raise_expection])
+                            _hd_extattr_raise_expection,
+                            _hd_extattr_force_deny_strict])
       _set_prop_to_dict(stringifier, 'flags', forward.get('flags', None))
       _set_prop_to_dict(stringifier, 'unimplemented', forward.get('unimplemented', None))
     else:
@@ -553,6 +561,7 @@ class StarfishIDLReader():
   def _append_to_functions(self, obj, fns):
     if obj.get('unimplemented', False):
       fns.append(obj)
+      return
     index = None
     for idx, fn in enumerate(fns):
       if obj.get('name') == fn.get('name') and\
