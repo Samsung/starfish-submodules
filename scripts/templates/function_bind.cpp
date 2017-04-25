@@ -1,6 +1,6 @@
 {% import 'util.cpp' as util_macro %}
 {%- if not function.name == '_unnamed_' %}
-{% call util_macro.ifdef(function.flag) %}
+{% call util_macro.ifdef(function.flags) %}
     {% set fn_name = '%s%s'|format(function.name, name)
                       if function.custom else function.name %}
     ESString* {{ function.name }}String = ESString::create("{{ function.name }}");

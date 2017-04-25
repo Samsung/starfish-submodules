@@ -123,16 +123,8 @@
     if (!{{ aname }}.isUndefinedOrNull()) {
         {{ assign_exp|indent(8) }}
     }
-    {%- elif arg.type.kind in pointer_kinds %}
-    {# '(5) Non-optional + Non-Nullable + RefTypes' #}
-    if ({{ aname }}.isUndefinedOrNull()) {
-        instance->throwError(ESValue(
-                TypeError::create(ESString::create("Wrong argument"))));
-        STARFISH_RELEASE_ASSERT_NOT_REACHED();
-    } else {
-        {{ assign_exp|indent(8) }}
-    }
     {%- else %}
+    {# '(5) Non-optional + Non-Nullable + RefTypes' #}
     {# '(6) Non-optional + Non-Nullable + Non-RefTypes' #}
     {{ assign_exp|indent(4) }}
     {% endif %}

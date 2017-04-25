@@ -500,22 +500,55 @@ class StarfishIDLReader():
     _set_prop_to_dict(result, 'min_passed_count', min_passed_count)
     return result
 
-  def _gen_ir_stringifier(self, node):
+  def _gen_ir_tostring(self, forward=None):
     result = {}
+    _set_prop_to_dict(result, 'kind', 'Operation')
+    _set_prop_to_dict(result, 'arguments', [])
+    _set_prop_to_dict(result, 'min_passed_count', 0)
+    _set_prop_to_dict(result, 'min_passing_count', 0)
+    _set_prop_to_dict(result, 'return', {'name':'DOMString', 'kind':'StringType'})
+    _set_prop_to_dict(result, 'name', 'toString')
+    _set_prop_to_dict(result, 'kind', 'Stringifier')
+    _set_prop_to_dict(result, 'forward', forward)
+    return result
+
+  def _gen_ir_stringifier(self, node):
+    forward = None
+    stringifier = None
     for child in node.GetChildren():
       if _is_class(child, 'Attribute'):
-        result = self._gen_ir_attribute(child)
+        forward = self._gen_ir_attribute(child)
+        _set_prop_to_dict(forward, 'stringifier', True)
       elif _is_class(child, 'Operation'):
-        result = self._gen_ir_operation(child)
-      elif _is_class(child, 'ExtAttributes'):
-        # Valid when it's placed last
-        _handle_extattrs(result,
-                         child.GetChildren(),
-                         [_hd_extattr_flags,
-                          _hd_extattr_unimplemented])
-    CHECK_NOT_NONE(result)
-    _set_prop_to_dict(result, 'stringifier', True)
-    return result
+        forward = self._gen_ir_operation(child)
+        _set_prop_to_dict(forward, 'stringifier', True)
+    stringifier = self._gen_ir_tostring(forward)
+    if forward is not None:
+      for child in node.GetChildren():
+        if _is_class(child, 'ExtAttributes'):
+          _handle_extattrs(forward,
+                           child.GetChildren(),
+                           [_hd_extattr_flags,
+                            _hd_extattr_unimplemented,
+                            _hd_extattr_treatnull,
+                            _hd_extattr_object_opt,
+                            _hd_extattr_cereactions,
+                            _hd_extattr_rename,
+                            _hd_extattr_unforgeable,
+                            _hd_extattr_notenumerable,
+                            _hd_extattr_custom,
+                            _hd_extattr_custom_getter_setter,
+                            _hd_extattr_raise_expection])
+      _set_prop_to_dict(stringifier, 'flags', forward.get('flags', None))
+      _set_prop_to_dict(stringifier, 'unimplemented', forward.get('unimplemented', None))
+    else:
+      for child in node.GetChildren():
+        if _is_class(child, 'ExtAttributes'):
+          _handle_extattrs(stringifier,
+                           child.GetChildren(),
+                           [_hd_extattr_flags,
+                            _hd_extattr_unimplemented])
+    return stringifier, forward
 
   def _append_to_functions(self, obj, fns):
     if obj.get('unimplemented', False):
@@ -562,11 +595,15 @@ class StarfishIDLReader():
           item_getters.append(op_ir)
         self._append_to_functions(op_ir, functions)
       elif _is_class(child, 'Stringifier'):
-        child_ir = self._gen_ir_stringifier(child)
-        if child_ir['kind'] == 'Attribute':
-          attributes.append(child_ir)
-        elif child_ir['kind'] == 'Operation':
-          functions.append(child_ir)
+        strgf, forward = self._gen_ir_stringifier(child)
+        functions.append(strgf)
+        if forward is None:
+          continue
+        elif forward['kind'] == 'Attribute':
+          attributes.append(forward)
+        elif forward['kind'] == 'Operation':
+          # TODO Use _append_to_functions if need
+          functions.append(forward)
       elif _is_class(child, 'Serializer'):
         _set_prop_to_dict(result, 'serializer', self._gen_ir_node(child))
       elif _is_class(child, 'Iterable'):

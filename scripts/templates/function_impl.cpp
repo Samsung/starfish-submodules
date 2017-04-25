@@ -1,4 +1,20 @@
 {% import 'util.cpp' as util_macro %}
+{% import 'util_for_attribute.cpp' as util_for_attribute_macro %}
+
+{%- macro gen_function_name(obj) %}
+    {% if obj.kind == 'Attribute' %}
+        {{- util_for_attribute_macro.setter_function(obj, name) -}}
+    {% else %}
+        {% set fnname = '%s%s'|format(obj.name, obj.id) if obj.id else obj.name %}
+        {% if obj.custom %}
+            {{- '%s%sFunction'|format(fnname, name) -}}
+        {% else %}
+            {{- '%sFunction'|format(fnname) -}}
+        {% endif %}
+    {% endif %}
+{% endmacro -%}
+
+
 
 {%- macro gen_check_getter_code() -%}
     if (instance->currentExecutionContext()->argumentCount() < 1) {
@@ -29,7 +45,7 @@ if (validArgCount == {{function.min_passing_count|string}}) {
 {%- endmacro -%}
 
 {%- macro gen_native_call(return_type, uniformed_call) -%}
-// Call native function (nargs: {{function.arguments|length if uniformed_call else '%s-%s'|format(min_passing_count, max_arg)}})
+// Call native function (nargs: {{'%s%s'|format('' if uniformed_call else '%s-'|format(function.min_passing_count), function.arguments|length)}})
     {% set spaces = 8 if function.raises_exception else 4 %}
     {% if function.raises_exception %}
     try {
@@ -51,7 +67,8 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {%- endif %}
 {%- endmacro -%}
 
-{%- macro function_code_normal() -%}
+{%- macro function_code_normal() %}
+    GENERATE_THIS_AND_CHECK_TYPE({{name}});
     {% set min_passed_count = function.min_passed_count|default(0) %}
     {% set uniformed_call = (function.arguments|length == function.min_passing_count) %}
     {% set has_return = (function.return.name != 'void') %}
@@ -80,6 +97,7 @@ if (validArgCount == {{function.min_passing_count|string}}) {
 {% endmacro -%}
 
 {%- macro function_code_ellipsis() %}
+    GENERATE_THIS_AND_CHECK_TYPE({{name}});
     {% set use_nullable = (function.return.kind in nullable_kinds) and function.return.nullable %}
     size_t argCount = instance->currentExecutionContext()->argumentCount();
     {% set type_exp = util_macro.gen_type_str(function.arguments[0].type, use_nullable) %}
@@ -106,6 +124,7 @@ if (validArgCount == {{function.min_passing_count|string}}) {
 {% endmacro -%}
 
 {%- macro function_code_getter_index() %}
+    GENERATE_THIS_AND_CHECK_TYPE({{name}});
     {% set has_return = (function.return.name != 'void') %}
     // Class item getter by index
     {{ gen_check_getter_code() }}
@@ -123,6 +142,14 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {{ util_macro.handle_return(function.return)|trim }}
 {% endmacro -%}
 
+{%- macro function_code_stringifier() %}
+    {% if function.forward %}
+    return {{ gen_function_name(function.forward) }}(instance);
+    {% else %}
+        {{- function_code_normal() -}}
+    {% endif %}
+{% endmacro -%}
+
 {%- if not function.name == '_unnamed_' %}
     {% set fnname = '%s%s'|format(function.name, function.id) if function.id else function.name %}
     {% set has_flag = function.flags and function.flags|length > 0 %}
@@ -134,24 +161,25 @@ if (validArgCount == {{function.min_passing_count|string}}) {
 
     {% endif %}
     {% if function.custom %}
-extern ESValue {{ fnname }}{{ name }}Function(ESVMInstance* instance);
+extern ESValue {{ gen_function_name(function) }}(ESVMInstance* instance);
     {% else %}
-static ESValue {{ fnname }}Function(ESVMInstance* instance)
+static ESValue {{ gen_function_name(function) }}(ESVMInstance* instance)
 {
-    GENERATE_THIS_AND_CHECK_TYPE({{name}});
     {% if function.arguments|length > 0 and function.arguments[0].ellipsis %}
-        {{- function_code_ellipsis() -}}
+    {{- function_code_ellipsis() -}}
     {% elif function.is_item_getter and
         function.arguments[0].type.name in ['unsigned long', 'unsigned short']  %}
-        {{- function_code_getter_index() -}}
+    {{- function_code_getter_index() -}}
+    {% elif function.kind == 'Stringifier' %}
+    {{- function_code_stringifier() -}}
     {% else %}
-        {{- function_code_normal() -}}
+    {{- function_code_normal() -}}
     {% endif %}
 }
     {% endif %}
     {% if has_flag %}
 #else
-static ESValue {{ fnname }}Function(ESVMInstance* instance)
+static ESValue {{ gen_function_name(function) }}(ESVMInstance* instance)
 {
     auto msg = ESString::create("Starfish does not support it");
     instance->throwError(ESValue(TypeError::create(msg)));

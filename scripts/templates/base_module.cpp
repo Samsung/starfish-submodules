@@ -53,7 +53,7 @@ using namespace escargot;
 // Implement for functions
   {% for function in functions %}
     {% if not function.unimplemented %}
-      {% if function.kind == 'Operation' %}
+      {% if function.kind in ['Operation', 'Stringifier'] %}
 {% include 'function_impl.cpp' ignore missing %}
       {% elif function.kind == 'MultiOperation' %}
 {% include 'function_multiform_impl.cpp' ignore missing %}
