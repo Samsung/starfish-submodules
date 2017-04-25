@@ -5,6 +5,7 @@ import os
 import pprint
 import json
 import sys
+from math import log10
 
 from jinja2 import Environment, FileSystemLoader
 from starfish_idl_reader import gen_ir_from_file, merge_irs, apply_types
@@ -110,6 +111,9 @@ def filter_first_word_capitalize(word):
 def filter_to_header_path(inputtxt):
   return inputtxt.replace(_root_dir, '') + '.h'
 
+def filter_digit(num):
+  return int(log10(num)) + 1
+
 if __name__ == "__main__":
   argparser = argparse.ArgumentParser()
   argparser.add_argument("root_path", help="root directiory to start")
@@ -135,6 +139,7 @@ if __name__ == "__main__":
   env.filters['to_arg_syntax'] = filter_to_argument_syntax
   env.filters['first_word_capitalize'] = filter_first_word_capitalize
   env.filters['to_header_path'] = filter_to_header_path
+  env.filters['digit'] = filter_digit
 
   # Set globals
   env.globals['nullable_kinds'] = NULLABLE_TYPE_KINDS

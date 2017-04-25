@@ -11,16 +11,16 @@ static ESValue {{ name|lower }}Constructor(ESVMInstance* instance)
     {% set min_passed_count = constructor.min_passed_count|default(0) %}
     {% set uniformed_call = (max_arg == min_passing_count) %}
     if (!instance->currentExecutionContext()->isNewExpression()) {
-        auto msg = ESString::create("Please use the 'new' operator");
-        instance->throwError(ESValue(TypeError::create(msg)));
-        STARFISH_RELEASE_ASSERT_NOT_REACHED();
+        THROW_EXCEPTION(CALLED_CONSTRUCTOR_WITHOUT_NEW, "{{ name }}");
     }
     {% if min_passed_count != 0 %}
     size_t argCount = instance->currentExecutionContext()->argumentCount();
     if (argCount < {{ min_passed_count }}) {
-        auto msg = ESString::create("Not enough arguments");
-        instance->throwError(ESValue(TypeError::create(msg)));
-        STARFISH_RELEASE_ASSERT_NOT_REACHED();
+        {% set siz = min_passed_count|digit %}
+        char buffer[{{ siz }} + 1];
+        snprintf(buffer, {{ siz }}, "%zd", argCount);
+        THROW_EXCEPTION(FAILED_TO_CONSTRUCT_BECAUSE_ARGS_NOT_ENOUGH, "{{ name }}",
+                            "{{ min_passed_count }}", buffer);
     }
     {% endif %}
     {% if not uniformed_call %}
