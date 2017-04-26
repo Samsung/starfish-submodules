@@ -25,9 +25,11 @@
   {{- 'int32_t' -}}
   {% elif type.name in ['octet', 'unsigned short', 'unsigned long'] %}
   {{- 'uint32_t' -}}
-  {% elif type.name in ['long long', 'unsigned long long',
-                  'float', 'unrestricted float',
-                  'double','unrestricted double'] %}
+  {% elif type.name == 'unsigned long long' %}
+  {{- 'uint64_t' -}}
+  {% elif type.name == 'long long' %}
+  {{- 'int64_t' -}}
+  {% elif type.name in ['float', 'double'] %}
   {{- 'double' -}}
   {% endif %}
 {%- endmacro %}
@@ -50,7 +52,7 @@
             {{- '%s.toInt32()'|format(aname) -}}
         {% elif type.name in ['unsigned long', 'unsigned short'] %}
             {{- '%s.toUint32()'|format(aname) -}}
-        {% elif type.name in ['double', 'long long', 'unsigned long long'] %}
+        {% elif type.name in ['unsigned long long', 'long long', 'float', 'double'] %}
             {{- '%s.toNumber()'|format(aname) -}}
         {% endif %}
     {% endif %}

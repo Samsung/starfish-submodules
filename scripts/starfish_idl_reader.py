@@ -194,16 +194,7 @@ def _hd_extattr_no_interfaceobj(target, extattr):
 
 def _hd_extattr_custom(target, extattr):
   if extattr.GetName() == 'Custom':
-    target['custom'] = True
-    return True
-  return False
-
-def _hd_extattr_custom_getter_setter(target, extattr):
-  if extattr.GetName() == 'CustomGetter':
-    target['custom_getter'] = True
-    return True
-  elif extattr.GetName() == 'CustomSetter':
-    target['custom_setter'] = True
+    target['custom'] = extattr.GetProperty('VALUE', True)
     return True
   return False
 
@@ -414,6 +405,7 @@ class StarfishIDLReader():
     return result
 
   def _gen_ir_attribute(self, node):
+    print dump_node(node)
     result = _gen_basic_named(node)
     _set_boolean_prop(result, node, 'INHERIT', 'inherit')
     has_setter = False if node.GetProperty('READONLY') else True
@@ -432,11 +424,14 @@ class StarfishIDLReader():
                           _hd_extattr_cereactions,
                           _hd_extattr_rename,
                           _hd_extattr_unforgeable,
-                          _hd_extattr_custom_getter_setter,
+                          _hd_extattr_custom,
                           _hd_extattr_raise_expection])
     excp = result.pop('raises_exception', None)
-    getter_excp = True if (excp or excp == 'Getter') else None
-    setter_excp = True if (excp or excp == 'Setter') else None
+    getter_excp = True if (excp is True or excp and 'Getter' in excp) else None
+    setter_excp = True if (excp is True or excp and 'Setter' in excp) else None
+    custom = result.pop('custom', None)
+    getter_custom = True if (custom is True or custom and 'Getter' in custom) else None
+    setter_custom = True if (custom is True or custom and 'Setter' in custom) else None
     # genarate getter ir
     getter = {}
     CHECK_NOT_NONE(type_ir)
@@ -444,6 +439,7 @@ class StarfishIDLReader():
     _set_prop_to_dict(getter, 'name', '')
     _set_prop_to_dict(getter, 'arguments', [])
     _set_prop_to_dict(getter, 'raises_exception', getter_excp)
+    _set_prop_to_dict(getter, 'custom', getter_custom)
     _set_prop_to_dict(type_ir, 'object_option', result.pop('object_option', None))
     _set_prop_to_dict(getter, 'return', type_ir)
     _set_prop_to_dict(result, 'getter', getter)
@@ -459,6 +455,7 @@ class StarfishIDLReader():
       _set_prop_to_dict(setter, 'return', {'kind': 'PrimitiveType', 'name': 'void'})
       _set_prop_to_dict(setter, 'arguments', [arg_ir])
       _set_prop_to_dict(setter, 'raises_exception', setter_excp)
+      _set_prop_to_dict(setter, 'custom', setter_custom)
       _set_prop_to_dict(result, 'setter', setter)
     return result
 
@@ -544,7 +541,6 @@ class StarfishIDLReader():
                             _hd_extattr_unforgeable,
                             _hd_extattr_notenumerable,
                             _hd_extattr_custom,
-                            _hd_extattr_custom_getter_setter,
                             _hd_extattr_raise_expection,
                             _hd_extattr_force_deny_strict])
       _set_prop_to_dict(stringifier, 'flags', forward.get('flags', None))

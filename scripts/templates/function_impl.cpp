@@ -3,7 +3,7 @@
 
 {%- macro gen_function_name(obj) %}
     {% if obj.kind == 'Attribute' %}
-        {{- util_for_attribute_macro.setter_function(obj, name) -}}
+        {{- util_for_attribute_macro.getter_function(obj, name) -}}
     {% else %}
         {% set fnname = '%s%s'|format(obj.name, obj.id) if obj.id else obj.name %}
         {% if obj.custom %}
@@ -13,8 +13,6 @@
         {% endif %}
     {% endif %}
 {% endmacro -%}
-
-
 
 {%- macro gen_check_getter_code() -%}
     if (instance->currentExecutionContext()->argumentCount() < 1) {
@@ -173,6 +171,5 @@ static ESValue {{ gen_function_name(function) }}(ESVMInstance* instance)
 }
     {% endif %}
     {% endcall %}
-
 {% endif %}
 
