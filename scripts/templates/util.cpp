@@ -105,14 +105,18 @@
     {###### Assigning native variable of an argument ######}
     {% set assign_exp = '%s%s = %s;'|format(gen_check_type(arg.type, aname),
                               vname, gen_esvalue_to_native(arg.type, aname)) %}
-    {%- if (arg.treat_null_as == 'EmptyString') or arg.default %}
-    {# '(1) Has-TreatNullAs or Has-DefaultValue' #}
-    {# '    (NOTE TreatNullAs may not be with optional)' #}
+    {%- if (arg.treat_null_as == 'EmptyString') %}
+    {# '(1) Has-TreatNullAs' #}
+    if (!{{ aname }}.isNull()) {
+        {{ assign_exp|indent(8) }}
+    }
+    {%- elif arg.default %}
+    {# '(2) Has-DefaultValue' #}
     if (!{{ aname }}.isUndefinedOrNull()) {
         {{ assign_exp|indent(8) }}
     }
     {%- elif arg.optional %}
-    {# '(2) Optional + No-DefaultValue' #}
+    {# '(3) Optional + No-DefaultValue' #}
     if ({{ aname }}.isUndefinedOrNull()) {
         validArgCount--;
     } else {
