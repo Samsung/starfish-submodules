@@ -5,7 +5,8 @@ def _extend_property_array(target, refer, propname):
   target_array = target.get(propname)
   ref_array = refer.get(propname)
   for item in ref_array:
-    target_array.append(item)
+    if not item in target_array:
+      target_array.append(item)
 
 class StarfishIRHandler():
   def _add_used_typeref(self, name):
@@ -99,6 +100,8 @@ class StarfishIRHandler():
         self._check_multioperation(fn)
     # Update used dictionary and typeref info
     self._flush_using_info(interface)
+
+  def _check_implement(self, interface):
     # Handle implements
     finished = []
     for impl_name in interface.get('implements', []):
@@ -107,6 +110,8 @@ class StarfishIRHandler():
         _extend_property_array(interface, refer, 'attributes')
         _extend_property_array(interface, refer, 'functions')
         _extend_property_array(interface, refer, 'constants')
+        _extend_property_array(interface, refer, 'used_dictionaries')
+        interface['include_paths'] |= refer['include_paths']
         finished.append(impl_name)
     for impl_name in finished:
       interface.get('implements').remove(impl_name)
@@ -184,6 +189,9 @@ class StarfishIRHandler():
     # cleaning dictionaries
     for key, value in self.dictionaries.iteritems():
       value.pop('_check', None)
+    # Check implementes in interfaces
+    for key, value in to_ir.get('interfaces', {}).iteritems():
+      self._check_implement(value)
 
   def __init__(self):
     self.processing = None

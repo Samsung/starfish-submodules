@@ -75,11 +75,10 @@ def prerun_all(dir_path, file_alone=None):
       if file_path == file_alone:
         print("Generated IR from {}".format(file_path))
         file_result = ir
+  apply_types(result, result)
   if file_result:
-    apply_types(result, file_result)
     return result, file_result
   else:
-    apply_types(result, result)
     return result
 
 def filter_assert_true(errmsg, v):
@@ -126,7 +125,7 @@ if __name__ == "__main__":
     print 'ERR: Invalid root path \'' + args.root_path + '\''
     sys.exit(1)
   if args.file is not None and \
-     not os.path.isfile(args.file) and \
+     not os.path.isfile(args.file) or \
      not args.file.endswith('.idl'):
     print 'ERR: Invalid file \'' + args.file + '\''
     sys.exit(1)
