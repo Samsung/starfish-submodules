@@ -20,9 +20,6 @@
     {% endfor %}
 {% endif %}
 
-#include "StarFishConfig.h"
-#include "ScriptBindingInstance.h"
-#include "binding/escargot/ScriptBindingInstanceDataEscargot.h"
 {% for item in include_paths %}
 #include "{{item|to_header_path}}"
 {% endfor %}
