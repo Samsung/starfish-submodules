@@ -405,7 +405,7 @@ class StarfishIDLReader():
     return result
 
   def _gen_ir_attribute(self, node):
-    print dump_node(node)
+    # print dump_node(node)
     result = _gen_basic_named(node)
     _set_boolean_prop(result, node, 'INHERIT', 'inherit')
     has_setter = False if node.GetProperty('READONLY') else True
