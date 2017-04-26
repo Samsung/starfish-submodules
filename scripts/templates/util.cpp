@@ -3,7 +3,7 @@
     {% for flag in flags %}
 #ifdef {{ flag }}
     {% endfor %}
-{{ caller()|trim }}
+{{ caller() -}}
     {% for flag in flags %}
 #endif
     {% endfor %}

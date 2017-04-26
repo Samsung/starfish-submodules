@@ -1,7 +1,7 @@
 {% import 'util.cpp' as util_macro %}
 {% import 'util_for_attribute.cpp' as util_for_attribute_macro %}
 
-{%- call util_macro.ifdef(attribute.flag) %}
+{%- call util_macro.ifdef(attribute.flags) %}
     ESString* {{ attribute.name }}String = ESString::create("{{ attribute.name }}");
     defineNativeAccessorPropertyButNeedToGenerateJSFunction(
         {{ name }}PrototypeObj, {{ attribute.name }}String,
