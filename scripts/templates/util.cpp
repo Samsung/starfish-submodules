@@ -119,9 +119,10 @@
     }
     {%- elif arg.optional %}
     {# '(3) Optional + No-DefaultValue' #}
-    if ({{ aname }}.isUndefinedOrNull()) {
+    if (argCounting && {{ aname }}.isUndefined()) {
         validArgCount--;
     } else {
+        argCounting = false;
         {{ assign_exp|indent(8) }}
     }
     {%- elif arg.type.nullable %}

@@ -69,7 +69,8 @@ if (validArgCount == {{function.min_passing_count|string}}) {
 {%- macro function_code_normal() %}
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
     {% set min_passed_count = function.min_passed_count|default(0) %}
-    {% set uniformed_call = (function.arguments|length == function.min_passing_count) %}
+    {% set max_arg = function.arguments|length %}
+    {% set uniformed_call = (max_arg == function.min_passing_count) %}
     {% set has_return = (function.return.name != 'void') %}
     {% if min_passed_count != 0 %}
     size_t argCount = instance->currentExecutionContext()->argumentCount();
@@ -82,14 +83,16 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     }
     {% endif %}
     {% if not uniformed_call %}
-    size_t validArgCount = {{ function.arguments|length }};
+    size_t validArgCount = {{ max_arg }};
+    bool argCounting = true;
     {% endif %}
     {{ util_macro.gen_declare_return_value(function.return)|trim }}
     {% for arg in function.arguments %}
     ESValue arg{{loop.index - 1}} = instance->currentExecutionContext()->readArgument({{loop.index - 1}});
     {% endfor %}
-    {% for arg in function.arguments -%}
-    {{ util_macro.handle_arg(arg, 'arg%d'|format(loop.index - 1), 'value%d'|format(loop.index - 1)) }}
+    {% for idx in range(0, max_arg) %}
+    {% set reverse_idx = max_arg - idx - 1 -%}
+    {{ util_macro.handle_arg(function.arguments[reverse_idx], 'arg%d'|format(reverse_idx), 'value%d'|format(reverse_idx)) }}
     {% endfor %}
     {{ gen_native_call(function.return, uniformed_call) }}
     {{ util_macro.handle_return(function.return)|trim }}
