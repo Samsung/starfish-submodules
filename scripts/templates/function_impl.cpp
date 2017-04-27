@@ -16,10 +16,8 @@
 
 {%- macro gen_check_getter_code() -%}
     if (instance->currentExecutionContext()->argumentCount() < 1) {
-        auto msg = ESString::create(
-            "At least 1 argument required, but only 0 present");
-        instance->throwError(ESValue(TypeError::create(msg)));
-        STARFISH_RELEASE_ASSERT_NOT_REACHED();
+        THROW_EXCEPTION(FAILED_TO_EXECUTE_BECAUSE_ARGS_NOT_ENOUGH,
+                            "{{ function.name }}", "{{ name }}", "1", "0");
     }
 {%- endmacro -%}
 
