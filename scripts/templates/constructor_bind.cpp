@@ -12,14 +12,12 @@
                                  {{ name }}String,
                                  0, true, true);
     {% endif %}
+    ESObject* {{ name }}PrototypeObj = {{ name }}Function->protoType().asESPointer()->asESObject();
     {{ name }}Function->defineAccessorProperty(
         ESVMInstance::currentInstance()->strings().prototype.string(),
         ESVMInstance::currentInstance()->functionPrototypeAccessorData(),
         false, false, false);
-    {{ name }}Function->protoType()
-        .asESPointer()
-        ->asESObject()
-        ->forceNonVectorHiddenClass(false);
+    {{ name }}PrototypeObj->forceNonVectorHiddenClass(false);
     {% if parent %}
         {% set parent_class %}
     fetchData(scriptBindingInstance)
@@ -41,14 +39,8 @@
             ->objectPrototype()
         {% endset %}
     {% endif %}
-    {{ name }}Function->protoType()
-        .asESPointer()
-        ->asESObject()
-        ->set__proto__({{ parent_class|trim }});
+    {{ name }}PrototypeObj->set__proto__({{ parent_class|trim }});
     {% if parent %}
     {{ name }}Function->set__proto__(fetchData(scriptBindingInstance)
             ->fn{{ parent }}());
-    {% endif %}
-    {% if (functions and functions|length > 0) or (attributes and attributes|length > 0) %}
-    ESObject* {{ name }}PrototypeObj = {{ name }}Function->protoType().asESPointer()->asESObject();
     {% endif %}
