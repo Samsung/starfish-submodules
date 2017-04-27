@@ -93,7 +93,11 @@
         {# THE ARG SHOULD HAVE NULLABLE OPTION #}
     {{ '%s %s;'|format(type_exp, vname) }}
         {% elif arg.type.kind in string_kinds %}
+            {% if arg.default == '""' %}
+    {{ '%s %s = String::emptyString;'|format(type_exp, vname) }}
+            {% else %}
     {{ '%s %s = String::fromUTF8(%s);'|format(type_exp, vname, arg.default) }}
+            {% endif %}
         {% else %}
     {{ '%s %s = %s;'|format(type_exp, vname, arg.default) }}
         {% endif %}
