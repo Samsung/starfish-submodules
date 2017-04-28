@@ -1,9 +1,8 @@
 {% import 'util.cpp' as util_macro %}
-{% import 'util_for_attribute.cpp' as util_for_attribute_macro %}
 
 {%- macro gen_function_name(obj) %}
     {% if obj.kind == 'Attribute' %}
-        {{- util_for_attribute_macro.getter_function(obj, name) -}}
+        {{- util_macro.gen_getter_function(obj, name) -}}
     {% else %}
         {% set fnname = '%s%s'|format(obj.name, obj.id) if obj.id else obj.name %}
         {% if obj.custom %}
@@ -90,7 +89,7 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {% endfor %}
     {% for idx in range(0, max_arg) %}
     {% set reverse_idx = max_arg - idx - 1 -%}
-    {{ util_macro.handle_arg(function.arguments[reverse_idx], 'arg%d'|format(reverse_idx), 'value%d'|format(reverse_idx)) }}
+    {{ util_macro.handle_arg(function.arguments[reverse_idx], 'arg%d'|format(reverse_idx), 'value%d'|format(reverse_idx), False) }}
     {% endfor %}
     {{ gen_native_call(function.return, uniformed_call) }}
     {{ util_macro.handle_return(function.return)|trim }}
@@ -101,7 +100,7 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {% set use_nullable = (function.return.kind in nullable_kinds) and function.return.nullable %}
     size_t argCount = instance->currentExecutionContext()->argumentCount();
     {% set type_exp = util_macro.gen_type_str(function.arguments[0].type, use_nullable) %}
-    {% set assign_exp = util_macro.gen_esvalue_to_native(function.arguments[0].type, 'arg') %}
+    {% set assign_exp = util_macro.gen_esvalue_to_native(function.arguments[0].type, 'arg', False) %}
     {% if function.raises_exception %}
     try {
         for (size_t i = 0; i < argCount; i++) {
@@ -154,6 +153,7 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {% set fnname = '%s%s'|format(function.name, function.id) if function.id else function.name %}
     {% set has_flag = function.flags and function.flags|length > 0 %}
     {% call util_macro.ifdef(function.flags) %}
+{{ util_macro.visibility}}
     {% if function.custom %}
 extern ESValue {{ gen_function_name(function) }}(ESVMInstance* instance);
     {% else %}

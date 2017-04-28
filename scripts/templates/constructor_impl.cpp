@@ -30,7 +30,7 @@ static ESValue {{ name|lower }}Constructor(ESVMInstance* instance)
     ESValue arg{{loop.index - 1}} = instance->currentExecutionContext()->readArgument({{loop.index - 1}});
     {% endfor %}
     {% for arg in constructor.arguments -%}
-    {{ util_macro.handle_arg(arg, 'arg%d'|format(loop.index - 1), 'value%d'|format(loop.index - 1)) }}
+    {{ util_macro.handle_arg(arg, 'arg%d'|format(loop.index - 1), 'value%d'|format(loop.index - 1), False) }}
     {% endfor %}
     {{ name }}* result = nullptr;
     {% set call_with = 'callWith' if constructor.call_with else '' %}

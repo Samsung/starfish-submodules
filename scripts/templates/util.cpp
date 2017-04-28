@@ -13,9 +13,25 @@
 {% endif %}
 {%- endmacro %}
 
-{% macro attr_name(attribute) -%}
+{% macro gen_attr_name(attribute) -%}
   {{- attribute.rename|default(attribute.name) -}}
 {%- endmacro %}
+
+{%- macro gen_getter_function(attribute, name) -%}
+    {% if attribute.getter.custom %}
+        {{- '%s%sGetterFunction'|format(attribute.name, name) -}}
+    {% else %}
+        {{- '%sGetterFunction'|format(attribute.name) -}}
+    {% endif %}
+{%- endmacro -%}
+
+{%- macro gen_setter_function(attribute, name) -%}
+    {% if attribute.setter.custom %}
+        {{- '%s%sSetterFunction'|format(attribute.name, name) -}}
+    {% else %}
+        {{- '%sSetterFunction'|format(attribute.name) -}}
+    {% endif %}
+{%- endmacro -%}
 
 {################## 'HANDLE ARGUMENTS' ##################}
 {% macro gen_primitive_type_str(type) -%}
@@ -34,7 +50,7 @@
   {% endif %}
 {%- endmacro %}
 
-{%- macro gen_esvalue_to_native(type, aname) -%}
+{%- macro gen_esvalue_to_native(type, aname, fromattr) -%}
     {% if type.kind in string_kinds %}
         {{- 'toBrowserString(%s)'|format(aname) -}}
     {% elif type.kind == 'Any' %}
@@ -44,7 +60,11 @@
     {% elif type.kind == 'Dictionary' %}
         {{- 'to%sFromESValue(instance, %s)'|format(type.name, aname) -}}
     {% elif type.kind == 'Callback' %}
-        {{- 'new %s(%s)'|format(type.name, aname) -}}
+        {% if type.name == 'EventListener' and fromattr %}
+            {{- '%s::to%s(%s, true)'|format(type.name, type.name, aname) -}}
+        {% else %}
+            {{- '%s::to%s(%s)'|format(type.name, type.name, aname) -}}
+        {% endif %}
     {% elif type.kind == 'PrimitiveType' %}
         {% if type.name == 'boolean' %}
             {{- '%s.toBoolean()'|format(aname) -}}
@@ -83,7 +103,7 @@
     {% endif %}
 {% endmacro -%}
 
-{%- macro handle_arg(arg, aname, vname) %}
+{%- macro handle_arg(arg, aname, vname, fromattr) %}
     {% set use_nullable = arg.type.kind in nullable_kinds and arg.type.nullable %}
     {% set type_exp = gen_type_str(arg.type, use_nullable) %}
     {{ '// Handle argument %s'|format(aname) }}
@@ -110,34 +130,38 @@
     {% endif %}
     {###### Assigning native variable of an argument ######}
     {% set assign_exp = '%s%s = %s;'|format(gen_check_type(arg.type, aname),
-                              vname, gen_esvalue_to_native(arg.type, aname)) %}
-    {%- if (arg.treat_null_as == 'EmptyString') %}
-    {# '(1) Has-TreatNullAs' #}
+                            vname, gen_esvalue_to_native(arg.type, aname, fromattr)) %}
+    {% if (arg.type.kind == 'Callback') and fromattr %}
+    {{ assign_exp|indent(4) }}
+    {% else %}
+        {%- if (arg.treat_null_as == 'EmptyString') %}
+        {# '(1) Has-TreatNullAs' #}
     if (!{{ aname }}.isNull()) {
         {{ assign_exp|indent(8) }}
     }
-    {%- elif arg.default %}
-    {# '(2) Has-DefaultValue' #}
+        {%- elif arg.default %}
+        {# '(2) Has-DefaultValue' #}
     if (!{{ aname }}.isUndefinedOrNull()) {
         {{ assign_exp|indent(8) }}
     }
-    {%- elif arg.optional %}
-    {# '(3) Optional + No-DefaultValue' #}
+        {%- elif arg.optional %}
+        {# '(3) Optional + No-DefaultValue' #}
     if (argCounting && {{ aname }}.isUndefined()) {
         validArgCount--;
     } else {
         argCounting = false;
         {{ assign_exp|indent(8) }}
     }
-    {%- elif arg.type.nullable %}
-    {# '(4) Non-optional + Nullable' #}
+        {%- elif arg.type.nullable %}
+        {# '(4) Non-optional + Nullable' #}
     if (!{{ aname }}.isUndefinedOrNull()) {
         {{ assign_exp|indent(8) }}
     }
-    {%- else %}
-    {# '(5) Non-optional + Non-Nullable + RefTypes' #}
-    {# '(6) Non-optional + Non-Nullable + Non-RefTypes' #}
+        {%- else %}
+        {# '(5) Non-optional + Non-Nullable + RefTypes' #}
+        {# '(6) Non-optional + Non-Nullable + Non-RefTypes' #}
     {{ assign_exp|indent(4) }}
+        {% endif %}
     {% endif %}
 {% endmacro -%}
 
