@@ -198,6 +198,12 @@ def _hd_extattr_custom(target, extattr):
     return True
   return False
 
+def _hd_extattr_putforward(target, extattr):
+  if extattr.GetName() == 'PutForwards':
+    _set_prop_to_dict(target, 'put_forwards', extattr.GetProperty('VALUE', None))
+    return True
+  return False
+
 def _hd_extattr_raise_expection(target, extattr):
   if extattr.GetName() == 'RaisesException':
     target['raises_exception'] = extattr.GetProperty('VALUE', True)
@@ -425,7 +431,8 @@ class StarfishIDLReader():
                           _hd_extattr_rename,
                           _hd_extattr_unforgeable,
                           _hd_extattr_custom,
-                          _hd_extattr_raise_expection])
+                          _hd_extattr_raise_expection,
+                          _hd_extattr_putforward])
     excp = result.pop('raises_exception', None)
     getter_excp = True if (excp is True or excp and 'Getter' in excp) else None
     setter_excp = True if (excp is True or excp and 'Setter' in excp) else None

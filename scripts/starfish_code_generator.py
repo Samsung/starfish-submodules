@@ -125,8 +125,7 @@ if __name__ == "__main__":
     print 'ERR: Invalid root path \'' + args.root_path + '\''
     sys.exit(1)
   if args.file is not None and \
-     not os.path.isfile(args.file) or \
-     not args.file.endswith('.idl'):
+     (not os.path.isfile(args.file) or not args.file.endswith('.idl')):
     print 'ERR: Invalid file \'' + args.file + '\''
     sys.exit(1)
 
