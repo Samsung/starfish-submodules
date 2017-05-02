@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys
+import types
 
 def _extend_property_array(target, refer, propname):
   target_array = target.get(propname)
@@ -62,6 +63,16 @@ class StarfishIRHandler():
     self._change_types(attr.get('getter'), 'return', unimpl)
     if attr.get('setter'):
       self._change_types(attr.get('setter').get('arguments')[0], 'type', unimpl)
+    if attr.get('put_forwards', False) and \
+       type(attr['put_forwards']) is types.StringType:
+      ref_name = attr['getter']['return']['name']
+      if ref_name in self.interfaces:
+        ref_interface = self.interfaces[ref_name]
+        forward_name = attr['put_forwards']
+        for ref_attr in ref_interface['attributes']:
+          if ref_attr['name'] == forward_name:
+            attr['put_forwards'] = ref_attr
+            break;
 
   def _check_operation(self, op):
     unimpl = op.get('unimplemented', False)

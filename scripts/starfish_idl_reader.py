@@ -465,6 +465,7 @@ class StarfishIDLReader():
       _set_prop_to_dict(arg_ir, 'type', dict(type_ir))
       _set_prop_to_dict(arg_ir, 'treat_null_as', result.pop('treat_null_as', None))
       _set_prop_to_dict(setter, 'kind', 'Operation')
+      _set_prop_to_dict(setter, 'name', '')
       _set_prop_to_dict(setter, 'return', {'kind': 'PrimitiveType', 'name': 'void'})
       _set_prop_to_dict(setter, 'arguments', [arg_ir])
       _set_prop_to_dict(setter, 'raises_exception', setter_excp)

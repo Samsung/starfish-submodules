@@ -93,11 +93,11 @@ Extend [Operation Object](#operation-object)
 | **getter** | [Operation Object](#operation-object) |
 | setter | [Operation Object](#operation-object) |
 | inherit | `Boolean`<br>*Ref: DOMPoint.idl* |
-| stringifier | `Boolean`<br>*Ref: DOMTokenList.idl |
+| stringifier | `Boolean`<br>*Ref: DOMTokenList.idl* |
 | cereactions | `Boolean` |
 | unforgeable | `Boolean` |
 | check_tc_coverage | `Boolean` |
-| put_forwards | `String` (Name of other property in Interface) |
+| put_forwards | [Attribute Object](#attribute_object)<br>*NOTE Can be 'String' when failed to find proper reference*<br>*Ref: Document.idl* |
 | rename | `String`<br>*Ref: HTMLSourceElement.idl* |
 | unimplemented | `Boolean` |
 | flags | `List` of [Flags](#flags) |
