@@ -1,34 +1,41 @@
 {% import 'util.cpp' as util_macro %}
-{% for function in function.operations %}
+{% set skip_type_check = True %}
+{% for fn in function.operations %}
+    {% if fn.conditions|length > 0 %}
+{% call util_macro.ifdef(fn.flags) %}
+static bool {{ '%s%s'|format(fn.name, fn.id) }}Checker(ESVMInstance* instance)
+{
+        {% for argidx in fn.conditions %}
+    ESValue arg{{argidx}} = instance->currentExecutionContext()->readArgument({{argidx}});
+            {% if fn.arguments[argidx].type.kind == 'Typeref' %}
+    if (!_CHECK_TYPEOF(arg{{argidx}}, {{fn.arguments[argidx].type.name}})) {
+        return false;
+    }
+            {% endif %}
+        {% endfor %}
+    return true;
+}
+{% endcall %}
+    {% endif %}
+    {% set function = fn %}
 {% include 'function_impl.cpp' ignore missing %}
 {% endfor %}
 static ESValue {{ function.name }}Function(ESVMInstance* instance)
 {
     size_t argCount = instance->currentExecutionContext()->argumentCount();
-    if (false) {
     {% for fn in function.operations %}
-{% if fn.flags|length > 0 %}
-#if defined({{fn.flags[0]}})
-        {%- for idx in range(1, fn.flags|length) %}
-            {{-  ' && defined(%s)'|format(fn.flags[idx]) -}}
-        {% endfor %}
-
-{% endif %}
-		{% if fn.min_passed_count == fn.arguments|length %}
-	} else if (argCount == {{fn.min_passed_count}}) {
-		{% else %}
-	} else if (argCount >= {{fn.min_passed_count}} && argCount <= {{fn.arguments|length}}) {
-		{% endif %}
-		{{ 'return %s%sFunction(instance);'|format(fn.name, fn.id) }}
-{% if fn.flags %}
-#endif
-{% endif %}
-	{% endfor %}
-	} else {
-		auto msg = ESString::create("Invalid arguments");
-	    instance->throwError(ESValue(TypeError::create(msg)));
-	    STARFISH_RELEASE_ASSERT_NOT_REACHED();
-	}
+        {% if fn.conditions|length > 0 %}
+            {% set sigfn = ' && %s%sChecker(instance)'|format(fn.name, fn.id) %}
+        {% else %}
+            {% set sigfn = '' %}
+        {% endif %}
+{% call util_macro.ifdef(fn.flags) %}
+    if (argCount >= {{fn.min_passed_count}}{{sigfn}}) {
+        {{ 'return %s%sFunction(instance);'|format(fn.name, fn.id) }}
+    }
+{% endcall %}
+    {% endfor %}
+    THROW_EXCEPTION(FAILED_TO_EXECUTE_BECAUSE_SIGNATURE_NOT_FOUND, "{{ function.name }}", "{{ name }}");
 }
 
 

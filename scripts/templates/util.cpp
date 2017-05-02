@@ -97,13 +97,13 @@
     {% endif %}
 {%- endmacro -%}
 
-{%- macro gen_check_type(type, aname) -%}
-    {% if type.kind == 'Typeref' -%}
+{%- macro gen_check_type(type, aname, skip_type_check=False) -%}
+    {% if type.kind == 'Typeref' and not skip_type_check -%}
         CHECK_TYPEOF({{aname}}, {{type.name}});
     {% endif %}
 {% endmacro -%}
 
-{%- macro handle_arg(arg, aname, vname, fromattr) %}
+{%- macro handle_arg(arg, aname, vname, fromattr=False, skip_type_check=False, need_counting=False) %}
     {% set use_nullable = arg.type.kind in nullable_kinds and arg.type.nullable %}
     {% set type_exp = gen_type_str(arg.type, use_nullable) %}
     {{ '// Handle argument %s'|format(aname) }}
@@ -129,7 +129,7 @@
     {{ '%s %s;'|format(type_exp, vname) }}
     {% endif %}
     {###### Assigning native variable of an argument ######}
-    {% set assign_exp = '%s%s = %s;'|format(gen_check_type(arg.type, aname),
+    {% set assign_exp = '%s%s = %s;'|format(gen_check_type(arg.type, aname, skip_type_check),
                             vname, gen_esvalue_to_native(arg.type, aname, fromattr)) %}
     {% if (arg.type.kind == 'Callback') and fromattr %}
     {{ assign_exp|indent(4) }}
@@ -146,12 +146,20 @@
     }
         {%- elif arg.optional %}
         {# '(3) Optional + No-DefaultValue' #}
+            {% if need_counting %}
     if (argCounting && {{ aname }}.isUndefined()) {
         validArgCount--;
     } else {
         argCounting = false;
         {{ assign_exp|indent(8) }}
     }
+            {%- else %}
+    if ({{ aname }}.isUndefined()) {
+        validArgCount--;
+    } else {
+        {{ assign_exp|indent(8) }}
+    }
+            {%- endif %}
         {%- elif arg.type.nullable %}
         {# '(4) Non-optional + Nullable' #}
     if (!{{ aname }}.isUndefinedOrNull()) {

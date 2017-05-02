@@ -1,5 +1,4 @@
 {% import 'util.cpp' as util_macro %}
-
 {%- macro gen_function_name(obj) %}
     {% if obj.kind == 'Attribute' %}
         {{- util_macro.gen_getter_function(obj, name) -}}
@@ -21,20 +20,22 @@
 {%- endmacro -%}
 
 {%- macro gen_native_call_impl(return_type, uniformed_call) -%}
+    {% set call_with = 'callWith' if function.call_with else '' %}
+    {% set call_with_comma = 'callWith, ' if call_with|length > 0 else '' %}
     {% set return_left = '' if return_type.name == 'void' else 'result = ' %}
     {% set calling = '%s::'|format(name) if function.static else 'originalObj->' %}
     {% set fnname = function.name if function.rename|length == 0 else function.rename %}
     {% set max_arg = function.arguments|length %}
     {% if max_arg == 0 -%}
-{{return_left}}{{calling}}{{fnname}}();
+{{return_left}}{{calling}}{{fnname}}({{call_with}});
     {%- elif uniformed_call -%}
-{{return_left}}{{calling}}{{fnname}}({{ 'value'|to_arg_syntax(0, max_arg) }});
+{{return_left}}{{calling}}{{fnname}}({{call_with_comma}}{{ 'value'|to_arg_syntax(0, max_arg) }});
     {%- else -%}
 if (validArgCount == {{function.min_passing_count|string}}) {
-    {{return_left}}{{calling}}{{fnname}}({{'value'|to_arg_syntax(0, function.min_passing_count)}});
+    {{return_left}}{{calling}}{{fnname}}({{call_with_comma}}{{'value'|to_arg_syntax(0, function.min_passing_count)}});
         {% for count in range(function.min_passing_count + 1, max_arg + 1) %}
 } else if (validArgCount == {{count|string}}) {
-    {{return_left}}{{calling}}{{fnname}}({{'value'|to_arg_syntax(0, count)}});
+    {{return_left}}{{calling}}{{fnname}}({{call_with_comma}}{{'value'|to_arg_syntax(0, count)}});
         {% endfor %}
 }
     {%- endif -%}
@@ -68,8 +69,9 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {% set min_passed_count = function.min_passed_count|default(0) %}
     {% set max_arg = function.arguments|length %}
     {% set uniformed_call = (max_arg == function.min_passing_count) %}
+    {% set need_counting = (not uniformed_call) and max_arg - function.min_passed_count > 1 %}
     {% set has_return = (function.return.name != 'void') %}
-    {% if min_passed_count != 0 %}
+    {% if min_passed_count != 0 and not skip_type_check %}
     size_t argCount = instance->currentExecutionContext()->argumentCount();
     if (argCount < {{ min_passed_count }}) {
         {% set siz = min_passed_count|digit + 1 %}
@@ -81,6 +83,8 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {% endif %}
     {% if not uniformed_call %}
     size_t validArgCount = {{ max_arg }};
+    {% endif %}
+    {% if need_counting %}
     bool argCounting = true;
     {% endif %}
     {{ util_macro.gen_declare_return_value(function.return)|trim }}
@@ -88,9 +92,14 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     ESValue arg{{loop.index - 1}} = instance->currentExecutionContext()->readArgument({{loop.index - 1}});
     {% endfor %}
     {% for idx in range(0, max_arg) %}
-    {% set reverse_idx = max_arg - idx - 1 -%}
-    {{ util_macro.handle_arg(function.arguments[reverse_idx], 'arg%d'|format(reverse_idx), 'value%d'|format(reverse_idx), False) }}
+    {% set ridx = max_arg - idx - 1 -%}
+    {{ util_macro.handle_arg(function.arguments[ridx], 'arg%d'|format(ridx), 'value%d'|format(ridx), skip_type_check=skip_type_check, need_counting=need_counting) }}
     {% endfor %}
+    {% if function.call_with  == 'Document' %}
+    Document* callWith = fetchDocument(instance);
+    {% elif function.call_with  == 'Starfish' %}
+    StarFish* callWith = fetchStarFish(instance);
+    {% endif %}
     {{ gen_native_call(function.return, uniformed_call) }}
     {{ util_macro.handle_return(function.return)|trim }}
 {% endmacro -%}
@@ -153,7 +162,6 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {% set fnname = '%s%s'|format(function.name, function.id) if function.id else function.name %}
     {% set has_flag = function.flags and function.flags|length > 0 %}
     {% call util_macro.ifdef(function.flags) %}
-{{ util_macro.visibility}}
     {% if function.custom %}
 extern ESValue {{ gen_function_name(function) }}(ESVMInstance* instance);
     {% else %}

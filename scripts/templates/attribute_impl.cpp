@@ -48,7 +48,7 @@ static ESValue {{ util_macro.gen_setter_function(attribute, name) }}(ESVMInstanc
     {% set indent_callexp = 4 if need_catch else 0 %}
     {% set arg = attribute.setter.arguments[0] %}
     ESValue arg0 = instance->currentExecutionContext()->readArgument(0);
-    {{ util_macro.handle_arg(arg, 'arg0', 'value0', True)|trim }}
+    {{ util_macro.handle_arg(arg, 'arg0', 'value0', fromattr=True)|trim }}
     {{- 'Error : Wrong argument type' | assert_true(arg.type.name in ['void']) }}
     {{- 'Error : Unimplemented argument type' | assert_true(arg.type.name in ['object', 'Sequence', 'UnionType', 'Promise']) }}
     {% if need_catch %}

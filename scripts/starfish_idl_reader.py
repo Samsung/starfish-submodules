@@ -222,6 +222,12 @@ def _hd_extattr_force_deny_strict(target, extattr):
     return True
   return False
 
+def _hd_extattr_callwith(target, extattr):
+  if extattr.GetName() == 'CallWith':
+    target['call_with'] = extattr.GetProperty('VALUE')
+    return True
+  return False
+
 def _gen_basic_named(node):
   return {
     'name': node.GetName(),
@@ -489,7 +495,8 @@ class StarfishIDLReader():
                           _hd_extattr_notenumerable,
                           _hd_extattr_custom,
                           _hd_extattr_raise_expection,
-                          _hd_extattr_force_deny_strict])
+                          _hd_extattr_force_deny_strict,
+                          _hd_extattr_callwith])
 
     if return_ir is not None:
       _set_prop_to_dict(return_ir, 'object_option', result.pop('object_option', None))
@@ -549,7 +556,8 @@ class StarfishIDLReader():
                             _hd_extattr_notenumerable,
                             _hd_extattr_custom,
                             _hd_extattr_raise_expection,
-                            _hd_extattr_force_deny_strict])
+                            _hd_extattr_force_deny_strict,
+                            _hd_extattr_callwith])
       _set_prop_to_dict(stringifier, 'flags', forward.get('flags', None))
       _set_prop_to_dict(stringifier, 'unimplemented', forward.get('unimplemented', None))
     else:

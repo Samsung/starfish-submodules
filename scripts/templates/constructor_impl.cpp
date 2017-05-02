@@ -10,6 +10,7 @@ static ESValue {{ name|lower }}Constructor(ESVMInstance* instance)
     {% set min_passing_count = constructor.min_passing_count|default(0) %}
     {% set min_passed_count = constructor.min_passed_count|default(0) %}
     {% set uniformed_call = (max_arg == min_passing_count) %}
+    {% set need_counting = (not uniformed_call) and max_arg - constructor.min_passed_count > 1 %}
     if (!instance->currentExecutionContext()->isNewExpression()) {
         THROW_EXCEPTION(CALLED_CONSTRUCTOR_WITHOUT_NEW, "{{ name }}");
     }
@@ -26,11 +27,15 @@ static ESValue {{ name|lower }}Constructor(ESVMInstance* instance)
     {% if not uniformed_call %}
     size_t validArgCount = {{ constructor.arguments|length }};
     {% endif %}
+    {% if need_counting %}
+    bool argCounting = true;
+    {% endif %}
     {% for arg in constructor.arguments %}
     ESValue arg{{loop.index - 1}} = instance->currentExecutionContext()->readArgument({{loop.index - 1}});
     {% endfor %}
-    {% for arg in constructor.arguments -%}
-    {{ util_macro.handle_arg(arg, 'arg%d'|format(loop.index - 1), 'value%d'|format(loop.index - 1), False) }}
+    {% for idx in range(0, max_arg) %}
+    {% set ridx = max_arg - idx - 1 -%}
+    {{ util_macro.handle_arg(constructor.arguments[ridx], 'arg%d'|format(ridx), 'value%d'|format(ridx), need_counting=need_counting) }}
     {% endfor %}
     {{ name }}* result = nullptr;
     {% set call_with = 'callWith' if constructor.call_with else '' %}
