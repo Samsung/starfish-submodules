@@ -15,7 +15,7 @@ Start from Starfish root directory.
 ```sh
 $ ./binding_generator/scripts/starfish_code_generator.py src/
 ```
-It will generate `src/binding/[IDLFileName].cpp` for each IDL.  
+It will generate `src/binding/[IDLFileName]Binding.cpp` for each IDL.  
 See,
 ```sh
 $ ls -1 src/binding/
