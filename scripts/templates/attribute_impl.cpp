@@ -1,5 +1,19 @@
 {% import 'util.cpp' as util_macro %}
 
+{%- macro gen_call_getter(vname, indent) -%}
+{{ '%s = originalObj->%s();'|format(vname, util_macro.gen_attr_name(attribute))|indent(indent, True) }}
+{%- endmacro -%}
+
+{%- macro gen_call_setter(vname, indent) -%}
+{{ '%s->set%s(value0);'|format(vname, util_macro.gen_attr_name(attribute)|first_word_capitalize)|indent(indent, True) }}
+{%- endmacro -%}
+
+{%- macro gen_call_setter_if_non_null(vname, indent) -%}
+if (forwards) {
+    {{ gen_call_setter(vname, indent) }}
+}
+{%- endmacro -%}
+
 {%- call util_macro.ifdef(attribute.flags) %}
 {% with %}
 {% if attribute.getter %}
@@ -20,7 +34,7 @@ static ESValue {{ util_macro.gen_getter_function(attribute, name) }}(ESVMInstanc
     {% if need_catch %}
     try {
     {% endif %}
-    {{ 'result = originalObj->%s();'|format(util_macro.gen_attr_name(attribute))|indent(indent_callexp, True) }}
+    {{ gen_call_getter('result', indent_callexp) }}
     {% if need_catch %}
     } catch (DOMException* e) {
         ESVMInstance::currentInstance()->throwError(e->scriptValue());
@@ -32,6 +46,9 @@ static ESValue {{ util_macro.gen_getter_function(attribute, name) }}(ESVMInstanc
 }
 {% endif %}
 {% endif %}
+{% if attribute.put_forwards %}
+    {% set x=attribute.__setitem__('setter', attribute.put_forwards.setter) %}
+{% endif %}
 {% if attribute.setter %}
 
 {% if attribute.setter.custom %}
@@ -41,7 +58,6 @@ static ESValue {{ util_macro.gen_setter_function(attribute, name) }}(ESVMInstanc
 {
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
     {% if attribute.setter.return.name == 'EventHandlerNonNull' %}
-        {# ignore x it is just a trick to set entry on dict type #}
         {% set x=attribute.setter.return.__setitem__('name', 'EventListener') %}
     {% endif %}
     {% set need_catch = attribute.setter.raises_exception %}
@@ -54,7 +70,14 @@ static ESValue {{ util_macro.gen_setter_function(attribute, name) }}(ESVMInstanc
     {% if need_catch %}
     try {
     {% endif %}
-    {{ 'originalObj->set%s(value0);'|format(util_macro.gen_attr_name(attribute)|first_word_capitalize)|indent(indent_callexp, True) }}
+    {% if attribute.put_forwards %}
+    {{ util_macro.gen_declare_return_value(attribute.getter.return, 'forwards')|trim|indent(indent_callexp, True) }}
+    {{ gen_call_getter('forwards', indent_callexp) }}
+    {{ gen_call_setter_if_non_null('forwards', indent_callexp) }}
+    {# TODO: what if forwards is nullptr #}
+    {% else %}
+    {{ gen_call_setter('originalObj', indent_callexp) }}
+    {% endif %}
     {% if need_catch %}
     } catch (DOMException* e) {
         ESVMInstance::currentInstance()->throwError(e->scriptValue());
