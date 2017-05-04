@@ -14,8 +14,9 @@
 
 {%- macro gen_check_getter_code() -%}
     if (instance->currentExecutionContext()->argumentCount() < 1) {
-        THROW_EXCEPTION(FAILED_TO_EXECUTE_BECAUSE_ARGS_NOT_ENOUGH,
-                            "{{ function.name }}", "{{ name }}", "1", "0");
+        COMPOSE_MESSAGE(reason, ARGS_NOT_ENOUGH, "1", "0");
+        COMPOSE_MESSAGE(msg, FAILED_TO_EXECUTE, "{{ function.name }}", "{{ name }}", reason);
+        THROW_EXCEPTION(msg);
     }
 {%- endmacro -%}
 
@@ -77,8 +78,9 @@ if (validArgCount == {{function.min_passing_count|string}}) {
         {% set siz = min_passed_count|digit + 1 %}
         char buffer[{{ siz }}];
         snprintf(buffer, {{ siz }}, "%zu", argCount);
-        THROW_EXCEPTION(FAILED_TO_EXECUTE_BECAUSE_ARGS_NOT_ENOUGH,
-                            "{{ fnname }}", "{{ name }}", "{{ min_passed_count }}", buffer);
+        COMPOSE_MESSAGE(reason, ARGS_NOT_ENOUGH, "{{ min_passed_count }}", buffer);
+        COMPOSE_MESSAGE(msg, FAILED_TO_EXECUTE, "{{ fnname }}", "{{ name }}", reason);
+        THROW_EXCEPTION(msg);
     }
     {% endif %}
     {% if not uniformed_call %}
@@ -93,7 +95,10 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {% endfor %}
     {% for idx in range(0, max_arg) %}
     {% set ridx = max_arg - idx - 1 -%}
-    {{ util_macro.handle_arg(function.arguments[ridx], 'arg%d'|format(ridx), 'value%d'|format(ridx), skip_type_check=skip_type_check, need_counting=need_counting) }}
+    {% set names = {'name': name, 'fname': function.name, 'aname': 'arg%d'|format(ridx), 'vname': 'value%d'|format(ridx)} %}
+    {{ util_macro.handle_arg(function.arguments[ridx], names,
+                             skip_type_check=skip_type_check,
+                             need_counting=need_counting) }}
     {% endfor %}
     {% if function.call_with  == 'Document' %}
     Document* callWith = fetchDocument(instance);

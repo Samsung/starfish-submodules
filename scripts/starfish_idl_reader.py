@@ -346,7 +346,7 @@ class StarfishIDLReader():
         for subt in child.GetChildren():
           if subt.GetClass() == 'Type':
             result['data'] = self._gen_ir_type(subt)
-            break;
+            break
       elif _is_class(child, 'UnionType'):
         result['kind'] = child.GetClass()
         result['name'] = child.GetClass()
@@ -362,6 +362,8 @@ class StarfishIDLReader():
         # PrimitiveType | StringType | Typeref
         result['kind'] = child.GetClass()
         result['name'] = child.GetName()
+        if 'UNRESTRICTED' in child.GetProperties():
+          result['unrestricted'] = child.GetProperties()['UNRESTRICTED']
       # TODO
       # elif _is_class(child, 'ExtAttributes'):
 
@@ -640,7 +642,7 @@ class StarfishIDLReader():
                           _hd_extattr_no_interfaceobj,
                           _hd_extattr_partial_interface])
 
-    
+
     call_with = result.pop('_call_with', None)
     constructor = result.get('constructor')
     if constructor:

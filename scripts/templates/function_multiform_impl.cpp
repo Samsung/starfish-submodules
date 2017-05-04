@@ -35,7 +35,8 @@ static ESValue {{ function.name }}Function(ESVMInstance* instance)
     }
 {% endcall %}
     {% endfor %}
-    THROW_EXCEPTION(FAILED_TO_EXECUTE_BECAUSE_SIGNATURE_NOT_FOUND, "{{ function.name }}", "{{ name }}");
+    COMPOSE_MESSAGE(msg, FAILED_TO_EXECUTE, "{{ fnname }}", "{{ name }}", SIGNATURE_NOT_FOUND);
+    THROW_EXCEPTION(msg);
 }
 
 

@@ -167,7 +167,7 @@ class StarfishIRHandler():
         resolved_parent = self._handle_dictionary_parent(parent_ir)
       else:
         resolved_parent = False
-        
+
     if resolved_parent and parent_ir is not None:
       dictionary['members'] = dictionary['members'] + parent_ir['members']
     return resolved_parent
@@ -197,7 +197,7 @@ class StarfishIRHandler():
     self.typedefs = {}
     self.enums = {}
     self.interfaces.update(type_ir.get('interfaces', {}))
-    self.dictionaries.update(type_ir.get('dictionaries', {}))      
+    self.dictionaries.update(type_ir.get('dictionaries', {}))
     self.callbacks.update(type_ir.get('callbacks', {}))
     self.typedefs.update(type_ir.get('typedefs', {}))
     self.enums.update(type_ir.get('enums', {}))
@@ -228,4 +228,3 @@ class StarfishIRHandler():
 
 
 
-      

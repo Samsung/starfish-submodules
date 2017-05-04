@@ -12,7 +12,8 @@ static ESValue {{ name|lower }}Constructor(ESVMInstance* instance)
     {% set uniformed_call = (max_arg == min_passing_count) %}
     {% set need_counting = (not uniformed_call) and max_arg - constructor.min_passed_count > 1 %}
     if (!instance->currentExecutionContext()->isNewExpression()) {
-        THROW_EXCEPTION(CALLED_CONSTRUCTOR_WITHOUT_NEW, "{{ name }}");
+        COMPOSE_MESSAGE(msg, CALLED_CONSTRUCTOR_WITHOUT_NEW, "{{ name }}");
+        THROW_EXCEPTION(msg);
     }
     {% if min_passed_count != 0 %}
     size_t argCount = instance->currentExecutionContext()->argumentCount();
@@ -20,8 +21,9 @@ static ESValue {{ name|lower }}Constructor(ESVMInstance* instance)
         {% set siz = min_passed_count|digit + 1 %}
         char buffer[{{ siz }}];
         snprintf(buffer, {{ siz }}, "%zu", argCount);
-        THROW_EXCEPTION(FAILED_TO_CONSTRUCT_BECAUSE_ARGS_NOT_ENOUGH, "{{ name }}",
-                            "{{ min_passed_count }}", buffer);
+        COMPOSE_MESSAGE(reason, ARGS_NOT_ENOUGH, "{{ min_passed_count }}", buffer);
+        COMPOSE_MESSAGE(msg, FAILED_TO_CONSTRUCT, "parseFromString", "{{ name }}", reason);
+        THROW_EXCEPTION(msg);
     }
     {% endif %}
     {% if not uniformed_call %}
@@ -35,7 +37,8 @@ static ESValue {{ name|lower }}Constructor(ESVMInstance* instance)
     {% endfor %}
     {% for idx in range(0, max_arg) %}
     {% set ridx = max_arg - idx - 1 -%}
-    {{ util_macro.handle_arg(constructor.arguments[ridx], 'arg%d'|format(ridx), 'value%d'|format(ridx), need_counting=need_counting) }}
+    {% set names = {'name': name, 'aname': 'arg%d'|format(ridx), 'vname': 'value%d'|format(ridx)} %}
+    {{ util_macro.handle_arg(constructor.arguments[ridx], names, need_counting=need_counting) }}
     {% endfor %}
     {{ name }}* result = nullptr;
     {% set call_with = 'callWith' if constructor.call_with else '' %}

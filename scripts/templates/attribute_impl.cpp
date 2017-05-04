@@ -1,18 +1,18 @@
 {% import 'util.cpp' as util_macro %}
 
-{%- macro gen_call_getter(vname, indent) -%}
+{%- macro gen_call_getter(vname, attribute, indent) -%}
 {{ '%s = originalObj->%s();'|format(vname, util_macro.gen_attr_name(attribute))|indent(indent, True) }}
 {%- endmacro -%}
 
-{%- macro gen_call_setter(vname, indent) -%}
+{%- macro gen_call_setter(vname, attribute, indent) -%}
 {{ '%s->set%s(value0);'|format(vname, util_macro.gen_attr_name(attribute)|first_word_capitalize)|indent(indent, True) }}
 {%- endmacro -%}
 
-{%- macro gen_call_setter_if_non_null(vname, indent) -%}
-if (forwards) {
-    {{ gen_call_setter(vname, indent) }}
-}
-{%- endmacro -%}
+{%- macro gen_call_setter_if_non_null(vname, attribute, indent) -%}
+    if (forwards) {
+    {{ gen_call_setter(vname, attribute, 4) }}
+    }
+{% endmacro %}
 
 {%- call util_macro.ifdef(attribute.flags) %}
 {% with %}
@@ -34,7 +34,7 @@ static ESValue {{ util_macro.gen_getter_function(attribute, name) }}(ESVMInstanc
     {% if need_catch %}
     try {
     {% endif %}
-    {{ gen_call_getter('result', indent_callexp) }}
+    {{ gen_call_getter('result', attribute, indent_callexp) }}
     {% if need_catch %}
     } catch (DOMException* e) {
         ESVMInstance::currentInstance()->throwError(e->scriptValue());
@@ -63,8 +63,9 @@ static ESValue {{ util_macro.gen_setter_function(attribute, name) }}(ESVMInstanc
     {% set need_catch = attribute.setter.raises_exception %}
     {% set indent_callexp = 4 if need_catch else 0 %}
     {% set arg = attribute.setter.arguments[0] %}
+    {% set names = {'name': name, 'attrname': attribute.name, 'aname': 'arg0', 'vname': 'value0'} %}
     ESValue arg0 = instance->currentExecutionContext()->readArgument(0);
-    {{ util_macro.handle_arg(arg, 'arg0', 'value0', fromattr=True)|trim }}
+    {{ util_macro.handle_arg(arg, names, fromattr=True)|trim }}
     {{- 'Error : Wrong argument type' | assert_true(arg.type.name in ['void']) }}
     {{- 'Error : Unimplemented argument type' | assert_true(arg.type.name in ['object', 'Sequence', 'UnionType', 'Promise']) }}
     {% if need_catch %}
@@ -72,11 +73,11 @@ static ESValue {{ util_macro.gen_setter_function(attribute, name) }}(ESVMInstanc
     {% endif %}
     {% if attribute.put_forwards %}
     {{ util_macro.gen_declare_return_value(attribute.getter.return, 'forwards')|trim|indent(indent_callexp, True) }}
-    {{ gen_call_getter('forwards', indent_callexp) }}
-    {{ gen_call_setter_if_non_null('forwards', indent_callexp) }}
+    {{ gen_call_getter('forwards', attribute, indent_callexp) }}
+    {{ gen_call_setter_if_non_null('forwards', attribute.put_forwards)|indent(indent_callexp, True) }}
     {# TODO: what if forwards is nullptr #}
     {% else %}
-    {{ gen_call_setter('originalObj', indent_callexp) }}
+    {{ gen_call_setter('originalObj', attribute, indent_callexp) }}
     {% endif %}
     {% if need_catch %}
     } catch (DOMException* e) {

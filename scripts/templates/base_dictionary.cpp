@@ -47,7 +47,9 @@ using namespace escargot;
 {% endfor %}
     {{name}} result;
 {% for key in members -%}
-    {{ util_macro.handle_arg(key, 'arg%d'|format(loop.index - 1), 'value%d'|format(loop.index - 1)) }}
+    {% set names = {'name': name, 'kname': key.name,
+                    'aname': 'arg%d'|format(loop.index - 1), 'vname': 'value%d'|format(loop.index - 1)} %}
+    {{ util_macro.handle_arg(key, names) }}
     result.set{{key.name|first_word_capitalize}}({{'value%d'|format(loop.index - 1)}});
 {% endfor %}
     return result;
