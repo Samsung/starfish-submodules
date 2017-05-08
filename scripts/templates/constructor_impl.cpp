@@ -38,7 +38,7 @@ static ESValue {{ name|lower }}Constructor(ESVMInstance* instance)
     {% for idx in range(0, max_arg) %}
     {% set ridx = max_arg - idx - 1 -%}
     {% set names = {'name': name, 'aname': 'arg%d'|format(ridx), 'vname': 'value%d'|format(ridx)} %}
-    {{ util_macro.handle_arg(constructor.arguments[ridx], names, need_counting=need_counting) }}
+    {{ util_macro.handle_arg(constructor.arguments[ridx], names, need_counting=need_counting)|trim }}
     {% endfor %}
     {{ name }}* result = nullptr;
     {% set call_with = 'callWith' if constructor.call_with else '' %}

@@ -98,7 +98,7 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {% set names = {'name': name, 'fname': function.name, 'aname': 'arg%d'|format(ridx), 'vname': 'value%d'|format(ridx)} %}
     {{ util_macro.handle_arg(function.arguments[ridx], names,
                              skip_type_check=skip_type_check,
-                             need_counting=need_counting) }}
+                             need_counting=need_counting)|trim }}
     {% endfor %}
     {% if function.call_with  == 'Document' %}
     Document* callWith = fetchDocument(instance);

@@ -37,6 +37,10 @@ using namespace escargot;
 {% endif %}
 {{name}} to{{name}}FromESValue(ESVMInstance* instance, ESValue& from)
 {
+    if (from.isUndefinedOrNull()) {
+        // Return empty dictionary
+        return {{name}}();
+    }
     if (!from.isObject()) {
         auto msg = ESString::create("Failed to generate {{name}} from non-object");
         instance->throwError(ESValue(TypeError::create(msg)));
@@ -49,7 +53,7 @@ using namespace escargot;
 {% for key in members -%}
     {% set names = {'name': name, 'kname': key.name,
                     'aname': 'arg%d'|format(loop.index - 1), 'vname': 'value%d'|format(loop.index - 1)} %}
-    {{ util_macro.handle_arg(key, names) }}
+    {{ util_macro.handle_arg(key, names)|trim }}
     result.set{{key.name|first_word_capitalize}}({{'value%d'|format(loop.index - 1)}});
 {% endfor %}
     return result;
