@@ -50,6 +50,10 @@ def generate_code_with_template(ir, template, args):
     raise Exception("\"[starfish_root]/src/binding\" doesn't exist")
 
   path = ir['name'] + 'Binding' + CPP_EXT
+  if os.path.exists(os.path.join(BINDING_PATH, path)) and \
+     not args.overwrite:
+    print("Skip generating code for module \"{}\": {} already exist.".format(ir['name'], path))
+    return
   with open(os.path.join(BINDING_PATH, path), 'w') as w:
     ret = template.render(**ir)
     w.write(ret)
@@ -119,6 +123,8 @@ if __name__ == "__main__":
   argparser.add_argument("-f", "--file", help="specify an idl file")
   argparser.add_argument("-l", "--log-idl", action='store_true',
                          dest="log_idl", help="flag to log idl")
+  argparser.add_argument("-o", "--overwrite", action='store_true',
+                         help="allow to overwrite file")
   args = argparser.parse_args()
   # Argument validation
   if not os.path.isdir(args.root_path):
