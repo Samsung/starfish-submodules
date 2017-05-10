@@ -28,7 +28,7 @@ class StarfishIDLParser(IDLParser):
                              method='SLR',
                              debug=debug,
                              optimize=(not debug),
-                             write_tables=debug)
+                             write_tables=True)
     self.parse_debug = debug
     self.verbose = debug
     self.mute_error = (not debug)
