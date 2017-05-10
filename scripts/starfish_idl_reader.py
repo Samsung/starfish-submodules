@@ -188,7 +188,7 @@ def _hd_extattr_notenumerable(target, extattr):
 
 def _hd_extattr_no_interfaceobj(target, extattr):
   if extattr.GetName() == 'NoInterfaceObject':
-    target['global_expose'] = False
+    target['no_interface'] = True
     return True
   return False
 
@@ -207,12 +207,6 @@ def _hd_extattr_putforward(target, extattr):
 def _hd_extattr_raise_expection(target, extattr):
   if extattr.GetName() == 'RaisesException':
     target['raises_exception'] = extattr.GetProperty('VALUE', True)
-    return True
-  return False
-
-def _hd_extattr_partial_interface(target, extattr):
-  if extattr.GetName() == 'PartialInterface':
-    target['partial_interface'] = True
     return True
   return False
 
@@ -600,7 +594,7 @@ class StarfishIDLReader():
   def _gen_ir_interface(self, node):
     # print dump_node(node)
     result = _gen_basic_named(node)
-    _set_prop_to_dict(result, 'global_expose', True)
+    _set_prop_to_dict(result, 'no_interface', False)
     constants = []
     attributes = []
     functions = []
@@ -639,8 +633,7 @@ class StarfishIDLReader():
                          [_hd_extattr_flags,
                           self._hd_extattr_constructor,
                           _hd_extattr_unimplemented,
-                          _hd_extattr_no_interfaceobj,
-                          _hd_extattr_partial_interface])
+                          _hd_extattr_no_interfaceobj])
 
 
     call_with = result.pop('_call_with', None)

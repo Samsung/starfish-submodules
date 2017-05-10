@@ -22,9 +22,9 @@
 | **attributes** | `List` of [Attribute Object](#attribute-object) |
 | **functions** | `List` of [Operation](#operation-object) / [MultiOperation](#multioperation-object) / [Stringifier](#stringifier-object) Object|
 | **include_paths** | `Set` of `String` |
+| **no_interface** | `Boolean`<br>*Ref: ChildNode.idl* |
 | unimplemented | `Boolean` |
 | constructor | [Constructor Object](#constructor-object) |
-| partial_interface | `Boolean`<br>*Ref: ChildNode.idl* |
 | named_constructor | [Operation Object](#operation-object)<br>*Ref: HTMLImageElement.idl, HTMLAudioElement.idl* |
 | parent | `String` |
 | item_getters | `List` of [ItemGetter Object](#itemgetter-object)<br>*Ref: DOMTokenList.idl, HTMLCollection.idl, NamedNodeMap.idl* |

@@ -30,8 +30,8 @@ def generate_code(ir, args): #, sf_modules):
   interfaces = ir['interfaces']
   for key in interfaces:
     interface = interfaces[key]
-    if interface.get('partial_interface', False):
-      print "Skip generating code for partial interface " +\
+    if interface.get('no_interface', False):
+      print "Skip generating code for 'NoInterfaceObject' " +\
              interface.get('name')
       continue
     generate_code_with_template(interface, 'base_module' + CPP_EXT, args)
