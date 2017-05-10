@@ -222,6 +222,12 @@ def _hd_extattr_callwith(target, extattr):
     return True
   return False
 
+def _hd_extattr_primary_global(target, extattr):
+  if extattr.GetName() == 'PrimaryGlobal':
+    target['primary_global'] = True
+    return True
+  return False
+
 def _gen_basic_named(node):
   return {
     'name': node.GetName(),
@@ -633,8 +639,8 @@ class StarfishIDLReader():
                          [_hd_extattr_flags,
                           self._hd_extattr_constructor,
                           _hd_extattr_unimplemented,
-                          _hd_extattr_no_interfaceobj])
-
+                          _hd_extattr_no_interfaceobj,
+                          _hd_extattr_primary_global])
 
     call_with = result.pop('_call_with', None)
     constructor = result.get('constructor')
