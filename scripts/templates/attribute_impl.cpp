@@ -1,11 +1,11 @@
 {% import 'util.cpp' as util_macro %}
 
-{%- macro gen_call_getter(vname, attribute, indent) -%}
-{{ '%s = originalObj->%s();'|format(vname, util_macro.gen_attr_name(attribute))|indent(indent, True) }}
+{%- macro gen_call_getter(vname, owner, attribute, indent) -%}
+{{ '%s = %s->%s();'|format(vname, owner, util_macro.gen_attr_name(attribute))|indent(indent, True) }}
 {%- endmacro -%}
 
-{%- macro gen_call_setter(vname, attribute, indent) -%}
-{{ '%s->set%s(value0);'|format(vname, util_macro.gen_attr_name(attribute)|first_word_capitalize)|indent(indent, True) }}
+{%- macro gen_call_setter(owner, attribute, indent) -%}
+{{ '%s->set%s(value0);'|format(owner, util_macro.gen_attr_name(attribute)|first_word_capitalize)|indent(indent, True) }}
 {%- endmacro -%}
 
 {%- macro gen_call_setter_if_non_null(vname, attribute, indent) -%}
@@ -22,7 +22,11 @@ extern ESValue {{ util_macro.gen_getter_function(attribute, name) }}(ESVMInstanc
 {% else %}
 static ESValue {{ util_macro.gen_getter_function(attribute, name) }}(ESVMInstance* instance)
 {
+    {% if name == 'Window' %}
+    GENERATE_WINDOW();
+    {% else %}
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
+    {% endif %}
     {% if attribute.getter.return.name == 'EventHandlerNonNull' %}
         {# ignore x it is just a trick to set entry on dict type #}
         {% set x=attribute.getter.return.__setitem__('name', 'EventListener') %}
@@ -30,11 +34,12 @@ static ESValue {{ util_macro.gen_getter_function(attribute, name) }}(ESVMInstanc
     {% set need_catch = attribute.getter.raises_exception %}
     {% set indent_callexp = 4 if need_catch else 0 %}
     {% set getter_type = attribute.getter.return %}
+    {% set property_owner = 'window' if name == 'Window' else 'originalObj' %}
     {{ util_macro.gen_declare_return_value(attribute.getter.return)|trim }}
     {% if need_catch %}
     try {
     {% endif %}
-    {{ gen_call_getter('result', attribute, indent_callexp) }}
+    {{ gen_call_getter('result', property_owner, attribute, indent_callexp) }}
     {% if need_catch %}
     } catch (DOMException* e) {
         ESVMInstance::currentInstance()->throwError(e->scriptValue());
@@ -56,7 +61,11 @@ extern ESValue {{ util_macro.gen_setter_function(attribute, name) }}(ESVMInstanc
 {% else %}
 static ESValue {{ util_macro.gen_setter_function(attribute, name) }}(ESVMInstance* instance)
 {
+    {% if name == 'Window' %}
+    GENERATE_WINDOW();
+    {% else %}
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
+    {% endif %}
     {% if attribute.setter.return.name == 'EventHandlerNonNull' %}
         {% set x=attribute.setter.return.__setitem__('name', 'EventListener') %}
     {% endif %}
@@ -64,6 +73,7 @@ static ESValue {{ util_macro.gen_setter_function(attribute, name) }}(ESVMInstanc
     {% set indent_callexp = 4 if need_catch else 0 %}
     {% set arg = attribute.setter.arguments[0] %}
     {% set names = {'name': name, 'attrname': attribute.name, 'aname': 'arg0', 'vname': 'value0'} %}
+    {% set property_owner = 'window' if name == 'Window' else 'originalObj' %}
     ESValue arg0 = instance->currentExecutionContext()->readArgument(0);
     {{ util_macro.handle_arg(arg, names, fromattr=True)|trim }}
     {{- 'Error : Wrong argument type' | assert_true(arg.type.name in ['void']) }}
@@ -73,11 +83,11 @@ static ESValue {{ util_macro.gen_setter_function(attribute, name) }}(ESVMInstanc
     {% endif %}
     {% if attribute.put_forwards %}
     {{ util_macro.gen_declare_return_value(attribute.getter.return, 'forwards')|trim|indent(indent_callexp, True) }}
-    {{ gen_call_getter('forwards', attribute, indent_callexp) }}
+    {{ gen_call_getter('forwards', property_owner, attribute, indent_callexp) }}
     {{ gen_call_setter_if_non_null('forwards', attribute.put_forwards)|indent(indent_callexp, True) }}
     {# TODO: what if forwards is nullptr #}
     {% else %}
-    {{ gen_call_setter('originalObj', attribute, indent_callexp) }}
+    {{ gen_call_setter(property_owner, attribute, indent_callexp) }}
     {% endif %}
     {% if need_catch %}
     } catch (DOMException* e) {

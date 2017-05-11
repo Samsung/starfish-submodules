@@ -24,7 +24,8 @@
     {% set call_with = 'callWith' if function.call_with else '' %}
     {% set call_with_comma = 'callWith, ' if call_with|length > 0 else '' %}
     {% set return_left = '' if return_type.name == 'void' else 'result = ' %}
-    {% set calling = '%s::'|format(name) if function.static else 'originalObj->' %}
+    {% set property_owner = 'window' if name == 'Window' else 'originalObj' %}
+    {% set calling = '%s::'|format(name) if function.static else '%s->'|format(property_owner) %}
     {% set fnname = function.name if function.rename|length == 0 else function.rename %}
     {% set max_arg = function.arguments|length %}
     {% if max_arg == 0 -%}
@@ -66,7 +67,11 @@ if (validArgCount == {{function.min_passing_count|string}}) {
 {%- endmacro -%}
 
 {%- macro function_code_normal() %}
+    {% if name == 'Window' %}
+    GENERATE_WINDOW();
+    {% else %}
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
+    {% endif %}
     {% set min_passed_count = function.min_passed_count|default(0) %}
     {% set max_arg = function.arguments|length %}
     {% set uniformed_call = (max_arg == function.min_passing_count) %}
@@ -110,17 +115,22 @@ if (validArgCount == {{function.min_passing_count|string}}) {
 {% endmacro -%}
 
 {%- macro function_code_ellipsis() %}
+    {% if name == 'Window' %}
+    GENERATE_WINDOW();
+    {% else %}
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
+    {% endif %}
     {% set use_nullable = (function.return.kind in nullable_kinds) and function.return.nullable %}
     size_t argCount = instance->currentExecutionContext()->argumentCount();
     {% set type_exp = util_macro.gen_type_str(function.arguments[0].type, use_nullable) %}
     {% set assign_exp = util_macro.gen_esvalue_to_native(function.arguments[0].type, 'arg', False) %}
+    {% set property_owner = 'window' if name == 'Window' else 'originalObj' %}
     {% if function.raises_exception %}
     try {
         for (size_t i = 0; i < argCount; i++) {
             ESValue arg = instance->currentExecutionContext()->readArgument(i);
             {{ '%s value = %s;'|format(type_exp, assign_exp) }}
-            originalObj->{{function.name}}(value);
+            {{ property_owner }}->{{function.name}}(value);
         }
     } catch (DOMException* e) {
         ESVMInstance::currentInstance()->throwError(e->scriptValue());
@@ -130,15 +140,20 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     for (size_t i = 0; i < argCount; i++) {
         ESValue arg = instance->currentExecutionContext()->readArgument(i);
         {{ '%s value = %s;'|format(type_exp, assign_exp) }}
-        originalObj->{{function.name}}(value);
+        {{ property_owner }}->{{function.name}}(value);
     }
     {% endif %}
     return ESValue(ESValue::ESUndefined);
 {% endmacro -%}
 
 {%- macro function_code_getter_index() %}
+    {% if name == 'Window' %}
+    GENERATE_WINDOW();
+    {% else %}
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
+    {% endif %}
     {% set has_return = (function.return.name != 'void') %}
+    {% set property_owner = 'window' if name == 'Window' else 'originalObj' %}
     // Class item getter by index
     {{ gen_check_getter_code() }}
     {{ util_macro.gen_declare_return_value(function.return)|trim }}
@@ -151,7 +166,7 @@ if (validArgCount == {{function.min_passing_count|string}}) {
         }
         idx = std::isnan(__number) ? 0 : (uint32_t)__number;
     }
-    result = originalObj->{{function.name}}(idx);
+    result = {{ property_owner }}->{{function.name}}(idx);
     {{ util_macro.handle_return(function.return)|trim }}
 {% endmacro -%}
 

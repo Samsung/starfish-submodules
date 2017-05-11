@@ -7,11 +7,11 @@
     {% if function.static %}
         {% set object %}{{ name }}Function{% endset %}
     {% else %}
-        {% set object %}{{ name }}PrototypeObj{% endset %}
+        {% set object %}{{ util_macro.gen_property_owner(primary_global, function.unforgeable, name) }}{% endset %}
     {% endif %}
-    {% set writable = function.writable|default(True)|lower %}
-    {% set enumerable = function.enumerable|default(True)|lower %}
-    {% set configurable = function.configurable|default(True)|lower %}
+    {% set writable = 'false' if function.unforgeable else 'true' %}
+    {% set enumerable = 'true' %}
+    {% set configurable = 'false' if function.unforgeable else 'true' %}
     ESFunctionObject* {{fn_name}}ESFn = ESFunctionObject::create(
                             nullptr,
                             {{ fn_name }}Function,
@@ -22,7 +22,7 @@
     {% endif %}
     {{ object }}->defineDataProperty(
                             {{ function.name }}String,
-                            {{ writable }}, {{ enumerable }}, {{ configurable }},
+                            {{ writable }}/* writable */, {{ enumerable }}/* enumerable */, {{ configurable }}/* configurable */,
                             {{fn_name}}ESFn);
 {% endcall %}
 {% endif %}

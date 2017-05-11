@@ -33,6 +33,14 @@
     {% endif %}
 {%- endmacro -%}
 
+{%- macro gen_property_owner(primary_global, unforgeable, name) -%}
+  {% if (primary_global or unforgeable) %}
+    {{- 'scriptObject()' -}}
+  {% else %}
+    {{- '%sPrototypeObj'|format(name) -}}
+  {% endif %}
+{%- endmacro -%}
+
 {################## 'HANDLE ARGUMENTS' ##################}
 {% macro gen_primitive_type_str(type) -%}
   {% if type.name == 'boolean' %}

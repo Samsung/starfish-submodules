@@ -20,6 +20,49 @@
     {% endfor %}
 {% endif %}
 
+{# FIXME: has to return boolean #}
+{% macro can_include(in_prototype_chain, primary_global, unforgeable) -%}
+  {% if unforgeable %}
+    {{- 'true' if not in_prototype_chain else 'false' -}}
+  {% else %}
+    {% if primary_global %}
+      {{- 'true' if not in_prototype_chain else 'false' -}}
+    {% else %}
+      {{- 'true' if in_prototype_chain else 'false' -}}
+    {% endif %}
+  {% endif %}
+{%- endmacro %}
+
+{% macro bind(in_prototype_chain, primary_global) -%}
+{% if (not in_prototype_chain or not primary_global) %}
+  {% if constants %}
+    // Bind for constants
+    {% for constant in constants %}
+      {# I assume that constant does not appear on the primary global interface #}
+      {% if not constant.unimplemented and in_prototype_chain %}
+{% include 'constant_bind.cpp' ignore missing %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+  {% if attributes %}
+    // Bind for attributes
+    {% for attribute in attributes %}
+      {% if not attribute.unimplemented and (can_include(in_prototype_chain, primary_global, attribute.unforgeable) == 'true') %}
+{% include 'attribute_bind.cpp' ignore missing %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+  {% if functions %}
+    // Bind for functions
+    {% for function in functions %}
+      {% if not function.unimplemented and (can_include(in_prototype_chain, primary_global, function.unforgeable) == 'true') %}
+{% include 'function_bind.cpp' ignore missing %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+{% endif %}
+{%- endmacro -%}
+
 {% for item in include_paths %}
 #include "{{item|to_header_path}}"
 {% endfor %}
@@ -63,34 +106,22 @@ ESFunctionObject* binding{{ name }}(
 {
     // Bind for constructor
 {% include 'constructor_bind.cpp' ignore missing %}
-
-{% if constants %}
-    // Bind for constants
-  {% for constant in constants %}
-    {% if not constant.unimplemented %}
-{% include 'constant_bind.cpp' ignore missing %}
-    {% endif %}
-  {% endfor %}
-{% endif %}
-{% if attributes %}
-    // Bind for attributes
-  {% for attribute in attributes %}
-    {% if not attribute.unimplemented %}
-{% include 'attribute_bind.cpp' ignore missing %}
-    {% endif %}
-  {% endfor %}
-{% endif %}
-{% if functions %}
-    // Bind for functions
-  {% for function in functions %}
-    {% if not function.unimplemented %}
-{% include 'function_bind.cpp' ignore missing %}
-    {% endif %}
-  {% endfor %}
-{% endif %}
+{{ bind(true, primary_global) }}
     return {{ name }}Function;
 }
 {% include 'constructor_named_bind.cpp' ignore missing %}
+
+void {{ name }}::init(ScriptBindingInstance* instance)
+{
+    scriptObject()->set__proto__(fetchData(instance)->fn{{ name }}()->protoType());
+{{ bind(false, primary_global) }}
+    postInit(instance);
+}
+
+bool {{ name }}::is{{ name }}() const
+{
+    return true;
+}
 }
 {% if flags and flags|length > 0 %}
 #endif
