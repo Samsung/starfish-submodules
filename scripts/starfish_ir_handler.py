@@ -91,7 +91,7 @@ class StarfishIRHandler():
       self._check_operation(subop)
       conditions = []
       for key, arg in enumerate(subop.get('arguments', [])):
-        if arg.get('optional', False):
+        if arg.get('optional') or arg.get('ellipsis'):
           continue
         if arg['type'].get('nullable', False):
           continue

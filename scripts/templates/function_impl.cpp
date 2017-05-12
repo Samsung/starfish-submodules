@@ -96,14 +96,20 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {% endif %}
     {{ util_macro.gen_declare_return_value(function.return)|trim }}
     {% for arg in function.arguments %}
+        {% if not function.arguments[loop.index - 1].ellipsis %}
     ESValue arg{{loop.index - 1}} = instance->currentExecutionContext()->readArgument({{loop.index - 1}});
+        {% endif %}
     {% endfor %}
     {% for idx in range(0, max_arg) %}
     {% set ridx = max_arg - idx - 1 -%}
+    {% if function.arguments[ridx].ellipsis %}
+    {{ handle_ellipsis(ridx)|trim }}
+    {% else %}
     {% set names = {'name': name, 'fname': function.name, 'aname': 'arg%d'|format(ridx), 'vname': 'value%d'|format(ridx)} %}
     {{ util_macro.handle_arg(function.arguments[ridx], names,
                              skip_type_check=skip_type_check,
                              need_counting=need_counting)|trim }}
+    {% endif %}
     {% endfor %}
     {% if function.call_with  == 'Document' %}
     Document* callWith = fetchDocument(instance);
@@ -114,36 +120,18 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {{ util_macro.handle_return(function.return)|trim }}
 {% endmacro -%}
 
-{%- macro function_code_ellipsis() %}
-    {% if name == 'Window' %}
-    GENERATE_WINDOW();
-    {% else %}
-    GENERATE_THIS_AND_CHECK_TYPE({{name}});
-    {% endif %}
-    {% set use_nullable = (function.return.kind in nullable_kinds) and function.return.nullable %}
+{%- macro handle_ellipsis(start_idx) %}
+    {% set ellp_type = function.arguments[start_idx].type -%}
+    {% set type_exp = util_macro.gen_type_str(ellp_type, ellp_type.nullable and ellp_type in nullable_kinds) -%}
+    // Handle ellipsis arguments from index{{start_idx}}
+    GCVector<{{type_exp}}> value{{start_idx}};
+    {% if function.min_passed_count == 0 or skip_type_check %}
     size_t argCount = instance->currentExecutionContext()->argumentCount();
-    {% set type_exp = util_macro.gen_type_str(function.arguments[0].type, use_nullable) %}
-    {% set assign_exp = util_macro.gen_esvalue_to_native(function.arguments[0].type, 'arg', False) %}
-    {% set property_owner = 'window' if name == 'Window' else 'originalObj' %}
-    {% if function.raises_exception %}
-    try {
-        for (size_t i = 0; i < argCount; i++) {
-            ESValue arg = instance->currentExecutionContext()->readArgument(i);
-            {{ '%s value = %s;'|format(type_exp, assign_exp) }}
-            {{ property_owner }}->{{function.name}}(value);
-        }
-    } catch (DOMException* e) {
-        ESVMInstance::currentInstance()->throwError(e->scriptValue());
-        STARFISH_RELEASE_ASSERT_NOT_REACHED();
-    }
-    {% else %}
-    for (size_t i = 0; i < argCount; i++) {
-        ESValue arg = instance->currentExecutionContext()->readArgument(i);
-        {{ '%s value = %s;'|format(type_exp, assign_exp) }}
-        {{ property_owner }}->{{function.name}}(value);
-    }
     {% endif %}
-    return ESValue(ESValue::ESUndefined);
+    for (size_t i = {{start_idx}}; i < argCount; i++) {
+        ESValue item = instance->currentExecutionContext()->readArgument(i);
+        value{{start_idx}}.push_back({{util_macro.gen_esvalue_to_native(ellp_type, 'item')}});
+    }
 {% endmacro -%}
 
 {%- macro function_code_getter_index() %}
@@ -187,9 +175,7 @@ extern ESValue {{ gen_function_name(function) }}(ESVMInstance* instance);
     {% else %}
 static ESValue {{ gen_function_name(function) }}(ESVMInstance* instance)
 {
-    {% if function.arguments|length > 0 and function.arguments[0].ellipsis %}
-    {{- function_code_ellipsis() -}}
-    {% elif function.is_item_getter and
+    {% if function.is_item_getter and
         function.arguments[0].type.name in ['unsigned long', 'unsigned short']  %}
     {{- function_code_getter_index() -}}
     {% elif function.kind == 'Stringifier' %}

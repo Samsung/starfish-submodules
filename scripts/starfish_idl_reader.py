@@ -512,7 +512,9 @@ class StarfishIDLReader():
       min_passing_count = 0;
       min_passed_count = 0
       for arg in args_ir:
-        if (not arg.get('optional')):
+        if arg.get('ellipsis'):
+          min_passing_count += 1
+        elif not arg.get('optional'):
           min_passing_count += 1
           min_passed_count += 1
         elif arg.get('default'):
