@@ -22,7 +22,8 @@
 | **attributes** | `List` of [Attribute Object](#attribute-object) |
 | **functions** | `List` of [Operation](#operation-object) / [MultiOperation](#multioperation-object) / [Stringifier](#stringifier-object) Object|
 | **include_paths** | `Set` of `String` |
-| **no_interface** | `Boolean`<br>*Ref: ChildNode.idl* |
+| **no_interface** | `Boolean`<br>Prevent binding to global window.<br>*Ref: ChildNode.idl* |
+| **partial_interface** | `Boolean`<br>Only used for partial interface by others.<br>*Ref: ChildNode.idl* |
 | unimplemented | `Boolean` |
 | constructor | [Constructor Object](#constructor-object) |
 | named_constructor | [Operation Object](#operation-object)<br>*Ref: HTMLImageElement.idl, HTMLAudioElement.idl* |

@@ -5,7 +5,11 @@ import os
 import pprint
 import json
 import sys
+import filecmp
+import subprocess
+import re
 from math import log10
+from shutil import copyfile
 
 from jinja2 import Environment, FileSystemLoader
 from starfish_idl_reader import gen_ir_from_file, merge_irs, apply_types
@@ -15,24 +19,99 @@ H_EXT = ".h"
 IR_EXT = ".txt"
 SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_PATH = os.path.join(SCRIPT_PATH, 'templates')
-# IDL_PATH = os.path.join(SCRIPT_PATH, '..', 'idl')
 STARFISH_PATH = os.path.join(SCRIPT_PATH, '..', '..')
 BINDING_PATH = os.path.join(STARFISH_PATH, 'src', 'binding')
-# MODULES_FILE = os.path.join(SCRIPT_PATH, "module.json")
-# BUIILTINT_MODULE_FILE = os.path.join(IDL_PATH, 'Builtin.idl')
+HISTORY_PATH = os.path.join(STARFISH_PATH, 'out', 'history')
+HASH_FILE_PATH = os.path.join(HISTORY_PATH, 'last_hash')
+
 NULLABLE_TYPE_KINDS = ['StringType', 'PrimitiveType', 'Dictionary']
 STRING_KINDS = ['StringType', 'Enum']
 POINTER_KINDS = ['Typeref', 'Callback', 'Promise']
 
+RE_SHA1 = re.compile(r"[0-9a-f]{40}")
 _root_dir=None
+_current_hash=None
+
+def check_idl_change(root_path):
+  if not os.path.exists(HISTORY_PATH):
+    return True
+  for (root, dirs, files) in os.walk(root_path):
+    for f in files:
+      if os.path.splitext(f)[-1] != '.idl':
+        continue
+      src_path = os.path.join(root, f)
+      dest_path = os.path.join(HISTORY_PATH, src_path)
+      if not os.path.exists(dest_path):
+        print 'New file ' + src_path + ' detected'
+        return True
+      if not filecmp.cmp(src_path, dest_path):
+        print src_path + ' has been changed'
+        return True
+  return False
+
+def check_generator_change():
+  if os.path.exists(HASH_FILE_PATH):
+    with open(HASH_FILE_PATH, 'r') as rp:
+      last = rp.read()
+      if get_current_githash() == last:
+        return False
+  return True
+
+def get_current_githash():
+  global _current_hash
+  if _current_hash is None:
+    try:
+      command = ['git', 'submodule', 'status', 'binding_generator']
+      _current_hash = RE_SHA1.findall(subprocess.check_output(command))[0]
+    except subprocess.CalledProcessError:
+      return None
+  return _current_hash
+
+def outfile_exists(ir):
+  path = ir['name'] + 'Binding' + CPP_EXT
+  if os.path.exists(os.path.join(BINDING_PATH, path)):
+    return True
+  return False
+
+def make_history(root_path):
+  if not os.path.exists(HISTORY_PATH):
+    os.makedirs(HISTORY_PATH)
+  # Write current githash
+  githash = get_current_githash()
+  if githash is None:
+    print 'Failed to get git infomations of binding_generator'
+    sys.exit(1)
+  with open(HASH_FILE_PATH, 'w') as wp:
+    wp.write(githash)
+  # Copy current idl files
+  for (root, dirs, files) in os.walk(root_path):
+    for f in files:
+      if os.path.splitext(f)[-1] != '.idl':
+        continue
+      src_path = os.path.join(root, f)
+      dest_path = os.path.join(HISTORY_PATH, src_path)
+      if not os.path.exists(os.path.dirname(dest_path)):
+        os.makedirs(os.path.dirname(dest_path))
+      copyfile(src_path, dest_path)
+
+def print_skip_msg(name, reason):
+  print "> Skip generating code for '" + name + "': " + reason
 
 def generate_code(ir, args): #, sf_modules):
+  print "Generating binding code..."
+  need_update = args.overwrite | check_generator_change() | check_idl_change(args.root_path)
+  if need_update:
+    print "Need update all"
+    make_history(args.root_path)
+
   interfaces = ir['interfaces']
   for key in interfaces:
     interface = interfaces[key]
-    if interface.get('no_interface', False):
-      print "Skip generating code for 'NoInterfaceObject' " +\
-             interface.get('name')
+    if interface.get('partial_interface', False):
+      print_skip_msg(interface.get('name'), "PartialInterface")
+      continue
+    if outfile_exists(interface) and not need_update:
+      print_skip_msg(interface.get('name'), "No update found in IDL")
       continue
     generate_code_with_template(interface, 'base_module' + CPP_EXT, args)
 
@@ -40,6 +119,10 @@ def generate_code(ir, args): #, sf_modules):
   for key in dictionaries:
     dictionary = dictionaries[key]
     if dictionary.get('unimplemented', False):
+      print_skip_msg(dictionary.get('name'), "Unimplemented dictionary")
+      continue
+    if outfile_exists(dictionary) and not need_update:
+      print_skip_msg(dictionary.get('name'), "No update found in IDL")
       continue
     generate_code_with_template(dictionary, 'base_dictionary' + CPP_EXT, args)
 
@@ -50,14 +133,10 @@ def generate_code_with_template(ir, template, args):
     raise Exception("\"[starfish_root]/src/binding\" doesn't exist")
 
   path = ir['name'] + 'Binding' + CPP_EXT
-  if os.path.exists(os.path.join(BINDING_PATH, path)) and \
-     not args.overwrite:
-    print("Skip generating code for module \"{}\": {} already exist.".format(ir['name'], path))
-    return
   with open(os.path.join(BINDING_PATH, path), 'w') as w:
     ret = template.render(**ir)
     w.write(ret)
-    print("Generated Code for Module \"{}\"".format(ir['name']))
+    print("> Generated Code for Module \"{}\"".format(ir['name']))
     # print(ret)
 
   if args.log_idl:

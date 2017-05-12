@@ -192,6 +192,12 @@ def _hd_extattr_no_interfaceobj(target, extattr):
     return True
   return False
 
+def _hd_extattr_partial_interface(target, extattr):
+  if extattr.GetName() == 'PartialInterface':
+    target['partial_interface'] = True
+    return True
+  return False
+
 def _hd_extattr_custom(target, extattr):
   if extattr.GetName() == 'Custom':
     target['custom'] = extattr.GetProperty('VALUE', True)
@@ -603,6 +609,7 @@ class StarfishIDLReader():
     # print dump_node(node)
     result = _gen_basic_named(node)
     _set_prop_to_dict(result, 'no_interface', False)
+    _set_prop_to_dict(result, 'partial_interface', False)
     constants = []
     attributes = []
     functions = []
@@ -642,7 +649,8 @@ class StarfishIDLReader():
                           self._hd_extattr_constructor,
                           _hd_extattr_unimplemented,
                           _hd_extattr_no_interfaceobj,
-                          _hd_extattr_primary_global])
+                          _hd_extattr_primary_global,
+                          _hd_extattr_partial_interface])
 
     call_with = result.pop('_call_with', None)
     constructor = result.get('constructor')
