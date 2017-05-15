@@ -11,6 +11,7 @@ from ply import yacc
 
 REMOVED_RULES = [
   # Add rule name to remove here
+  'Top',
 ]
 for rule in REMOVED_RULES:
   name = 'p_' + rule
@@ -25,7 +26,6 @@ class StarfishIDLParser(IDLParser):
     self.tokens = lexer.KnownTokens()
     self.yaccobj = yacc.yacc(module=self,
                              start='Definitions',
-                             method='SLR',
                              debug=debug,
                              optimize=(not debug),
                              write_tables=True)
