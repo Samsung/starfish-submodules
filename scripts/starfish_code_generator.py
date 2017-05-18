@@ -5,11 +5,7 @@ import os
 import pprint
 import json
 import sys
-import filecmp
-import subprocess
-import re
 from math import log10
-from shutil import copyfile
 
 from jinja2 import Environment, FileSystemLoader
 from starfish_idl_reader import gen_ir_from_file, merge_irs, apply_types
@@ -21,97 +17,23 @@ SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_PATH = os.path.join(SCRIPT_PATH, 'templates')
 STARFISH_PATH = os.path.join(SCRIPT_PATH, '..', '..')
 BINDING_PATH = os.path.join(STARFISH_PATH, 'src', 'binding')
-HISTORY_PATH = os.path.join(STARFISH_PATH, 'out', 'history')
-HASH_FILE_PATH = os.path.join(HISTORY_PATH, 'last_hash')
 
 NULLABLE_TYPE_KINDS = ['StringType', 'PrimitiveType', 'Dictionary']
 STRING_KINDS = ['StringType', 'Enum']
 POINTER_KINDS = ['Typeref', 'Callback', 'Promise']
 
-RE_SHA1 = re.compile(r"[0-9a-f]{40}")
 _root_dir=None
-_current_hash=None
-
-def check_idl_change(root_path):
-  if not os.path.exists(HISTORY_PATH):
-    return True
-  for (root, dirs, files) in os.walk(root_path):
-    for f in files:
-      if os.path.splitext(f)[-1] != '.idl':
-        continue
-      src_path = os.path.join(root, f)
-      dest_path = os.path.join(HISTORY_PATH, src_path)
-      if not os.path.exists(dest_path):
-        print 'New file ' + src_path + ' detected'
-        return True
-      if not filecmp.cmp(src_path, dest_path):
-        print src_path + ' has been changed'
-        return True
-  return False
-
-def check_generator_change():
-  if os.path.exists(HASH_FILE_PATH):
-    with open(HASH_FILE_PATH, 'r') as rp:
-      last = rp.read()
-      if get_current_githash() == last:
-        return False
-  return True
-
-def get_current_githash():
-  global _current_hash
-  if _current_hash is None:
-    try:
-      command = ['git', 'submodule', 'status', 'binding_generator']
-      _current_hash = RE_SHA1.findall(subprocess.check_output(command))[0]
-    except subprocess.CalledProcessError:
-      return None
-  return _current_hash
-
-def outfile_exists(ir):
-  path = ir['name'] + 'Binding' + CPP_EXT
-  if os.path.exists(os.path.join(BINDING_PATH, path)):
-    return True
-  return False
-
-def make_history(root_path):
-  if not os.path.exists(HISTORY_PATH):
-    os.makedirs(HISTORY_PATH)
-  # Write current githash
-  githash = get_current_githash()
-  if githash is None:
-    print 'Failed to get git infomations of binding_generator'
-    sys.exit(1)
-  with open(HASH_FILE_PATH, 'w') as wp:
-    wp.write(githash)
-  # Copy current idl files
-  for (root, dirs, files) in os.walk(root_path):
-    for f in files:
-      if os.path.splitext(f)[-1] != '.idl':
-        continue
-      src_path = os.path.join(root, f)
-      dest_path = os.path.join(HISTORY_PATH, src_path)
-      if not os.path.exists(os.path.dirname(dest_path)):
-        os.makedirs(os.path.dirname(dest_path))
-      copyfile(src_path, dest_path)
 
 def print_skip_msg(name, reason):
   print "> Skip generating code for '" + name + "': " + reason
 
 def generate_code(ir, args): #, sf_modules):
   print "Generating binding code..."
-  need_update = args.overwrite | check_generator_change() | check_idl_change(args.root_path)
-  if need_update:
-    print "Need update all"
-    make_history(args.root_path)
-
   interfaces = ir['interfaces']
   for key in interfaces:
     interface = interfaces[key]
     if interface.get('partial_interface', False):
       print_skip_msg(interface.get('name'), "PartialInterface")
-      continue
-    if outfile_exists(interface) and not need_update:
-      print_skip_msg(interface.get('name'), "No update found in IDL")
       continue
     generate_code_with_template(interface, 'base_module' + CPP_EXT, args)
 
@@ -120,9 +42,6 @@ def generate_code(ir, args): #, sf_modules):
     dictionary = dictionaries[key]
     if dictionary.get('unimplemented', False):
       print_skip_msg(dictionary.get('name'), "Unimplemented dictionary")
-      continue
-    if outfile_exists(dictionary) and not need_update:
-      print_skip_msg(dictionary.get('name'), "No update found in IDL")
       continue
     generate_code_with_template(dictionary, 'base_dictionary' + CPP_EXT, args)
 
@@ -199,11 +118,10 @@ def filter_digit(num):
 if __name__ == "__main__":
   argparser = argparse.ArgumentParser()
   argparser.add_argument("root_path", help="root directiory to start")
+  argparser.add_argument("out_path", help="out directiory to write file")
   argparser.add_argument("-f", "--file", help="specify an idl file")
   argparser.add_argument("-l", "--log-idl", action='store_true',
                          dest="log_idl", help="flag to log idl")
-  argparser.add_argument("-o", "--overwrite", action='store_true',
-                         help="allow to overwrite file")
   args = argparser.parse_args()
   # Argument validation
   if not os.path.isdir(args.root_path):
@@ -213,6 +131,8 @@ if __name__ == "__main__":
      (not os.path.isfile(args.file) or not args.file.endswith('.idl')):
     print 'ERR: Invalid file \'' + args.file + '\''
     sys.exit(1)
+  if not os.path.exists(args.out_path):
+    os.makedirs(args.out_path)
 
   env = Environment(loader=FileSystemLoader(TEMPLATES_PATH), trim_blocks=True,
                     lstrip_blocks=True)
