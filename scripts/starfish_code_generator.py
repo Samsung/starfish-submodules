@@ -16,7 +16,6 @@ IR_EXT = ".txt"
 SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_PATH = os.path.join(SCRIPT_PATH, 'templates')
 STARFISH_PATH = os.path.join(SCRIPT_PATH, '..', '..')
-BINDING_PATH = os.path.join(STARFISH_PATH, 'src', 'binding')
 
 NULLABLE_TYPE_KINDS = ['StringType', 'PrimitiveType', 'Dictionary']
 STRING_KINDS = ['StringType', 'Enum']
@@ -48,11 +47,12 @@ def generate_code(ir, args): #, sf_modules):
 def generate_code_with_template(ir, template, args):
   template = env.get_template(template)
 
-  if not os.path.exists(BINDING_PATH):
+  binding_path = os.path.join(STARFISH_PATH, args.out_path)
+  if not os.path.exists(binding_path):
     raise Exception("\"[starfish_root]/src/binding\" doesn't exist")
 
   path = ir['name'] + 'Binding' + CPP_EXT
-  with open(os.path.join(BINDING_PATH, path), 'w') as w:
+  with open(os.path.join(binding_path, path), 'w') as w:
     ret = template.render(**ir)
     w.write(ret)
     print("> Generated Code for Module \"{}\"".format(ir['name']))
@@ -60,7 +60,7 @@ def generate_code_with_template(ir, template, args):
 
   if args.log_idl:
     path = ir['name'] + 'Idl' + IR_EXT
-    with open(os.path.join(BINDING_PATH, path), 'w') as w:
+    with open(os.path.join(binding_path, path), 'w') as w:
       w.write(pprint.pformat(ir))
       print("Logged IR to \"{}\"".format(path))
 
