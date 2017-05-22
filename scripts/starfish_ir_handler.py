@@ -184,7 +184,7 @@ class StarfishIRHandler():
 
   def _flush_using_info(self, to_obj):
     if self.has_exception is not None:
-      self.include_paths.add('dom/DOMException')
+      self.include_paths.add('core/dom/DOMException')
     self.include_paths.discard(self.processing['file_path'])
     self.used_dictionaries = []
     self.include_paths = set()
