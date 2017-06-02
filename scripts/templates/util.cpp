@@ -60,13 +60,13 @@
 
 {%- macro gen_esvalue_to_native(type, aname, fromattr=False) -%}
     {% if type.kind in string_kinds %}
-        {{- 'toBrowserString(%s)'|format(aname) -}}
+        {{- 'toBrowserString(state, %s)'|format(aname) -}}
     {% elif type.kind == 'Any' %}
         {{- '%s'|format(aname) -}}
     {% elif type.kind == 'Typeref' %}
-        {{- '(%s*)(%s.asESPointer()->asESObject()->extraPointerData())'|format(type.name, aname) -}}
+        {{- '(%s*)(%s->asObject()->extraData())'|format(type.name, aname) -}}
     {% elif type.kind == 'Dictionary' %}
-        {{- 'to%sFromESValue(instance, %s)'|format(type.name, aname) -}}
+        {{- 'to%sFromValueRef(state, %s)'|format(type.name, aname) -}}
     {% elif type.kind == 'Callback' %}
         {% if type.name == 'EventListener' and fromattr %}
             {{- '%s::to%s(%s, true)'|format(type.name, type.name, aname) -}}
@@ -75,13 +75,13 @@
         {% endif %}
     {% elif type.kind == 'PrimitiveType' %}
         {% if type.name == 'boolean' %}
-            {{- '%s.toBoolean()'|format(aname) -}}
+            {{- '%s->toBoolean(state)'|format(aname) -}}
         {% elif type.name in ['long', 'short'] %}
-            {{- '%s.toInt32()'|format(aname) -}}
+            {{- '%s->toInt32(state)'|format(aname) -}}
         {% elif type.name in ['unsigned long', 'unsigned short'] %}
-            {{- '%s.toUint32()'|format(aname) -}}
+            {{- '%s->toUint32(state)'|format(aname) -}}
         {% elif type.name in ['unsigned long long', 'long long', 'float', 'double'] %}
-            {{- '%s.toNumber()'|format(aname) -}}
+            {{- '%s->toNumber(state)'|format(aname) -}}
         {% endif %}
     {% endif %}
 {%- endmacro -%}
@@ -171,25 +171,25 @@ if (!std::isfinite({{names.vname}})) {
     {% else %}
         {%- if (arg.treat_null_as == 'EmptyString') %}
         {# '(1) Has-TreatNullAs' #}
-    if (!{{ names.aname }}.isNull()) {
+    if (!{{ names.aname }}->isNull()) {
         {{ assign_exp_with_check|indent(8) }}
     }
         {%- elif arg.default %}
         {# '(2) Has-DefaultValue' #}
-    if (!{{ names.aname }}.isUndefinedOrNull()) {
+    if (!{{ names.aname }}->isUndefinedOrNull()) {
         {{ assign_exp_with_check|indent(8) }}
     }
         {%- elif arg.optional %}
         {# '(3) Optional + No-DefaultValue' #}
             {% if need_counting %}
-    if (argCounting && {{ names.aname }}.isUndefined()) {
+    if (argCounting && {{ names.aname }}->isUndefined()) {
         validArgCount--;
     } else {
         argCounting = false;
         {{ assign_exp_with_check|indent(8) }}
     }
             {%- else %}
-    if ({{ names.aname }}.isUndefined()) {
+    if ({{ names.aname }}->isUndefined()) {
         validArgCount--;
     } else {
         {{ assign_exp_with_check|indent(8) }}
@@ -197,7 +197,7 @@ if (!std::isfinite({{names.vname}})) {
             {%- endif %}
         {%- elif arg.type.nullable %}
         {# '(4) Non-optional + Nullable' #}
-    if (!{{ names.aname }}.isUndefinedOrNull()) {
+    if (!{{ names.aname }}->isUndefinedOrNull()) {
         {{ assign_exp_with_check|indent(8) }}
     }
         {%- else %}
@@ -223,17 +223,7 @@ if (!std::isfinite({{names.vname}})) {
 
 {%- macro gen_declare_return_value(type, vname='result') -%}
 // Declare native value (empty when type is void)
-    {% if type.kind == 'Promise' %}
-#ifdef USE_ES6_FEATURE
     {{ gen_declare_return_value_impl(type, vname) }}
-        {% if type.data.name != 'void' %}
-#else
-    {{ gen_declare_return_value_impl(type.data, vname) }}
-        {% endif %}
-#endif
-    {% else %}
-    {{ gen_declare_return_value_impl(type, vname) }}
-    {% endif %}
 {%- endmacro -%}
 
 {%- macro gen_return_assert(type, vname='result') %}
@@ -242,37 +232,37 @@ STARFISH_ASSERT({{ vname }} != nullptr);
     {% endif %}
 {% endmacro -%}
 
-{%- macro gen_native_to_esvalue(type, var_name='result') -%}
+{%- macro gen_native_to_jsvalue(type, var_name='result') -%}
     {%- if type.kind in string_kinds %}
-toJSString({{var_name}})
+ValueRef::create(toJSString({{var_name}}))
     {%- elif type.kind == 'Any' %}
 {{var_name}}
     {%- elif type.kind in pointer_kinds %}
-{{var_name}}->scriptValue()
+ValueRef::create({{var_name}}->scriptValue())
     {%- elif type.kind == 'Dictionary' %}
-toESValueFrom{{type.name}}(instance, var_name)
+toValueRefFrom{{type.name}}(state, var_name)
     {%- elif type.name in ['boolean', 'long', 'short', 'unsigned long', 'unsigned short', 'double', 'long long', 'unsigned long long'] %}
-ESValue({{var_name}})
+ValueRef::create({{var_name}})
     {%- endif %}
 {%- endmacro -%}
 
 {%- macro gen_return_code(type, vname='result') -%}
-return {{ gen_native_to_esvalue(type, vname) }};
+return {{ gen_native_to_jsvalue(type, vname) }};
 {%- endmacro -%}
 
 {%- macro handle_return_impl(return_type, vname='result') -%}
     {% set use_nullable = return_type.kind in nullable_kinds and return_type.nullable %}
     {% if return_type.name == 'void' -%}
-    return ESValue(ESValue::ESUndefined);
+    return ValueRef::createUndefined();
     {%- elif use_nullable -%}
     if (!{{ vname }}.hasValue()) {
-        return ESValue(ESValue::ESNull);
+        return ValueRef::createNull();
     }
     {{ gen_type_str(return_type, False) }} {{ vname }}_value = {{ vname }}.getValue();
     {{ gen_return_code(return_type, '%s_value'|format(vname)) }}
     {%- elif return_type.nullable -%}
     if ({{ vname }} == nullptr) {
-        return ESValue(ESValue::ESNull);
+        return ValueRef::createNull();
     }
     {{ gen_return_code(return_type, vname) }}
     {%- else -%}
@@ -282,13 +272,9 @@ return {{ gen_native_to_esvalue(type, vname) }};
 {%- endmacro -%}
 
 {%- macro handle_return(return_type, vname='result') -%}
-// Return ESValue from native value
+// Return ValueRef* from native value
     {% if return_type.kind == 'Promise' and not return_type.data.kind in pointer_kinds %}
-#ifdef USE_ES6_FEATURE
     return {{ vname }}->scriptValue();
-#else
-    {{ handle_return_impl(return_type.data)|trim }}
-#endif
     {% else %}
     {{ handle_return_impl(return_type)|trim }}
     {% endif %}

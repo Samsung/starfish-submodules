@@ -63,14 +63,16 @@
 {% endif %}
 {%- endmacro -%}
 
+#include "StarFishConfig.h"
 {% for item in include_paths %}
 #include "{{item|to_header_path}}"
 {% endfor %}
 #include "{{file_path|to_header_path}}"
 
-namespace StarFish {
+#include <EscargotPublic.h>
+using namespace Escargot;
 
-using namespace escargot;
+namespace StarFish {
 
 {% if used_dictionaries %}
   {%- for dictionary in used_dictionaries %}
@@ -101,21 +103,49 @@ using namespace escargot;
     {% endif %}
   {% endfor %}
 {% endif %}
-ESFunctionObject* binding{{ name }}(
+
+{% if object_type == 'Exposable' %}
+ValueRef* {{ name }}GetOwnPropertyCallback(ExecutionStateRef* state, ObjectRef* self, ValueRef* propertyName);
+void {{ name }}DefineOwnPropertyCallback(ExecutionStateRef* state, ObjectRef* self, ValueRef* propertyName, ValueRef* value);
+ValueVectorRef* {{ name }}EnumerationCallback(ExecutionStateRef* state, ObjectRef* self);
+ObjectRef* {{ name }}Constructor(ExecutionStateRef* state, size_t argc, ValueRef** argv)
+{
+    return ObjectRef::createExposableObject(state, {{ name }}GetOwnPropertyCallback, {{ name }}DefineOwnPropertyCallback, {{ name }}EnumerationCallback, true, true, false);
+}
+{% endif %}
+
+FunctionObjectRef* binding{{ name }}(
     ScriptBindingInstance* scriptBindingInstance)
 {
     // Bind for constructor
+    ContextRef* context = scriptBindingInstance->scriptContext();
+    ExecutionStateRef* state = ExecutionStateRef::create(context);
 {% include 'constructor_bind.cpp' ignore missing %}
 {{ bind(true, primary_global) }}
+    state->destroy();
     return {{ name }}Function;
 }
 {% include 'constructor_named_bind.cpp' ignore missing %}
 
-void {{ name }}::init(ScriptBindingInstance* instance)
+void {{ name }}::init(ScriptBindingInstance* instance, void* domObjectPointer)
 {
-    scriptObject()->set__proto__(fetchData(instance)->fn{{ name }}()->protoType());
+    ContextRef* context = instance->scriptContext();
+    ExecutionStateRef* state = ExecutionStateRef::create(context);
+
+    {% if object_type == 'Global' %}
+    m_object = context->globalObject();
+    {% elif object_type == 'Exposable' %}
+    m_object = ObjectRef::createExposableObject(state, {{ name }}GetOwnPropertyCallback, {{ name }}DefineOwnPropertyCallback, {{ name }}EnumerationCallback, true, true, false);
+    {% else %}
+    m_object = ObjectRef::create(state);
+    {% endif %}
+    m_object->setExtraData(domObjectPointer);
+    m_object->giveInternalClassProperty("{{ name }}");
+
+    scriptObject()->setPrototype(state, instance->fn{{ name }}()->getFunctionPrototype(state));
 {{ bind(false, primary_global) }}
     postInit(instance);
+    state->destroy();
 }
 
 bool {{ name }}::is{{ name }}() const

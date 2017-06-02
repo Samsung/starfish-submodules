@@ -1,14 +1,16 @@
 {% import 'util.cpp' as util_macro %}
 
 {%- call util_macro.ifdef(constant.flags) %}
-    ESString* {{ constant.name }}String = ESString::create("{{ constant.name }}");
-    ESValue {{ constant.name }}Value = ESValue({{ constant.value }});
+    StringRef* {{ constant.name }}String = StringRef::fromASCII("{{ constant.name }}");
+    ValueRef* {{ constant.name }}Value = ValueRef::create({{ constant.value }});
     {{ name }}PrototypeObj
-            ->defineDataProperty({{ constant.name }}String,
-                                 false/* writable */, true/* enumerable */, false/* configurable */,
-                                 {{ constant.name }}Value);
+            ->defineDataProperty(state, ValueRef::create({{ constant.name }}String),
+                                {{ constant.name }}Value,
+                                 false/* writable */, true/* enumerable */, false/* configurable */
+                                 );
     {{ name }}Function
-            ->defineDataProperty({{ constant.name }}String,
-                                 false/* writable */, true/* enumerable */, false/* configurable */,
-                                 {{ constant.name }}Value);
+            ->defineDataProperty(state, ValueRef::create({{ constant.name }}String),
+                                 {{ constant.name }}Value,
+                                 false/* writable */, true/* enumerable */, false/* configurable */
+                                  );
 {% endcall %}

@@ -1,46 +1,40 @@
-    ESString* {{ name }}String = ESString::create("{{ name }}");
-    {% if constructor and constructor.name|length == 0 and not constructor.unimplemented %}
-    ESFunctionObject* {{ name }}Function =
-        ESFunctionObject::create(nullptr,
-                                 {{ name|lower }}Constructor,
-                                 {{ name }}String,
-                                 {{ constructor.min_passed_count|default(0) }}, true, true);
+    StringRef* {{ name }}String = StringRef::fromASCII("{{ name }}");
+    {% if object_type == "exposable" %}
+        {% set native_ctor_fn %}{{ name }}Constructor(ExecutionStateRef* state, size_t argc, ValueRef** argv){% endset %}
     {% else %}
-    ESFunctionObject* {{ name }}Function =
-        ESFunctionObject::create(nullptr,
-                                 errorOnConstructorFunction,
-                                 {{ name }}String,
-                                 0, true, true);
+        {% set native_ctor_fn %}nullptr{% endset %}
     {% endif %}
-    ESObject* {{ name }}PrototypeObj = {{ name }}Function->protoType().asESPointer()->asESObject();
-    {{ name }}Function->defineAccessorProperty(
-        ESVMInstance::currentInstance()->strings().prototype.string(),
-        ESVMInstance::currentInstance()->functionPrototypeAccessorData(),
-        false, false, false);
-    {{ name }}PrototypeObj->forceNonVectorHiddenClass(false);
+    {% if constructor and constructor.name|length == 0 and not constructor.unimplemented %}
+    FunctionObjectRef::NativeFunctionInfo ctorInfo(AtomicStringRef::create(context, "{{ name }}"), {{ name|lower }}Constructor, {{ constructor.min_passed_count|default(0) }}, {{ native_ctor_fn }}, true, true);
+    {% else %}
+    FunctionObjectRef::NativeFunctionInfo ctorInfo(AtomicStringRef::create(context, "{{ name }}"), errorOnConstructorFunction, 0, nullptr, true, true);
+    {% endif %}
+    FunctionObjectRef* {{ name }}Function = FunctionObjectRef::createBuiltinFunction(state, ctorInfo);
+    ObjectRef* {{ name }}PrototypeObj = {{ name }}Function->getFunctionPrototype(state)->asObject();
+    {{ name }}PrototypeObj->removeFromHiddenClassChain(state);
     {% if parent %}
         {% set parent_class %}
-    fetchData(scriptBindingInstance)
+    ValueRef::create(scriptBindingInstance
                 ->fn{{ parent }}()
-                ->protoType()
+                ->getFunctionPrototype(state))
         {% endset %}
     {% elif constructor and constructor.prototype == 'Error' %}
         {% set parent_class %}
-    fetchData(scriptBindingInstance)
-            ->m_instance
+    ValueRef::create(scriptBindingInstance
+            ->scriptContext()
             ->globalObject()
-            ->errorPrototype()
+            ->errorPrototype())
         {% endset %}
     {% else %}
         {% set parent_class %}
-    fetchData(scriptBindingInstance)
-            ->m_instance
+    ValueRef::create(scriptBindingInstance
+            ->scriptContext()
             ->globalObject()
-            ->objectPrototype()
+            ->objectPrototype())
         {% endset %}
     {% endif %}
-    {{ name }}PrototypeObj->set__proto__({{ parent_class|trim }});
+    {{ name }}PrototypeObj->setPrototype(state, {{ parent_class|trim }});
     {% if parent %}
-    {{ name }}Function->set__proto__(fetchData(scriptBindingInstance)
-            ->fn{{ parent }}());
+    {{ name }}Function->setPrototype(state, ValueRef::create(scriptBindingInstance
+            ->fn{{ parent }}()));
     {% endif %}

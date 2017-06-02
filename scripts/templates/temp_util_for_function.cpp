@@ -7,9 +7,9 @@
 
 {%- macro gen_esvalue_to_native(type, aname) -%}
     {% if type.kind in ['StringType', 'Enum'] %}
-        {{- 'toBrowserString(%s)'|format(aname) -}}
+        {{- 'toBrowserString(state, %s)'|format(aname) -}}
     {% elif type.kind == 'Any' %}
-        {{- 'jsonStringify(%s)'|format(aname) -}}
+        {{- 'jsonStringify(state, %s)'|format(aname) -}}
     {% elif type.kind == 'Typeref' %}
         {{- '(%s*)(%s.asESPointer()->asESObject()->extraPointerData())'|format(type.name, aname) -}}
     {% elif type.kind == 'Dictionary' %}

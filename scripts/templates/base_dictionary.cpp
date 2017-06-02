@@ -20,14 +20,17 @@
     {% endfor %}
 {% endif %}
 
+#include "StarFishConfig.h"
 {% for item in include_paths %}
 #include "{{item|to_header_path}}"
 {% endfor %}
 #include "{{file_path|to_header_path}}"
 
+#include <EscargotPublic.h>
+using namespace Escargot;
+
 namespace StarFish {
 
-using namespace escargot;
 {% import 'util.cpp' as util_macro %}
 
 {% if used_dictionaries %}
@@ -35,19 +38,19 @@ using namespace escargot;
 {% include 'dictionary_impl.cpp' ignore missing %}
   {% endfor %}
 {% endif %}
-{{name}} to{{name}}FromESValue(ESVMInstance* instance, ESValue& from)
+{{name}} to{{name}}FromValueRef(ExecutionStateRef* state, ValueRef* from)
 {
-    if (from.isUndefinedOrNull()) {
+    if (from->isUndefinedOrNull()) {
         // Return empty dictionary
         return {{name}}();
     }
-    if (!from.isObject()) {
-        auto msg = ESString::create("Failed to generate {{name}} from non-object");
-        instance->throwError(ESValue(TypeError::create(msg)));
+    if (!from->isObject()) {
+        auto msg = StringRef::fromASCII("Failed to generate {{name}} from non-object");
+        state->throwException(ValueRef::create(TypeErrorObjectRef::create(state, msg)));
         STARFISH_RELEASE_ASSERT_NOT_REACHED();
     }
 {% for key in members %}
-    ESValue arg{{loop.index - 1}} = from.asESPointer()->asESObject()->get(ESString::create("{{ key.name }}"));
+    ValueRef* arg{{loop.index - 1}} = from->asObject()->get(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")));
 {% endfor %}
     {{name}} result;
 {% for key in members -%}
@@ -59,9 +62,9 @@ using namespace escargot;
     return result;
 }
 
-ESValue toESValueFrom{{name}}(ESVMInstance* instance, {{name}}& from)
+ValueRef* toValueRefFrom{{name}}(ExecutionStateRef* state, {{name}} from)
 {
-    ESObject* result = ESObject::create();
+    ObjectRef* result = ObjectRef::create(state);
 {% for key in members %}
     {% set vname = 'value%d'|format(loop.index - 1) %}
     {% set use_nullable = key.type.kind in nullable_kinds and key.type.nullable %}
@@ -69,24 +72,24 @@ ESValue toESValueFrom{{name}}(ESVMInstance* instance, {{name}}& from)
     {{ vname }} = from.{{ key.name }}();
     {% if use_nullable %}
     if (!{{ vname }}.hasValue()) {
-        result->set(ESString::create("{{ key.name }}"), ESValue(ESValue::ESNull));
+        result->set(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")), ValueRef::createNull());
     } else {
-        result->set(ESString::create("{{ key.name }}"), {{ util_macro.gen_native_to_esvalue(key.type, '%s->getValue()'|format(vname)) }});
+        result->set(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")), {{ util_macro.gen_native_to_jsvalue(key.type, '%s->getValue()'|format(vname)) }});
     }
     {% elif key.type.nullable %}
     if ({{ vname }} == nullptr) {
-        result->set(ESString::create("{{ key.name }}"), ESValue(ESValue::ESNull));
+        result->set(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")), ValueRef::createNull());
     } else {
-        result->set(ESString::create("{{ key.name }}"), {{ vname }}->scriptValue());
+        result->set(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")), {{ vname }}->scriptValue());
     }
     {% elif key.type.kind in pointer_kinds %}
     STARFISH_ASSERT({{ vname }} != nullptr);
-    result->set(ESString::create("{{ key.name }}"), {{ util_macro.gen_native_to_esvalue(key.type, vname) }});
+    result->set(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")), {{ util_macro.gen_native_to_jsvalue(key.type, vname) }});
     {% else %}
-    result->set(ESString::create("{{ key.name }}"), {{ util_macro.gen_native_to_esvalue(key.type, vname) }});
+    result->set(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")), {{ util_macro.gen_native_to_jsvalue(key.type, vname) }});
     {% endif %}
 {% endfor %}
-    return ESValue(result);
+    return ValueRef::create(result);
 }
 }
 {% if flags and flags|length > 0 %}

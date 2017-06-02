@@ -18,9 +18,9 @@
 {% with %}
 {% if attribute.getter %}
 {% if attribute.getter.custom %}
-extern ESValue {{ util_macro.gen_getter_function(attribute, name) }}(ESVMInstance* instance);
+extern ValueRef* {{ util_macro.gen_getter_function(attribute, name) }}(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression);
 {% else %}
-static ESValue {{ util_macro.gen_getter_function(attribute, name) }}(ESVMInstance* instance)
+static ValueRef* {{ util_macro.gen_getter_function(attribute, name) }}(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression)
 {
     {% if name == 'Window' %}
     GENERATE_WINDOW();
@@ -42,7 +42,7 @@ static ESValue {{ util_macro.gen_getter_function(attribute, name) }}(ESVMInstanc
     {{ gen_call_getter('result', property_owner, attribute, indent_callexp) }}
     {% if need_catch %}
     } catch (DOMException* e) {
-        ESVMInstance::currentInstance()->throwError(e->scriptValue());
+        state->throwException(e->scriptValue());
         STARFISH_RELEASE_ASSERT_NOT_REACHED();
     }
     {% endif %}
@@ -57,9 +57,9 @@ static ESValue {{ util_macro.gen_getter_function(attribute, name) }}(ESVMInstanc
 {% if attribute.setter %}
 
 {% if attribute.setter.custom %}
-extern ESValue {{ util_macro.gen_setter_function(attribute, name) }}(ESVMInstance* instance);
+extern ValueRef* {{ util_macro.gen_setter_function(attribute, name) }}(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression);
 {% else %}
-static ESValue {{ util_macro.gen_setter_function(attribute, name) }}(ESVMInstance* instance)
+static ValueRef* {{ util_macro.gen_setter_function(attribute, name) }}(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression)
 {
     {% if name == 'Window' %}
     GENERATE_WINDOW();
@@ -74,7 +74,7 @@ static ESValue {{ util_macro.gen_setter_function(attribute, name) }}(ESVMInstanc
     {% set arg = attribute.setter.arguments[0] %}
     {% set names = {'name': name, 'attrname': attribute.name, 'aname': 'arg0', 'vname': 'value0'} %}
     {% set property_owner = 'window' if name == 'Window' else 'originalObj' %}
-    ESValue arg0 = instance->currentExecutionContext()->readArgument(0);
+    ValueRef* arg0 = argv[0];
     {{ util_macro.handle_arg(arg, names, fromattr=True)|trim }}
     {{- 'Error : Wrong argument type' | assert_true(arg.type.name in ['void']) }}
     {{- 'Error : Unimplemented argument type' | assert_true(arg.type.name in ['object', 'Sequence', 'UnionType', 'Promise']) }}
@@ -91,11 +91,11 @@ static ESValue {{ util_macro.gen_setter_function(attribute, name) }}(ESVMInstanc
     {% endif %}
     {% if need_catch %}
     } catch (DOMException* e) {
-        ESVMInstance::currentInstance()->throwError(e->scriptValue());
+        state->throwException(e->scriptValue());
         STARFISH_RELEASE_ASSERT_NOT_REACHED();
     }
     {% endif %}
-    return ESValue();
+    return ValueRef::createUndefined();
 }
 {% endif %}
 {% endif %}

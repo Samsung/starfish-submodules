@@ -270,6 +270,9 @@ class StarfishIDLReader():
     elif extattr.GetName() == 'ConstructorCallWith':
       target['_call_with'] = extattr.GetProperty('VALUE')
       return True
+    elif extattr.GetName() == 'ObjectType':
+      target['object_type'] = extattr.GetProperty('VALUE')
+      return True
     elif 'Constructor' in extattr.GetName():
       # Constructor
       prototype = 'Error' if 'Exception' in extattr.GetName() else 'Object'
@@ -653,9 +656,13 @@ class StarfishIDLReader():
                           _hd_extattr_partial_interface])
 
     call_with = result.pop('_call_with', None)
+    object_type = result.pop('object_type', None)
+    if object_type == None:
+      object_type = 'normal'
     constructor = result.get('constructor')
     if constructor:
       _set_prop_to_dict(constructor, 'call_with', call_with)
+    _set_prop_to_dict(result, 'object_type', object_type)
     _set_prop_to_dict(result, 'constants', constants)
     _set_prop_to_dict(result, 'attributes', attributes)
     _set_prop_to_dict(result, 'functions', functions)

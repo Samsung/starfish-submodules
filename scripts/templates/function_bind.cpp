@@ -3,7 +3,7 @@
 {% call util_macro.ifdef(function.flags) %}
     {% set fn_name = '%s%s'|format(function.name, name)
                       if function.custom else function.name %}
-    ESString* {{ function.name }}String = ESString::create("{{ function.name }}");
+    StringRef* {{ function.name }}String = StringRef::fromASCII("{{ function.name }}");
     {% if function.static %}
         {% set object %}{{ name }}Function{% endset %}
     {% else %}
@@ -12,17 +12,18 @@
     {% set writable = 'false' if function.unforgeable else 'true' %}
     {% set enumerable = 'true' %}
     {% set configurable = 'false' if function.unforgeable else 'true' %}
-    ESFunctionObject* {{fn_name}}ESFn = ESFunctionObject::create(
-                            nullptr,
-                            {{ fn_name }}Function,
-                            {{ function.name }}String,
-                            {{ function.min_passed_count|default(0) }}, false);
     {% if function.force_deny_strict %}
-    {{fn_name}}ESFn->codeBlock()->m_forceDenyStrictMode = true;
+        {% set fnStrict %}false{% endset %}
+    {% else %}
+        {% set fnStrict %}true{% endset %}
     {% endif %}
-    {{ object }}->defineDataProperty(
-                            {{ function.name }}String,
-                            {{ writable }}/* writable */, {{ enumerable }}/* enumerable */, {{ configurable }}/* configurable */,
-                            {{fn_name}}ESFn);
+    FunctionObjectRef* {{fn_name}}ESFn = FunctionObjectRef::create(state,
+                            FunctionObjectRef::NativeFunctionInfo(AtomicStringRef::create(context, "{{ function.name }}"), {{ fn_name }}Function, {{ function.min_passed_count|default(0) }}, nullptr, {{ fnStrict }}, false)
+                            );
+    {{ object }}->defineDataProperty(state,
+                            ValueRef::create({{ function.name }}String),
+                            ValueRef::create({{fn_name}}ESFn),
+                            {{ writable }}/* writable */, {{ enumerable }}/* enumerable */, {{ configurable }}/* configurable */
+                            );
 {% endcall %}
 {% endif %}

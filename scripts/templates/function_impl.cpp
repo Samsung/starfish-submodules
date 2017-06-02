@@ -1,4 +1,4 @@
-{% import 'util.cpp' as util_macro %}
+ {% import 'util.cpp' as util_macro %}
 {%- macro gen_function_name(obj) %}
     {% if obj.kind == 'Attribute' %}
         {{- util_macro.gen_getter_function(obj, name) -}}
@@ -13,7 +13,7 @@
 {% endmacro -%}
 
 {%- macro gen_check_getter_code() -%}
-    if (instance->currentExecutionContext()->argumentCount() < 1) {
+    if (argc < 1) {
         COMPOSE_MESSAGE(reason, ARGS_NOT_ENOUGH, "1", "0");
         COMPOSE_MESSAGE(msg, FAILED_TO_EXECUTE, "{{ function.name }}", "{{ name }}", reason);
         THROW_EXCEPTION(msg);
@@ -50,17 +50,13 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     try {
     {% endif %}
     {% if return_type.kind == 'Promise' and not return_type.data.kind in pointer_kinds %}
-#ifdef USE_ES6_FEATURE
 {{ gen_native_call_impl(return_type, uniformed_call)|indent(spaces, True) }}
-#else
-{{ gen_native_call_impl(return_type.data, uniformed_call)|indent(spaces, True) }}
-#endif
     {% else %}
 {{ gen_native_call_impl(return_type, uniformed_call)|indent(spaces, True) }}
     {% endif %}
     {% if function.raises_exception %}
     } catch (DOMException* e) {
-        ESVMInstance::currentInstance()->throwError(e->scriptValue());
+        state->throwException(e->scriptValue());
         STARFISH_RELEASE_ASSERT_NOT_REACHED();
     }
     {%- endif %}
@@ -78,7 +74,7 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {% set need_counting = (not uniformed_call) and max_arg - function.min_passed_count > 1 %}
     {% set has_return = (function.return.name != 'void') %}
     {% if min_passed_count != 0 and not skip_type_check %}
-    size_t argCount = instance->currentExecutionContext()->argumentCount();
+    size_t argCount = argc;
     if (argCount < {{ min_passed_count }}) {
         {% set siz = min_passed_count|digit + 1 %}
         char buffer[{{ siz }}];
@@ -97,7 +93,11 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {{ util_macro.gen_declare_return_value(function.return)|trim }}
     {% for arg in function.arguments %}
         {% if not function.arguments[loop.index - 1].ellipsis %}
-    ESValue arg{{loop.index - 1}} = instance->currentExecutionContext()->readArgument({{loop.index - 1}});
+            {% if loop.index - 1 < min_passed_count %}
+    ValueRef* arg{{loop.index - 1}} = argv[{{loop.index - 1}}];
+            {% else %}
+    ValueRef* arg{{loop.index - 1}} = (argc > {{loop.index - 1}}) ? argv[{{loop.index - 1}}] : ValueRef::createUndefined();
+            {% endif %}
         {% endif %}
     {% endfor %}
     {% for idx in range(0, max_arg) %}
@@ -112,9 +112,9 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {% endif %}
     {% endfor %}
     {% if function.call_with  == 'Document' %}
-    Document* callWith = fetchDocument(instance);
+    Document* callWith = fetchDocument(state->context());
     {% elif function.call_with  == 'Starfish' %}
-    StarFish* callWith = fetchStarFish(instance);
+    StarFish* callWith = fetchStarFish(state->context());
     {% endif %}
     {{ gen_native_call(function.return, uniformed_call) }}
     {{ util_macro.handle_return(function.return)|trim }}
@@ -126,10 +126,10 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     // Handle ellipsis arguments from index{{start_idx}}
     GCVector<{{type_exp}}> value{{start_idx}};
     {% if function.min_passed_count == 0 or skip_type_check %}
-    size_t argCount = instance->currentExecutionContext()->argumentCount();
+    size_t argCount = argc;
     {% endif %}
     for (size_t i = {{start_idx}}; i < argCount; i++) {
-        ESValue item = instance->currentExecutionContext()->readArgument(i);
+        ValueRef* item = argv[i];
         value{{start_idx}}.push_back({{util_macro.gen_esvalue_to_native(ellp_type, 'item')}});
     }
 {% endmacro -%}
@@ -145,12 +145,12 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     // Class item getter by index
     {{ gen_check_getter_code() }}
     {{ util_macro.gen_declare_return_value(function.return)|trim }}
-    ESValue arg0 = instance->currentExecutionContext()->readArgument(0);
-    uint32_t idx = arg0.toIndex();
-    if (idx == ESValue::ESInvalidIndexValue) {
-        double __number = arg0.toNumber();
+    ValueRef* arg0 = argv[0];
+    ValueRef::ValueIndex idx = arg0->toIndex(state);
+    if (idx == ValueRef::InvalidIndexValue) {
+        double __number = arg0->toNumber(state);
         if (__number < 0) {
-            return ESValue(ESValue::ESNull);
+            return scriptNull();
         }
         idx = std::isnan(__number) ? 0 : (uint32_t)__number;
     }
@@ -160,7 +160,7 @@ if (validArgCount == {{function.min_passing_count|string}}) {
 
 {%- macro function_code_stringifier() %}
     {% if function.forward %}
-    return {{ gen_function_name(function.forward) }}(instance);
+    return {{ gen_function_name(function.forward) }}(state, thisValue, argc, argv, isNewExpression);
     {% else %}
         {{- function_code_normal() -}}
     {% endif %}
@@ -171,9 +171,9 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {% set has_flag = function.flags and function.flags|length > 0 %}
     {% call util_macro.ifdef(function.flags) %}
     {% if function.custom %}
-extern ESValue {{ gen_function_name(function) }}(ESVMInstance* instance);
+extern ValueRef* {{ gen_function_name(function) }}(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression);
     {% else %}
-static ESValue {{ gen_function_name(function) }}(ESVMInstance* instance)
+static ValueRef* {{ gen_function_name(function) }}(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression)
 {
     {% if function.is_item_getter and
         function.arguments[0].type.name in ['unsigned long', 'unsigned short']  %}

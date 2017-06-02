@@ -1,22 +1,21 @@
-{# TODO replace 'temp_util_for_function.cpp' to 'util.cpp' #}
 {% import 'util.cpp' as util_macro %}
 {% if constructor.custom %}
-extern ESValue {{ name|lower }}Constructor(ESVMInstance* instance);
+extern ValueRef* {{ name|lower }}Constructor(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression);
 
 {% else %}
-static ESValue {{ name|lower }}Constructor(ESVMInstance* instance)
+static ValueRef* {{ name|lower }}Constructor(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression)
 {
     {% set max_arg = constructor.arguments|length %}
     {% set min_passing_count = constructor.min_passing_count|default(0) %}
     {% set min_passed_count = constructor.min_passed_count|default(0) %}
     {% set uniformed_call = (max_arg == min_passing_count) %}
     {% set need_counting = (not uniformed_call) and max_arg - constructor.min_passed_count > 1 %}
-    if (!instance->currentExecutionContext()->isNewExpression()) {
+    if (!isNewExpression) {
         COMPOSE_MESSAGE(msg, CALLED_CONSTRUCTOR_WITHOUT_NEW, "{{ name }}");
         THROW_EXCEPTION(msg);
     }
     {% if min_passed_count != 0 %}
-    size_t argCount = instance->currentExecutionContext()->argumentCount();
+    size_t argCount = argc;
     if (argCount < {{ min_passed_count }}) {
         {% set siz = min_passed_count|digit + 1 %}
         char buffer[{{ siz }}];
@@ -33,7 +32,11 @@ static ESValue {{ name|lower }}Constructor(ESVMInstance* instance)
     bool argCounting = true;
     {% endif %}
     {% for arg in constructor.arguments %}
-    ESValue arg{{loop.index - 1}} = instance->currentExecutionContext()->readArgument({{loop.index - 1}});
+        {% if loop.index - 1 < min_passed_count %}
+    ValueRef* arg{{loop.index - 1}} = argv[{{loop.index - 1}}];
+        {% else %}
+    ValueRef* arg{{loop.index - 1}} = (argc > {{loop.index - 1}}) ? argv[{{loop.index - 1}}] : ValueRef::createUndefined();
+        {% endif %}
     {% endfor %}
     {% for idx in range(0, max_arg) %}
     {% set ridx = max_arg - idx - 1 -%}
@@ -44,9 +47,11 @@ static ESValue {{ name|lower }}Constructor(ESVMInstance* instance)
     {% set call_with = 'callWith' if constructor.call_with else '' %}
     {% set call_with_comma = 'callWith, ' if call_with|length > 0 else '' %}
     {% if constructor.call_with  == 'Document' %}
-    Document* callWith = fetchDocument(instance);
+    Document* callWith = fetchDocument(state->context());
     {% elif constructor.call_with  == 'Starfish' %}
-    StarFish* callWith = fetchStarFish(instance);
+    StarFish* callWith = fetchStarFish(state->context());
+    {% elif constructor.call_with  == 'Window' %}
+    Window* callWith = fetchWindow(state->context());
     {% endif %}
     // Call native function (nargs: {{max_arg if uniformed_call else '%s-%s'|format(min_passing_count, max_arg)}})
     {% if max_arg == 0 %}
