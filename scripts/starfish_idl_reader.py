@@ -28,44 +28,6 @@ def CHECK_HAS_LENGTH(v, msg=""):
   if len(v) is 0:
     raise RuntimeError(msg)
 
-##### Reserved Class Names
-_C_CONST = 'Const'
-_C_ARGUMENT = 'Argument'
-_C_ARGUMENTS = 'Arguments'
-_C_ATTRIBUTE = 'Attribute'
-_C_EXTATTRIBUTES = 'ExtAttributes'
-_C_INHERIT = 'Inherit'
-_C_OPERATION = 'Operation'
-_C_PRIMITIVE_TYPE = 'PrimitiveType'
-_C_TYPE = 'Type'
-_C_VALUE = 'Value'
-##### Reserved Property Names
-_P_NAME = 'NAME'
-_P_NULLABLE = 'NULLABLE'
-_P_READONLY = 'READONLY'
-##### Expected IR Property Names
-_K_ATTRIBUTES = 'attributes'
-_K_CONSTRUCTOR = 'constructor'
-_K_FLAG = 'flag'
-_K_FUNCTIONS = 'functions'
-_K_LENGTH = 'length'
-_K_MODULE = 'module'
-_K_NAME = 'name'
-_K_PARENT = 'parent'
-_K_READONLY = 'readonly'
-_K_TYPE = 'type'
-_K_UNIMPL = 'unimplemented'
-_K_VALUE = 'value'
-_K_VALUESTR = 'valuestr'
-
-##### Extended Attr
-_EXT_CONSTRUCTOR = 'Constructor'
-##### Extended Attr for Starfish
-_EXTSF_ENABLE_TEST = 'STARFISH_ENABLE_TEST'
-_EXTSF_UNIMPL = 'Unimplemented'
-#####
-
-
 ##########################################################
 # Please remove these functions before deploy
 
@@ -124,17 +86,36 @@ def _handle_extattrs(target, extattrs, handlers):
       if handler(target, extattr):
         break;
 
-def _hd_extattr_unimplemented(target, extattr):
-  if extattr.GetName() == _EXTSF_UNIMPL:
-    target[_K_UNIMPL] = True
+def _hd_extattr_bool_t(namefrom, nameto, default, target, extattr):
+  if extattr.GetName() == namefrom:
+    target[nameto] = default
     return True
   return False
 
-def _hd_extattr_treatnull(target, extattr):
-  if extattr.GetName() == 'TreatNullAs':
-    target['treat_null_as'] = extattr.GetProperty('VALUE')
+def _hd_extattr_value_t(namefrom, nameto, default, target, extattr):
+  if extattr.GetName() == namefrom:
+    _set_prop_to_dict(target, nameto, extattr.GetProperty('VALUE', default))
     return True
   return False
+
+_hd_extattr_unimplemented = partial(_hd_extattr_bool_t, 'Unimplemented', 'unimplemented', True)
+_hd_extattr_treatnull = partial(_hd_extattr_value_t, 'TreatNullAs', 'treat_null_as', None)
+_hd_extattr_clamp = partial(_hd_extattr_bool_t, 'Clamp', 'clamp', True)
+_hd_extattr_cereactions = partial(_hd_extattr_bool_t, 'CEReactions', 'cereactions', True)
+_hd_extattr_rename = partial(_hd_extattr_value_t, 'Rename', 'rename', None)
+_hd_extattr_unforgeable = partial(_hd_extattr_bool_t, 'Unforgeable', 'unforgeable', True)
+_hd_extattr_notenumerable = partial(_hd_extattr_bool_t, 'NotEnumerable', 'enumerable', False)
+_hd_extattr_no_interfaceobj = partial(_hd_extattr_bool_t, 'NoInterfaceObject', 'no_interface', True)
+_hd_extattr_partial_interface = partial(_hd_extattr_bool_t, 'PartialInterface', 'partial_interface', True)
+_hd_extattr_custom = partial(_hd_extattr_value_t, 'Custom', 'custom', True)
+_hd_extattr_putforward = partial(_hd_extattr_value_t, 'PutForwards', 'put_forwards', None)
+_hd_extattr_raise_expection = partial(_hd_extattr_value_t, 'RaisesException', 'raises_exception', True)
+_hd_extattr_force_deny_strict = partial(_hd_extattr_bool_t, 'ForceDenyStrictMode', 'force_deny_strict', True)
+_hd_extattr_callwith = partial(_hd_extattr_value_t, 'CallWith', 'call_with', None)
+_hd_extattr_primary_global = partial(_hd_extattr_bool_t, 'PrimaryGlobal', 'primary_global', True)
+
+# TODO Use getter keyword instead of ObjectType
+_hd_extattr_object_type = partial(_hd_extattr_value_t, 'ObjectType', 'object_type', 'normal')
 
 def _hd_extattr_flags(target, extattr):
   if extattr.GetName() == 'STARFISH_TC_COVERAGE':
@@ -150,87 +131,9 @@ def _hd_extattr_flags(target, extattr):
     return True
   return False
 
-def _hd_extattr_clamp(target, extattr):
-  if extattr.GetName() == 'Clamp':
-    target['clamp'] = True
-    return True
-  return False
-
-def _hd_extattr_cereactions(target, extattr):
-  if extattr.GetName() == 'CEReactions':
-    target['cereactions'] = True
-    return True
-  return False
-
 def _hd_extattr_object_opt(target, extattr):
   if extattr.GetName() == 'NewObject' or extattr.GetName() == 'SameObject':
     target['object_option'] = extattr.GetName()
-    return True
-  return False
-
-def _hd_extattr_rename(target, extattr):
-  if extattr.GetName() == 'Rename':
-    target['rename'] = extattr.GetProperty('VALUE')
-    return True
-  return False
-
-def _hd_extattr_unforgeable(target, extattr):
-  if extattr.GetName() == 'Unforgeable':
-    target['unforgeable'] = True
-    return True
-  return False
-
-def _hd_extattr_notenumerable(target, extattr):
-  if extattr.GetName() == 'NotEnumerable':
-    target['enumerable'] = False
-    return True
-  return False
-
-def _hd_extattr_no_interfaceobj(target, extattr):
-  if extattr.GetName() == 'NoInterfaceObject':
-    target['no_interface'] = True
-    return True
-  return False
-
-def _hd_extattr_partial_interface(target, extattr):
-  if extattr.GetName() == 'PartialInterface':
-    target['partial_interface'] = True
-    return True
-  return False
-
-def _hd_extattr_custom(target, extattr):
-  if extattr.GetName() == 'Custom':
-    target['custom'] = extattr.GetProperty('VALUE', True)
-    return True
-  return False
-
-def _hd_extattr_putforward(target, extattr):
-  if extattr.GetName() == 'PutForwards':
-    _set_prop_to_dict(target, 'put_forwards', extattr.GetProperty('VALUE', None))
-    return True
-  return False
-
-def _hd_extattr_raise_expection(target, extattr):
-  if extattr.GetName() == 'RaisesException':
-    target['raises_exception'] = extattr.GetProperty('VALUE', True)
-    return True
-  return False
-
-def _hd_extattr_force_deny_strict(target, extattr):
-  if extattr.GetName() == 'ForceDenyStrictMode':
-    target['force_deny_strict'] = True
-    return True
-  return False
-
-def _hd_extattr_callwith(target, extattr):
-  if extattr.GetName() == 'CallWith':
-    target['call_with'] = extattr.GetProperty('VALUE')
-    return True
-  return False
-
-def _hd_extattr_primary_global(target, extattr):
-  if extattr.GetName() == 'PrimaryGlobal':
-    target['primary_global'] = True
     return True
   return False
 
@@ -269,9 +172,6 @@ class StarfishIDLReader():
       return True
     elif extattr.GetName() == 'ConstructorCallWith':
       target['_call_with'] = extattr.GetProperty('VALUE')
-      return True
-    elif extattr.GetName() == 'ObjectType':
-      target['object_type'] = extattr.GetProperty('VALUE')
       return True
     elif 'Constructor' in extattr.GetName():
       # Constructor
@@ -584,6 +484,8 @@ class StarfishIDLReader():
     return stringifier, forward
 
   def _append_to_functions(self, obj, fns):
+    if obj.get('name') == '_unnamed_':
+      return
     if obj.get('unimplemented', False):
       fns.append(obj)
       return
@@ -608,6 +510,19 @@ class StarfishIDLReader():
     else:
       fns.append(obj)
 
+  def _gen_ir_item_getter(self, op_ir):
+    if op_ir.get('is_item_getter') is None:
+      return None
+    result = {
+      'kind': 'ItemGetter',
+    }
+    _set_prop_to_dict(result, 'enumerable', op_ir.pop('enumerable', True))
+    _set_prop_to_dict(result, 'key_type', op_ir.get('arguments')[0].get('type'))
+    ref = op_ir.get('name')
+    if ref != '_unnamed_':
+      _set_prop_to_dict(result, 'ref_function', ref)
+    return result
+
   def _gen_ir_interface(self, node):
     # print dump_node(node)
     result = _gen_basic_named(node)
@@ -618,16 +533,15 @@ class StarfishIDLReader():
     functions = []
     item_getters = []
     for child in node.GetChildren():
-      if _is_class(child, _C_CONST):
+      if _is_class(child, 'Const'):
         constants.append(self._gen_ir_node(child))
-      elif _is_class(child, _C_ATTRIBUTE):
+      elif _is_class(child, 'Attribute'):
         attributes.append(self._gen_ir_node(child))
-      elif _is_class(child, _C_OPERATION):
+      elif _is_class(child, 'Operation'):
         op_ir = self._gen_ir_node(child)
-        if op_ir.get('is_item_getter') is not None:
-          if op_ir.get('enumerable') is None:
-            op_ir['enumerable'] = True
-          item_getters.append(op_ir)
+        getter = self._gen_ir_item_getter(op_ir)
+        if getter is not None:
+          item_getters.append(getter)
         self._append_to_functions(op_ir, functions)
       elif _is_class(child, 'Stringifier'):
         strgf, forward = self._gen_ir_stringifier(child)
@@ -643,9 +557,9 @@ class StarfishIDLReader():
         _set_prop_to_dict(result, 'serializer', self._gen_ir_node(child))
       elif _is_class(child, 'Iterable'):
         _set_prop_to_dict(result, 'iterable', self._gen_ir_node(child.GetChildren()[0]))
-      elif _is_class(child, _C_INHERIT):
+      elif _is_class(child, 'Inherit'):
         _set_prop_to_dict(result, 'parent', child.GetName())
-      elif _is_class(child, _C_EXTATTRIBUTES):
+      elif _is_class(child, 'ExtAttributes'):
         _handle_extattrs(result,
                          child.GetChildren(),
                          [_hd_extattr_flags,
@@ -653,7 +567,8 @@ class StarfishIDLReader():
                           _hd_extattr_unimplemented,
                           _hd_extattr_no_interfaceobj,
                           _hd_extattr_primary_global,
-                          _hd_extattr_partial_interface])
+                          _hd_extattr_partial_interface,
+                          _hd_extattr_object_type])
 
     call_with = result.pop('_call_with', None)
     object_type = result.pop('object_type', None)
