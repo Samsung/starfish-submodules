@@ -28,7 +28,7 @@ Start from Starfish root directory.
 ### Generating code from IDL files in `[src]` directory
 ```sh
 # ./script.py [src] [dst]
-$ ./binding_generator/scripts/starfish_code_generator.py src/ out/
+$ ./binding_generator/scripts/starfish_code_generator.py src/ src/binding/
 ```
 This will recursively find IDL files in `[src]` and generate code to `[dst]`.  
 Generated file will have name `[ModuleName]Binding.cpp`.  
@@ -44,7 +44,7 @@ CDATASectionBinding.cpp
 ### Generating code from a single IDL file
 ```sh
 # ./script.py [src] [dst] -f [IDLFile]
-$ ./binding_generator/scripts/starfish_code_generator.py src/ out/ -f src/extra/Blob.idl
+$ ./binding_generator/scripts/starfish_code_generator.py src/ src/binding/ -f src/extra/Blob.idl
 Generated IR from src/extra/Blob.idl
 Generating binding code...
 > Generated Code for Module "Blob"
@@ -61,6 +61,7 @@ BlobBinding.cpp
 
 # Guide for Starfish developers
 * [How to create a new IDL Interface](/doc/HowToCreateInterface.md)
+* [How to create a new IDL Dictionary](/doc/HowToCreateDictionary.md)
 * (Add Here)
 
 # Reference
@@ -68,4 +69,4 @@ BlobBinding.cpp
 * [WebIDL Spec: lastest editor's draft](https://heycam.github.io/webidl/)
 * [WebIDL in Blink](https://www.chromium.org/blink/webidl)
 * [Jinja](http://jinja.pocoo.org/)
-* [Phython Lex-Yacc](http://www.dabeaz.com/ply/)
+* [Python Lex-Yacc](http://www.dabeaz.com/ply/)

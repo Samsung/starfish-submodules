@@ -632,14 +632,12 @@ class StarfishIDLReader():
 
 ##########################################################
 
-def merge_irs(from_ir, to_ir):
+def merge_irs(to_ir, from_ir):
   for key in NODE_KIND:
     name = _propname_from_kind(key)
-    if from_ir.get(name, False):
-      from_ir[name].update(to_ir.get(name, {}))
-    elif to_ir.get(name, False):
-      from_ir[name] = {}
-      from_ir[name].update(to_ir.get(name))
+    if not to_ir.get(name):
+      to_ir[name] = {}
+    to_ir[name].update(from_ir.get(name, {}))
 
 def apply_types(type_ir, to_ir):
   handler = StarfishIRHandler()

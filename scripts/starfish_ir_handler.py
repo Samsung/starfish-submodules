@@ -149,8 +149,7 @@ class StarfishIRHandler():
   def _check_dictionary(self, dictionary):
     self._init_using_info(dictionary)
     # Handle parent
-    if self._handle_dictionary_parent(dictionary):
-      dictionary.pop('parent', None)
+    self._handle_dictionary_parent(dictionary)
     unimpl = dictionary.get('unimplemented', False)
     for key in dictionary.get('members', []):
       self._change_types(key, 'type', unimpl)
@@ -170,6 +169,7 @@ class StarfishIRHandler():
 
     if resolved_parent and parent_ir is not None:
       dictionary['members'] = dictionary['members'] + parent_ir['members']
+      dictionary.pop('parent', None)
     return resolved_parent
 
   def _init_using_info(self, from_obj):
