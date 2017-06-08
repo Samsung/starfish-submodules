@@ -146,8 +146,8 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {{ gen_check_getter_code() }}
     {{ util_macro.gen_declare_return_value(function.return)|trim }}
     ValueRef* arg0 = argv[0];
-    ValueRef::ValueIndex idx = arg0->toIndex(state);
-    if (idx == ValueRef::InvalidIndexValue) {
+    ValueRef::ValueIndex idx = arg0->toArrayIndex(state);
+    if (idx == ValueRef::InvalidArrayIndexValue) {
         double __number = arg0->toNumber(state);
         if (__number < 0) {
             return scriptNull();
