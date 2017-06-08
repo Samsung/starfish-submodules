@@ -105,12 +105,12 @@ namespace StarFish {
 {% endif %}
 
 {% if object_type == 'Exposable' %}
-ValueRef* {{ name }}GetOwnPropertyCallback(ExecutionStateRef* state, ObjectRef* self, ValueRef* propertyName);
+ExposableObjectGetOwnPropertyCallbackResult {{ name }}GetOwnPropertyCallback(ExecutionStateRef* state, ObjectRef* self, ValueRef* propertyName);
 void {{ name }}DefineOwnPropertyCallback(ExecutionStateRef* state, ObjectRef* self, ValueRef* propertyName, ValueRef* value);
-ValueVectorRef* {{ name }}EnumerationCallback(ExecutionStateRef* state, ObjectRef* self);
+ExposableObjectEnumerationCallbackResultVector {{ name }}EnumerationCallback(ExecutionStateRef* state, ObjectRef* self);
 ObjectRef* {{ name }}Constructor(ExecutionStateRef* state, size_t argc, ValueRef** argv)
 {
-    return ObjectRef::createExposableObject(state, {{ name }}GetOwnPropertyCallback, {{ name }}DefineOwnPropertyCallback, {{ name }}EnumerationCallback, true, true, false);
+    return ObjectRef::createExposableObject(state, {{ name }}GetOwnPropertyCallback, {{ name }}DefineOwnPropertyCallback, {{ name }}EnumerationCallback);
 }
 {% endif %}
 
@@ -135,7 +135,7 @@ void {{ name }}::init(ScriptBindingInstance* instance, void* domObjectPointer)
     {% if object_type == 'Global' %}
     m_object = context->globalObject();
     {% elif object_type == 'Exposable' %}
-    m_object = ObjectRef::createExposableObject(state, {{ name }}GetOwnPropertyCallback, {{ name }}DefineOwnPropertyCallback, {{ name }}EnumerationCallback, true, true, false);
+    m_object = ObjectRef::createExposableObject(state, {{ name }}GetOwnPropertyCallback, {{ name }}DefineOwnPropertyCallback, {{ name }}EnumerationCallback);
     {% else %}
     m_object = ObjectRef::create(state);
     {% endif %}
