@@ -14,20 +14,19 @@
 ## Interface Object
 | Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |
 |----- | ----- |
-|**kind** | Interface |
+| **kind** | Interface |
 | **name** | `String` |
-| **global_expose** | `Boolean`<br>(Geolocation.idl) |
 | **constants** | `List` of [Const Object](#const-object) |
 | **attributes** | `List` of [Attribute Object](#attribute-object) |
-| **functions** | `List` of [Operation](#operation-object) / [MultiOperation](#multioperation-object) / [Stringifier](#stringifier-object) Object|
+| **functions** | `List` of [Operation Object](#operation-object) / [MultiOperation](#multioperation-object) / [Stringifier](#stringifier-object) Object|
 | **include_paths** | `Set` of `String` |
-| **no_interface** | `Boolean`<br>Prevent binding to global window.<br>*Ref: ChildNode.idl* |
+| **no_interface** | `Boolean`<br>Prevent binding to global window.<br>*Ref: Geolocation.idl* |
 | **partial_interface** | `Boolean`<br>Only used for partial interface by others.<br>*Ref: ChildNode.idl* |
 | unimplemented | `Boolean` |
 | constructor | [Constructor Object](#constructor-object) |
 | named_constructor | [Operation Object](#operation-object)<br>*Ref: HTMLImageElement.idl, HTMLAudioElement.idl* |
 | parent | `String` |
-| item_getters | `List` of [ItemGetter Object](#itemgetter-object)<br>*Ref: DOMTokenList.idl, HTMLCollection.idl, NamedNodeMap.idl* |
+| decriptor | [Descriptor Object](#descriptor-object)<br>*Ref: DOMTokenList.idl, HTMLCollection.idl, NamedNodeMap.idl* |
 | serializer | [Serializer Object](#serializer-object)<br>*Ref: DOMQuad.idl* |
 | iterable | [Type Object](#type-object)<br>*Ref: DOMTokenList.idl* |
 | HTMLConstructor | `Boolean` |
@@ -111,10 +110,10 @@ Extend [Operation Object](#operation-object)
 | force_deny_strict | `Boolean` |
 | cereactions | `Boolean` |
 | unforgeable | `Boolean` |
-| is_item_getter | `Boolean` |
 | rename | `String`<br>*Ref: HTMLSourceElement.idl* |
 | unimplemented | `Boolean` |
 | conditions | `List` of `Integer` (*Distinguishable typed argument indice*)<br>*Only used when Multioperation. |
+| enumerable | `Boolean` (*Only used for interface getter*)<br>*Ref: HTMLCollection.idl* |
 | flags | `List` of [Flags](#flags) |
 
 ## Multioperation Object
@@ -173,13 +172,13 @@ Extend [Type Object](#type-object)
 | ----- | ----- |
 | object_option | NewObject / SameObject<br>*Ref: DOMPoint.idl, DOMQuad.idl* |
 
-## ItemGetter Object
+## Descriptor Object
 | Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |
 | ----- | ----- |
-| **kind** | ItemGetter |
-| **enumerable** | `Boolean`<br>*Ref: NamedNodeMap.idl* |
-| **key_type** | [Type Objects](#type-object) |
-| ref_function | `String`<br>Related method name<br>*Ref: HTMLCollection.idl* |
+| indexed_getter | [Operation Object](#operation-object) |
+| named_getter | [Operation Object](#operation-object) |
+| setter | [Operation Object](#operation-object)<br>*Ref: CSSStyleDeclaration.idl* |
+| custom | `Boolean` |
 
 ## Serializer Object
 (TBD)

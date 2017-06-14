@@ -62,6 +62,7 @@ BlobBinding.cpp
 # Guide for Starfish developers
 * [How to create a new IDL Interface](/doc/HowToCreateInterface.md)
 * [How to create a new IDL Dictionary](/doc/HowToCreateDictionary.md)
+* [Available extended attribute list](/doc/ExtendedAttributes.md)
 * (Add Here)
 
 # Reference

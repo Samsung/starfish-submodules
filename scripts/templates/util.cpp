@@ -238,7 +238,7 @@ ValueRef::create(toJSString({{var_name}}))
     {%- elif type.kind == 'Any' %}
 {{var_name}}
     {%- elif type.kind in pointer_kinds %}
-ValueRef::create({{var_name}}->scriptValue())
+{{var_name}}->scriptValue()
     {%- elif type.kind == 'Dictionary' %}
 toValueRefFrom{{type.name}}(state, var_name)
     {%- elif type.name in ['boolean', 'long', 'short', 'unsigned long', 'unsigned short', 'double', 'long long', 'unsigned long long'] %}

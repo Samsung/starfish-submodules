@@ -104,14 +104,14 @@ namespace StarFish {
   {% endfor %}
 {% endif %}
 
-{% if object_type == 'Exposable' %}
-ExposableObjectGetOwnPropertyCallbackResult {{ name }}GetOwnPropertyCallback(ExecutionStateRef* state, ObjectRef* self, ValueRef* propertyName);
-void {{ name }}DefineOwnPropertyCallback(ExecutionStateRef* state, ObjectRef* self, ValueRef* propertyName, ValueRef* value);
+{%- if descriptor and not primary_global %}
+  {% if descriptor.custom %}
+ExposableObjectGetOwnPropertyCallbackResult {{ name }}GetOwnPropertyCallback(ExecutionStateRef* state, ObjectRef* self, ValueRef* key);
+void {{ name }}DefineOwnPropertyCallback(ExecutionStateRef* state, ObjectRef* self, ValueRef* propertyName, ValueRef* value)
 ExposableObjectEnumerationCallbackResultVector {{ name }}EnumerationCallback(ExecutionStateRef* state, ObjectRef* self);
-ObjectRef* {{ name }}Constructor(ExecutionStateRef* state, size_t argc, ValueRef** argv)
-{
-    return ObjectRef::createExposableObject(state, {{ name }}GetOwnPropertyCallback, {{ name }}DefineOwnPropertyCallback, {{ name }}EnumerationCallback);
-}
+  {% else %}
+    {% include 'descriptor_impl.cpp' ignore missing %}
+  {% endif %}
 {% endif %}
 
 FunctionObjectRef* binding{{ name }}(
@@ -132,9 +132,9 @@ void {{ name }}::init(ScriptBindingInstance* instance, void* domObjectPointer)
     ContextRef* context = instance->scriptContext();
     ExecutionStateRef* state = ExecutionStateRef::create(context);
 
-    {% if object_type == 'Global' %}
+    {% if primary_global %}
     m_object = context->globalObject();
-    {% elif object_type == 'Exposable' %}
+    {% elif descriptor %}
     m_object = ObjectRef::createExposableObject(state, {{ name }}GetOwnPropertyCallback, {{ name }}DefineOwnPropertyCallback, {{ name }}EnumerationCallback);
     {% else %}
     m_object = ObjectRef::create(state);

@@ -6,7 +6,7 @@ FunctionObjectRef* binding{{ constructor.name }}(
     ContextRef* context = scriptBindingInstance->scriptContext();
     ExecutionStateRef* state = ExecutionStateRef::create(context);
 
-    {% if object_type == "exposable" %}
+    {% if descriptor %}
         {% set native_ctor_fn %}{{ name }}Constructor(ExecutionStateRef* state, size_t argc, ValueRef** argv){% endset %}
     {% else %}
         {% set native_ctor_fn %}nullptr{% endset %}

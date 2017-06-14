@@ -75,6 +75,8 @@ class StarfishIRHandler():
             break;
 
   def _check_operation(self, op):
+    if not op:
+      return
     unimpl = op.get('unimplemented', False)
     if op.get('raises_exception', False):
       self.has_exception = True
@@ -125,6 +127,12 @@ class StarfishIRHandler():
         self._check_operation(fn)
       elif fn.get('kind') == 'MultiOperation':
         self._check_multioperation(fn)
+    descriptor = interface.get('descriptor')
+    if descriptor and not descriptor.get('custom'):
+      self._check_operation(descriptor.get('indexed_getter'))
+      self._check_operation(descriptor.get('named_getter'))
+      self._check_operation(descriptor.get('setter'))
+
     # Update used dictionary and typeref info
     self._flush_using_info(interface)
 

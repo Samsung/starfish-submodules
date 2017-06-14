@@ -1,5 +1,5 @@
     StringRef* {{ name }}String = StringRef::fromASCII("{{ name }}");
-    {% if object_type == "exposable" %}
+    {% if descriptor %}
         {% set native_ctor_fn %}{{ name }}Constructor(ExecutionStateRef* state, size_t argc, ValueRef** argv){% endset %}
     {% else %}
         {% set native_ctor_fn %}nullptr{% endset %}

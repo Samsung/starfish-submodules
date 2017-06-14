@@ -113,9 +113,7 @@ _hd_extattr_raise_expection = partial(_hd_extattr_value_t, 'RaisesException', 'r
 _hd_extattr_force_deny_strict = partial(_hd_extattr_bool_t, 'ForceDenyStrictMode', 'force_deny_strict', True)
 _hd_extattr_callwith = partial(_hd_extattr_value_t, 'CallWith', 'call_with', None)
 _hd_extattr_primary_global = partial(_hd_extattr_bool_t, 'PrimaryGlobal', 'primary_global', True)
-
-# TODO Use getter keyword instead of ObjectType
-_hd_extattr_object_type = partial(_hd_extattr_value_t, 'ObjectType', 'object_type', 'normal')
+_hd_extattr_custom_descriptor = partial(_hd_extattr_bool_t, 'CustomDescriptor', '_custom_descriptor', True)
 
 def _hd_extattr_flags(target, extattr):
   if extattr.GetName() == 'STARFISH_TC_COVERAGE':
@@ -387,7 +385,8 @@ class StarfishIDLReader():
   def _gen_ir_operation(self, node):
     result = _gen_basic_named(node)
     _set_boolean_prop(result, node, 'STATIC', 'static')
-    _set_boolean_prop(result, node, 'GETTER', 'is_item_getter')
+    _set_boolean_prop(result, node, 'GETTER', '_is_item_getter')
+    _set_boolean_prop(result, node, 'SETTER', '_is_item_setter')
     return_ir = None
     args_ir = None
     for child in node.GetChildren():
@@ -510,18 +509,23 @@ class StarfishIDLReader():
     else:
       fns.append(obj)
 
-  def _gen_ir_item_getter(self, op_ir):
-    if op_ir.get('is_item_getter') is None:
-      return None
-    result = {
-      'kind': 'ItemGetter',
-    }
-    _set_prop_to_dict(result, 'enumerable', op_ir.pop('enumerable', True))
-    _set_prop_to_dict(result, 'key_type', op_ir.get('arguments')[0].get('type'))
-    ref = op_ir.get('name')
-    if ref != '_unnamed_':
-      _set_prop_to_dict(result, 'ref_function', ref)
-    return result
+  def _append_to_descriptor(self, op_ir, to):
+    if op_ir.pop('_is_item_getter', False):
+      op_ir['enumerable'] = op_ir.pop('enumerable', True)
+      key_type = op_ir.get('arguments')[0].get('type')
+      if key_type.get('kind') == 'PrimitiveType':
+        to['indexed_getter'] = op_ir
+      elif key_type.get('kind') == 'StringType':
+        to['named_getter'] = op_ir
+      else:
+        print 'Wrong getter format'
+        sys.exit(1)
+    elif op_ir.pop('_is_item_setter', False):
+      op_ir['enumerable'] = op_ir.pop('enumerable', True)
+      if len(op_ir.get('arguments')) != 2:
+        print 'Wrong setter format'
+        sys.exit(1)
+      to['setter'] = op_ir
 
   def _gen_ir_interface(self, node):
     # print dump_node(node)
@@ -531,7 +535,7 @@ class StarfishIDLReader():
     constants = []
     attributes = []
     functions = []
-    item_getters = []
+    descriptor = {}
     for child in node.GetChildren():
       if _is_class(child, 'Const'):
         constants.append(self._gen_ir_node(child))
@@ -539,9 +543,7 @@ class StarfishIDLReader():
         attributes.append(self._gen_ir_node(child))
       elif _is_class(child, 'Operation'):
         op_ir = self._gen_ir_node(child)
-        getter = self._gen_ir_item_getter(op_ir)
-        if getter is not None:
-          item_getters.append(getter)
+        self._append_to_descriptor(op_ir, descriptor)
         self._append_to_functions(op_ir, functions)
       elif _is_class(child, 'Stringifier'):
         strgf, forward = self._gen_ir_stringifier(child)
@@ -568,21 +570,18 @@ class StarfishIDLReader():
                           _hd_extattr_no_interfaceobj,
                           _hd_extattr_primary_global,
                           _hd_extattr_partial_interface,
-                          _hd_extattr_object_type])
-
+                          _hd_extattr_custom_descriptor])
     call_with = result.pop('_call_with', None)
-    object_type = result.pop('object_type', None)
-    if object_type == None:
-      object_type = 'normal'
     constructor = result.get('constructor')
     if constructor:
       _set_prop_to_dict(constructor, 'call_with', call_with)
-    _set_prop_to_dict(result, 'object_type', object_type)
     _set_prop_to_dict(result, 'constants', constants)
     _set_prop_to_dict(result, 'attributes', attributes)
     _set_prop_to_dict(result, 'functions', functions)
-    if len(item_getters) > 0:
-      _set_prop_to_dict(result, 'item_getters', item_getters)
+    if result.pop('_custom_descriptor', False):
+      descriptor['custom'] = True
+    if descriptor:
+      _set_prop_to_dict(result, 'descriptor', descriptor)
     _set_prop_to_dict(result, 'file_path', self.file_path)
     self.interfaces[node.GetName()] = result
     return result
