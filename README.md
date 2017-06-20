@@ -30,8 +30,8 @@ Start from Starfish root directory.
 # ./script.py [src] [dst]
 $ ./binding_generator/scripts/starfish_code_generator.py src/ src/binding/
 ```
-This will recursively find IDL files in `[src]` and generate code to `[dst]`.  
-Generated file will have name `[ModuleName]Binding.cpp`.  
+This will recursively find IDL files in `[src]` and generate code to `[dst]`.
+Generated file will have name `[ModuleName]Binding.cpp`.
 See,
 ```sh
 $ ls -1 out/
@@ -62,6 +62,7 @@ BlobBinding.cpp
 # Guide for Starfish developers
 * [How to create a new IDL Interface](/doc/HowToCreateInterface.md)
 * [How to create a new IDL Dictionary](/doc/HowToCreateDictionary.md)
+* [How to create a new IDL Enum](/doc/HowToCreateEnum.md)
 * [Available extended attribute list](/doc/ExtendedAttributes.md)
 * (Add Here)
 
