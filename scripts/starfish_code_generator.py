@@ -26,9 +26,64 @@ _root_dir=None
 def print_skip_msg(name, reason):
   print "> Skip generating code for '" + name + "': " + reason
 
-def generate_code(ir, args): #, sf_modules):
+def generate_interface_collection_header(interfaces, args):
+  grouped_interfaces = {}
+  for key in interfaces:
+    interface = interfaces[key]
+
+    if interface.get('partial_interface', False):
+      continue
+
+    if "flags" in interface:
+      flag = interface["flags"][0]
+    else:
+      flag = "STARFISH_ENABLE_DEFAULT"
+
+    if grouped_interfaces.has_key(flag):
+      grouped_interfaces.get(flag).append(interface["name"])
+    else:
+      grouped_interfaces[flag] = [interface["name"]]
+
+  def write_backslash_backslash(w, i, l):
+    if i == l:
+      w.write(" \n")
+    else:
+      w.write(" \\\n")
+
+  binding_path = os.path.join(STARFISH_PATH, args.out_path)
+  with open(os.path.join(binding_path, "Interfaces.h"), 'w') as w:
+    for flag in grouped_interfaces:
+      if flag != "STARFISH_ENABLE_DEFAULT":
+        w.write("#ifdef {}\n".format(flag))
+      simple_flag = flag[flag.find("ENABLE_") + 7:]
+      w.write("#define STARFISH_ENUM_LAZY_BINDING_NAMES_{}(F) \\\n".format(simple_flag))
+      names_idx = 0
+      names_len = len(grouped_interfaces[flag])
+      for name in sorted(grouped_interfaces[flag]):
+        names_idx += 1
+        w.write("    F({})".format(name))
+        write_backslash_backslash(w, names_idx, names_len)
+      if flag != "STARFISH_ENABLE_DEFAULT":
+        w.write("#else\n")
+        w.write("#define STARFISH_ENUM_LAZY_BINDING_NAMES_{}(F)\n".format(simple_flag))
+        w.write("#endif\n")
+      w.write("\n")
+
+    w.write("#define STARFISH_ENUM_LAZY_BINDING_NAMES(F) \\\n")
+    flags_idx = 0
+    flags_len = len(grouped_interfaces.keys())
+    for flag in grouped_interfaces:
+      flags_idx += 1
+      simple_flag = flag[flag.find("ENABLE_") + 7:]
+      w.write("    STARFISH_ENUM_LAZY_BINDING_NAMES_{}(F)".format(simple_flag))
+      write_backslash_backslash(w, flags_idx, flags_len)
+
+def generate_code(ir, args):
   print "Generating binding code..."
   interfaces = ir['interfaces']
+
+  generate_interface_collection_header(interfaces, args)
+
   for key in interfaces:
     interface = interfaces[key]
     if interface.get('partial_interface', False):

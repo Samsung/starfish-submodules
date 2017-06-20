@@ -84,7 +84,7 @@ static void {{ name }}DefineOwnPropertyCallback(ExecutionStateRef* state, Object
 static ExposableObjectEnumerationCallbackResultVector {{ name }}EnumerationCallback(ExecutionStateRef* state, ObjectRef* jsSelf)
 {
     {{name}}* self = ({{name}}*)jsSelf->extraData();
-    STARFISH_ASSERT(self->isTextTrackCueList());
+    STARFISH_ASSERT(self->is{{name}}());
     ExposableObjectEnumerationCallbackResultVector v;
     {% if igetter and igetter.enumerable %}
     size_t len = self->length();
