@@ -56,13 +56,18 @@ class StarfishIRHandler():
     elif kind in ['Sequence', 'Promise']:
       self._change_types(type_ir, 'data', unimpl)
 
+  def _udpate_has_exception(self, op):
+    if op.get('raises_exception'):
+       self.has_exception = True
+    return
+
   def _check_attr(self, attr):
     unimpl = attr.get('unimplemented', False)
-    if attr.get('raises_exception', False):
-      self.has_exception = True
     self._change_types(attr.get('getter'), 'return', unimpl)
+    self._udpate_has_exception(attr['getter'])
     if attr.get('setter'):
       self._change_types(attr.get('setter').get('arguments')[0], 'type', unimpl)
+      self._udpate_has_exception(attr['setter'])
     if attr.get('put_forwards', False) and \
        type(attr['put_forwards']) is types.StringType:
       ref_name = attr['getter']['return']['name']
@@ -72,14 +77,15 @@ class StarfishIRHandler():
         for ref_attr in ref_interface['attributes']:
           if ref_attr['name'] == forward_name:
             attr['put_forwards'] = ref_attr
+            if ref_attr.get('setter'):
+              self._udpate_has_exception(ref_attr['setter'])
             break;
 
   def _check_operation(self, op):
     if not op:
       return
     unimpl = op.get('unimplemented', False)
-    if op.get('raises_exception', False):
-      self.has_exception = True
+    self._udpate_has_exception(op)
     for arg in op.get('arguments', []):
       self._change_types(arg, 'type', unimpl)
     self._change_types(op, 'return', unimpl)
@@ -188,10 +194,10 @@ class StarfishIRHandler():
       from_obj['include_paths'] = set()
     self.used_dictionaries = from_obj['used_dictionaries']
     self.include_paths = from_obj['include_paths']
-    self.has_exception = None
+    self.has_exception = False
 
   def _flush_using_info(self, to_obj):
-    if self.has_exception is not None:
+    if self.has_exception:
       self.include_paths.add('core/dom/DOMException')
     self.include_paths.discard(self.processing['file_path'])
     self.used_dictionaries = []
@@ -232,7 +238,7 @@ class StarfishIRHandler():
     self.processing = None
     self.used_dictionaries = []
     self.include_paths = set()
-    self.has_exception = None
+    self.has_exception = False
 
 
 
