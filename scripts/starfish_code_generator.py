@@ -28,11 +28,16 @@ def print_skip_msg(name, reason):
 
 def generate_interface_collection_header(interfaces, args):
   grouped_interfaces = {}
+  constructor_nicknames = []
   for key in interfaces:
     interface = interfaces[key]
 
     if interface.get('partial_interface', False):
       continue
+
+    if interface.get('constructor', False) and \
+       len(interface['constructor']['name']) > 0:
+      constructor_nicknames.append(interface['constructor']['name'])
 
     if "flags" in interface:
       flag = interface["flags"][0]
@@ -77,6 +82,11 @@ def generate_interface_collection_header(interfaces, args):
       simple_flag = flag[flag.find("ENABLE_") + 7:]
       w.write("    STARFISH_ENUM_LAZY_BINDING_NAMES_{}(F)".format(simple_flag))
       write_backslash_backslash(w, flags_idx, flags_len)
+
+    w.write("\n#define STARFISH_ENUM_LAZY_BINDING_NICKNAMES(F)")
+    for nickname in constructor_nicknames:
+      w.write(" \\\n    F({})".format(nickname))
+    w.write("\n")
 
 def generate_code(ir, args):
   print "Generating binding code..."
