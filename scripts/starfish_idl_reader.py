@@ -483,18 +483,21 @@ class StarfishIDLReader():
     return stringifier, forward
 
   def _append_to_functions(self, obj, fns):
-    if obj.get('name') == '_unnamed_':
+    name = obj.get('name')
+    if name == '_unnamed_':
       return
-    if obj.get('unimplemented', False):
-      fns.append(obj)
-      return
+    unimplemented = obj.get('unimplemented', False)
     index = None
     for idx, fn in enumerate(fns):
-      if obj.get('name') == fn.get('name') and\
-         not fn.get('unimplemented', False):
+      if name == fn.get('name'):
         index = idx
         break
     if index is not None:
+      if unimplemented:
+        return
+      if fns[index].get('unimplemented'):
+        fns[index] = obj
+        return
       if fns[index].get('kind') == 'Operation':
         newFn = {}
         fns[index]['id'] = 1

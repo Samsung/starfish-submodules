@@ -96,6 +96,9 @@ def generate_code(ir, args):
 
   for key in interfaces:
     interface = interfaces[key]
+    if interface.get('unimplemented', False):
+      print_skip_msg(dictionary.get('name'), "Unimplemented interface")
+      continue
     if interface.get('partial_interface', False):
       print_skip_msg(interface.get('name'), "PartialInterface")
       continue
