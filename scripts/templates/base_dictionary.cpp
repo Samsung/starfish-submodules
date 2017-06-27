@@ -50,14 +50,18 @@ namespace StarFish {
         STARFISH_RELEASE_ASSERT_NOT_REACHED();
     }
 {% for key in members %}
+    {% if not key.unimplemented %}
     ValueRef* arg{{loop.index - 1}} = from->asObject()->get(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")));
+    {% endif %}
 {% endfor %}
     {{name}} result;
 {% for key in members -%}
+    {% if not key.unimplemented %}
     {% set names = {'name': name, 'kname': key.name,
                     'aname': 'arg%d'|format(loop.index - 1), 'vname': 'value%d'|format(loop.index - 1)} %}
     {{ util_macro.handle_arg(key, names)|trim }}
     result.set{{key.name|first_word_capitalize}}({{'value%d'|format(loop.index - 1)}});
+    {% endif %}
 {% endfor %}
     return result;
 }
@@ -66,6 +70,7 @@ ValueRef* toValueRefFrom{{name}}(ExecutionStateRef* state, {{name}} from)
 {
     ObjectRef* result = ObjectRef::create(state);
 {% for key in members %}
+    {% if not key.unimplemented %}
     {% set vname = 'value%d'|format(loop.index - 1) %}
     {% set use_nullable = key.type.kind in nullable_kinds and key.type.nullable %}
     {{ util_macro.gen_declare_return_value(key.type, vname)|trim }}
@@ -87,6 +92,7 @@ ValueRef* toValueRefFrom{{name}}(ExecutionStateRef* state, {{name}} from)
     result->set(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")), {{ util_macro.gen_native_to_jsvalue(key.type, vname) }});
     {% else %}
     result->set(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")), {{ util_macro.gen_native_to_jsvalue(key.type, vname) }});
+    {% endif %}
     {% endif %}
 {% endfor %}
     return ValueRef::create(result);

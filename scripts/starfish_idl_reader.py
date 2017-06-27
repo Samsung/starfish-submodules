@@ -295,7 +295,8 @@ class StarfishIDLReader():
         _handle_extattrs(result,
                          child.GetChildren(),
                          [_hd_extattr_clamp,
-                          _hd_extattr_treatnull])
+                          _hd_extattr_treatnull,
+                          _hd_extattr_unimplemented])
     return result
 
   def _gen_ir_arguments(self, node):

@@ -241,7 +241,7 @@ ValueRef::create(toJSString({{var_name}}))
 {{var_name}}->scriptValue()
     {%- elif type.kind == 'Dictionary' %}
 toValueRefFrom{{type.name}}(state, var_name)
-    {%- elif type.name in ['boolean', 'long', 'short', 'unsigned long', 'unsigned short', 'double', 'long long', 'unsigned long long'] %}
+    {%- elif type.kind == 'PrimitiveType' %}
 ValueRef::create({{var_name}})
     {%- endif %}
 {%- endmacro -%}
