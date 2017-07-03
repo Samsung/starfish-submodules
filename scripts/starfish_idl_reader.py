@@ -68,6 +68,8 @@ def _value_to_str(value, type):
   return value
 
 def _set_prop_to_dict(target, prop_name, v):
+  if type(target) is not types.DictionaryType:
+    return
   if v is not None:
     target[prop_name] = v
 
@@ -445,33 +447,29 @@ class StarfishIDLReader():
     return result
 
   def _gen_ir_stringifier(self, node):
-    forward = None
-    stringifier = None
+    attribute = None
+    operation = None
+    extAttrs = None
     for child in node.GetChildren():
       if _is_class(child, 'Attribute'):
-        forward = self._gen_ir_attribute(child)
-        _set_prop_to_dict(forward, 'stringifier', True)
+        attribute = child
       elif _is_class(child, 'Operation'):
-        forward = self._gen_ir_operation(child)
-        _set_prop_to_dict(forward, 'stringifier', True)
+        operation = child
+      elif _is_class(child, 'ExtAttributes'):
+        extAttrs = child
+
+    forward = None
+    stringifier = None
+    if attribute:
+      attribute.AddChildren(extAttrs)
+      forward = self._gen_ir_attribute(attribute)
+    elif operation:
+      operation.AddChildren(extAttrs)
+      forward = self._gen_ir_operation(operation)
+    _set_prop_to_dict(forward, 'stringifier', True)
     stringifier = self._gen_ir_tostring(forward)
+
     if forward is not None:
-      for child in node.GetChildren():
-        if _is_class(child, 'ExtAttributes'):
-          _handle_extattrs(forward,
-                           child.GetChildren(),
-                           [_hd_extattr_flags,
-                            _hd_extattr_unimplemented,
-                            _hd_extattr_treatnull,
-                            _hd_extattr_object_opt,
-                            _hd_extattr_cereactions,
-                            _hd_extattr_rename,
-                            _hd_extattr_unforgeable,
-                            _hd_extattr_notenumerable,
-                            _hd_extattr_custom,
-                            _hd_extattr_raise_expection,
-                            _hd_extattr_force_deny_strict,
-                            _hd_extattr_callwith])
       _set_prop_to_dict(stringifier, 'flags', forward.get('flags', None))
       _set_prop_to_dict(stringifier, 'unimplemented', forward.get('unimplemented', None))
     else:
