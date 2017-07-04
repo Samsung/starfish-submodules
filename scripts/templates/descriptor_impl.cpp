@@ -67,7 +67,7 @@ static ExposableObjectGetOwnPropertyCallbackResult {{ name }}GetOwnPropertyCallb
     return ExposableObjectGetOwnPropertyCallbackResult();
 }
 
-static void {{ name }}DefineOwnPropertyCallback(ExecutionStateRef* state, ObjectRef* jsSelf, ValueRef* key, ValueRef* value)
+static bool {{ name }}DefineOwnPropertyCallback(ExecutionStateRef* state, ObjectRef* jsSelf, ValueRef* key, ValueRef* value)
 {
     {% if descriptor.setter %}
     {% set setter_name = 'defaultSetter' if descriptor.setter.name == '_unnamed_' else descriptor.setter.name %}
@@ -76,8 +76,10 @@ static void {{ name }}DefineOwnPropertyCallback(ExecutionStateRef* state, Object
     STARFISH_ASSERT(self->is{{name}}());
     {{ util_macro.handle_arg(descriptor.setter.arguments[1], names)|trim }}
     self->{{setter_name}}(toBrowserString(state, key), valueTo);
+    return true;
     {% else %}
     // No setter found in {{ name }}
+    return false;
     {% endif %}
 }
 
