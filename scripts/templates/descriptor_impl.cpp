@@ -81,6 +81,7 @@ static bool {{ name }}DefineOwnPropertyCallback(ExecutionStateRef* state, Object
     // No setter found in {{ name }}
     return false;
     {% endif %}
+    return true;
 }
 
 static ExposableObjectEnumerationCallbackResultVector {{ name }}EnumerationCallback(ExecutionStateRef* state, ObjectRef* jsSelf)
