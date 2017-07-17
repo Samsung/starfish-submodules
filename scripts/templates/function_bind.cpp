@@ -7,7 +7,7 @@
     {% if function.static %}
         {% set object %}{{ name }}Function{% endset %}
     {% else %}
-        {% set object %}{{ util_macro.gen_property_owner(primary_global, function.unforgeable, name) }}{% endset %}
+        {% set object %}targetObject{% endset %}
     {% endif %}
     {% set writable = 'false' if function.unforgeable else 'true' %}
     {% set enumerable = 'true' %}

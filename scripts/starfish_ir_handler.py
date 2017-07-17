@@ -118,6 +118,8 @@ class StarfishIRHandler():
 
   def _check_interface(self, interface):
     self._init_using_info(interface)
+    # Resolve parent
+    self._handle_interface_parent(interface)
     # Check constructor
     constructor = interface.get('constructor', None)
     if constructor:
@@ -141,6 +143,19 @@ class StarfishIRHandler():
 
     # Update used dictionary and typeref info
     self._flush_using_info(interface)
+
+  def _handle_interface_parent(self, interface):
+    parent = interface.get('parent')
+    if parent and type(parent) == types.StringType:
+      if parent in self.interfaces:
+        parent = self.interfaces[parent]
+        interface['parent'] = parent
+        self._handle_interface_parent(parent)
+        if parent.get('has_unforgeable'):
+          interface['has_unforgeable'] = True;
+      else:
+        print interface.get('name') + ': Wrong parent interface "' + parent + '"'
+        sys.exit(1)
 
   def _check_implement(self, interface):
     # Handle implements

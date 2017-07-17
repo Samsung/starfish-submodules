@@ -22,10 +22,11 @@
 | **include_paths** | `Set` of `String` |
 | **no_interface** | `Boolean`<br>Prevent binding to global window.<br>*Ref: Geolocation.idl* |
 | **partial_interface** | `Boolean`<br>Only used for partial interface by others.<br>*Ref: ChildNode.idl* |
+| **has_unforgeable** | `Boolean`<br>Has unforgeable constant or attribute or operation in this interface or ancestors |
 | unimplemented | `Boolean` |
 | constructor | [Constructor Object](#constructor-object) |
 | named_constructor | [Operation Object](#operation-object)<br>*Ref: HTMLImageElement.idl, HTMLAudioElement.idl* |
-| parent | `String` |
+| parent | [Interface Object](#interface-object) |
 | decriptor | [Descriptor Object](#descriptor-object)<br>*Ref: DOMTokenList.idl, HTMLCollection.idl, NamedNodeMap.idl* |
 | serializer | [Serializer Object](#serializer-object)<br>*Ref: DOMQuad.idl* |
 | iterable | [Type Object](#type-object)<br>*Ref: DOMTokenList.idl* |

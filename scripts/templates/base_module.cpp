@@ -21,47 +21,50 @@
 {% endif %}
 
 {# FIXME: has to return boolean #}
-{% macro can_include(in_prototype_chain, primary_global, unforgeable) -%}
-  {% if unforgeable %}
-    {{- 'true' if not in_prototype_chain else 'false' -}}
-  {% else %}
-    {% if primary_global %}
-      {{- 'true' if not in_prototype_chain else 'false' -}}
-    {% else %}
-      {{- 'true' if in_prototype_chain else 'false' -}}
+{% macro bind_common(condition_macro) -%}
+    // Bind for constants
+  {% for constant in constants %}
+    {% if not constant.unimplemented and condition_macro(constant)|trim == 'true' %}
+{% include 'constant_bind.cpp' ignore missing %}
     {% endif %}
-  {% endif %}
+  {% endfor %}
+    // Bind for attributes
+  {% for attribute in attributes %}
+    {% if not attribute.unimplemented and condition_macro(attribute)|trim == 'true' %}
+{% include 'attribute_bind.cpp' ignore missing %}
+    {% endif %}
+  {% endfor %}
+    // Bind for functions
+  {% for function in functions %}
+    {% if not function.unimplemented and condition_macro(function)|trim == 'true' %}
+{% include 'function_bind.cpp' ignore missing %}
+    {% endif %}
+  {% endfor %}
 {%- endmacro %}
 
-{% macro bind(in_prototype_chain, primary_global) -%}
-{% if (not in_prototype_chain or not primary_global) %}
-  {% if constants %}
-    // Bind for constants
-    {% for constant in constants %}
-      {# I assume that constant does not appear on the primary global interface #}
-      {% if not constant.unimplemented and in_prototype_chain %}
-{% include 'constant_bind.cpp' ignore missing %}
-      {% endif %}
-    {% endfor %}
-  {% endif %}
-  {% if attributes %}
-    // Bind for attributes
-    {% for attribute in attributes %}
-      {% if not attribute.unimplemented and (can_include(in_prototype_chain, primary_global, attribute.unforgeable) == 'true') %}
-{% include 'attribute_bind.cpp' ignore missing %}
-      {% endif %}
-    {% endfor %}
-  {% endif %}
-  {% if functions %}
-    // Bind for functions
-    {% for function in functions %}
-      {% if not function.unimplemented and (can_include(in_prototype_chain, primary_global, function.unforgeable) == 'true') %}
-{% include 'function_bind.cpp' ignore missing %}
-      {% endif %}
-    {% endfor %}
-  {% endif %}
-{% endif %}
-{%- endmacro -%}
+{% macro condition_unforgeable_fn(ir) -%}
+    {% if ir.unforgeable %}
+        true
+    {% else %}
+        false
+    {% endif %}
+{%- endmacro %}
+
+{% macro condition_init_fn(ir) -%}
+    {% if primary_global and not ir.unforgeable %}
+        true
+    {% else %}
+        false
+    {% endif %}
+{%- endmacro %}
+
+{% macro condition_binding_fn(ir) -%}
+    {% if not primary_global and not ir.unforgeable %}
+        true
+    {% else %}
+        false
+    {% endif %}
+{%- endmacro %}
 
 #include "StarFishConfig.h"
 {% for item in include_paths %}
@@ -114,6 +117,21 @@ ExposableObjectEnumerationCallbackResultVector {{ name }}EnumerationCallback(Exe
   {% endif %}
 {% endif %}
 
+{% if has_unforgeable %}
+    {% if parent and parent.has_unforgeable %}
+extern void attachUnforgeables{{ parent.name }}(ScriptBindingInstance* instance, ObjectRef* targetObject);
+    {% endif %}
+void attachUnforgeables{{ name }}(ScriptBindingInstance* instance, ObjectRef* targetObject)
+{
+    ContextRef* context = instance->scriptContext();
+    ExecutionStateRef* state = ExecutionStateRef::create(context);
+    {% if parent and parent.has_unforgeable %}
+    attachUnforgeables{{ parent.name }}(instance, targetObject);
+    {% endif %}
+    {{ bind_common(condition_unforgeable_fn) }}
+}
+{% endif %}
+
 FunctionObjectRef* binding{{ name }}(
     ScriptBindingInstance* scriptBindingInstance)
 {
@@ -121,7 +139,9 @@ FunctionObjectRef* binding{{ name }}(
     ContextRef* context = scriptBindingInstance->scriptContext();
     ExecutionStateRef* state = ExecutionStateRef::create(context);
 {% include 'constructor_bind.cpp' ignore missing %}
-{{ bind(true, primary_global) }}
+
+    ObjectRef* targetObject = {{ name }}PrototypeObj;
+    {{ bind_common(condition_binding_fn) }}
     state->destroy();
     return {{ name }}Function;
 }
@@ -143,7 +163,12 @@ void {{ name }}::init(ScriptBindingInstance* instance, void* domObjectPointer)
     m_object->giveInternalClassProperty("{{ name }}");
 
     scriptObject()->setPrototype(state, instance->fn{{ name }}()->getFunctionPrototype(state));
-{{ bind(false, primary_global) }}
+    ObjectRef* targetObject = scriptObject();
+
+    {{ bind_common(condition_init_fn) }}
+    {% if has_unforgeable %}
+    attachUnforgeables{{ name }}(instance, targetObject);
+    {% endif %}
     postInit(instance);
     state->destroy();
 }

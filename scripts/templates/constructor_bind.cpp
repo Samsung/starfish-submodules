@@ -1,6 +1,6 @@
     StringRef* {{ name }}String = StringRef::fromASCII("{{ name }}");
     {% if descriptor %}
-        {% set native_ctor_fn %}{{ name }}Constructor(ExecutionStateRef* state, size_t argc, ValueRef** argv){% endset %}
+        {% set native_ctor_fn %}TODO_UNFINISHED_CODE(ExecutionStateRef* state, size_t argc, ValueRef** argv){% endset %}
     {% else %}
         {% set native_ctor_fn %}nullptr{% endset %}
     {% endif %}
@@ -15,7 +15,7 @@
     {% if parent %}
         {% set parent_class %}
     ValueRef::create(scriptBindingInstance
-                ->fn{{ parent }}()
+                ->fn{{ parent.name }}()
                 ->getFunctionPrototype(state))
         {% endset %}
     {% elif constructor and constructor.prototype == 'Error' %}
@@ -36,5 +36,5 @@
     {{ name }}PrototypeObj->setPrototype(state, {{ parent_class|trim }});
     {% if parent %}
     {{ name }}Function->setPrototype(state, ValueRef::create(scriptBindingInstance
-            ->fn{{ parent }}()));
+            ->fn{{ parent.name }}()));
     {% endif %}

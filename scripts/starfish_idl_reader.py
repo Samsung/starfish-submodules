@@ -325,7 +325,8 @@ class StarfishIDLReader():
                          child.GetChildren(),
                          [_hd_extattr_flags,
                           _hd_extattr_unimplemented,
-                          _hd_extattr_rename])
+                          _hd_extattr_rename,
+                          _hd_extattr_unforgeable])
     return result
 
   def _gen_ir_attribute(self, node):
@@ -538,15 +539,21 @@ class StarfishIDLReader():
     attributes = []
     functions = []
     descriptor = {}
+    has_unforgeable = False
     for child in node.GetChildren():
       if _is_class(child, 'Const'):
         constants.append(self._gen_ir_node(child))
       elif _is_class(child, 'Attribute'):
-        attributes.append(self._gen_ir_node(child))
+        attr_ir = self._gen_ir_node(child)
+        if not has_unforgeable and attr_ir.get('unforgeable'):
+          has_unforgeable = True;
+        attributes.append(attr_ir)
       elif _is_class(child, 'Operation'):
         op_ir = self._gen_ir_node(child)
         self._append_to_descriptor(op_ir, descriptor)
         self._append_to_functions(op_ir, functions)
+        if not has_unforgeable and op_ir.get('unforgeable'):
+          has_unforgeable = True;
       elif _is_class(child, 'Stringifier'):
         strgf, forward = self._gen_ir_stringifier(child)
         functions.append(strgf)
@@ -580,6 +587,7 @@ class StarfishIDLReader():
     _set_prop_to_dict(result, 'constants', constants)
     _set_prop_to_dict(result, 'attributes', attributes)
     _set_prop_to_dict(result, 'functions', functions)
+    _set_prop_to_dict(result, 'has_unforgeable', has_unforgeable)
     if result.pop('_custom_descriptor', False):
       descriptor['custom'] = True
     if descriptor:
@@ -651,7 +659,7 @@ def gen_ir_from_file(file_path, debug=False):
   reader = StarfishIDLReader(file_path)
   top_nodes = parser.parse_file(file_path)
   result = reader.gen_ir(top_nodes)
-  apply_types(result, result)
+  # apply_types(result, result)
   return result
 
 ##########################################################
