@@ -1,5 +1,7 @@
+{% if constant.unimplemented %}
+{% include 'unimpl_constant_bind.cpp' ignore missing %}
+{% else %}
 {% import 'util.cpp' as util_macro %}
-
 {%- call util_macro.ifdef(constant.flags) %}
     StringRef* {{ constant.name }}String = StringRef::fromASCII("{{ constant.name }}");
     ValueRef* {{ constant.name }}Value = ValueRef::create({{ constant.value }});
@@ -15,4 +17,5 @@
                                  false/* writable */, true/* enumerable */, false/* configurable */
                                   );
     {% endif %}
-{% endcall %}
+{%- endcall %}
+{% endif %}

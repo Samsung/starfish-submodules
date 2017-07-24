@@ -1,5 +1,7 @@
+{% if attribute.unimplemented %}
+{% include 'unimpl_attribute_impl.cpp' ignore missing %}
+{% else %}
 {% import 'util.cpp' as util_macro %}
-
 {%- macro gen_call_getter(vname, owner, attribute, indent) -%}
 {{ '%s = %s->%s();'|format(vname, owner, util_macro.gen_attr_name(attribute))|indent(indent, True) }}
 {%- endmacro -%}
@@ -101,3 +103,4 @@ static ValueRef* {{ util_macro.gen_setter_function(attribute, name) }}(Execution
 {% endif %}
 {% endwith %}
 {% endcall %}
+{% endif %}

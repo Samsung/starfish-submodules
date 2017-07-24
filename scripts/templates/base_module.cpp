@@ -13,34 +13,30 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-{% if flags and flags|length > 0 %}
-#if defined({{flags[0]}})
-    {%- for idx in range(1, flags|length) %}
-        {{-  ' && defined(%s)'|format(flags[idx]) -}}
-    {% endfor %}
-{% endif %}
+{% import 'util.cpp' as util_macro %}
+{%- call util_macro.ifdef(flags) %}
 
 {# FIXME: has to return boolean #}
 {% macro bind_common(condition_macro) -%}
     // Bind for constants
   {% for constant in constants %}
-    {% if not constant.unimplemented and condition_macro(constant)|trim == 'true' %}
+    {% if condition_macro(constant)|trim == 'true' %}
 {% include 'constant_bind.cpp' ignore missing %}
     {% endif %}
   {% endfor %}
     // Bind for attributes
   {% for attribute in attributes %}
-    {% if not attribute.unimplemented and condition_macro(attribute)|trim == 'true' %}
+    {% if condition_macro(attribute)|trim == 'true' %}
 {% include 'attribute_bind.cpp' ignore missing %}
     {% endif %}
   {% endfor %}
     // Bind for functions
   {% for function in functions %}
-    {% if not function.unimplemented and condition_macro(function)|trim == 'true' %}
+    {% if condition_macro(function)|trim == 'true' %}
 {% include 'function_bind.cpp' ignore missing %}
     {% endif %}
   {% endfor %}
-{%- endmacro %}
+{%- endmacro -%}
 
 {% macro condition_unforgeable_fn(ir) -%}
     {% if ir.unforgeable %}
@@ -48,7 +44,7 @@
     {% else %}
         false
     {% endif %}
-{%- endmacro %}
+{%- endmacro -%}
 
 {% macro condition_init_fn(ir) -%}
     {% if primary_global and not ir.unforgeable %}
@@ -56,7 +52,7 @@
     {% else %}
         false
     {% endif %}
-{%- endmacro %}
+{%- endmacro -%}
 
 {% macro condition_binding_fn(ir) -%}
     {% if not primary_global and not ir.unforgeable %}
@@ -64,7 +60,7 @@
     {% else %}
         false
     {% endif %}
-{%- endmacro %}
+{%- endmacro -%}
 
 #include "StarFishConfig.h"
 {% for item in include_paths %}
@@ -82,27 +78,28 @@ namespace StarFish {
 {% include 'dictionary_impl.cpp' ignore missing %}
   {% endfor %}
 {% endif %}
-{% if constructor and not constructor.unimplemented%}
+{% if constructor %}
 // Implement for constructor
 {% include 'constructor_impl.cpp' ignore missing %}
+{% endif %}
+{% if constants %}
+  {% for constant in constants %}
+{% include 'constant_impl.cpp' ignore missing %}
+  {% endfor %}
 {% endif %}
 {% if attributes %}
 // Implement for attributes
   {% for attribute in attributes %}
-    {% if not attribute.const and not attribute.unimplemented %}
 {% include 'attribute_impl.cpp' ignore missing %}
-    {% endif %}
   {% endfor %}
 {% endif %}
 {% if functions %}
 // Implement for functions
   {% for function in functions %}
-    {% if not function.unimplemented %}
-      {% if function.kind in ['Operation', 'Stringifier'] %}
+    {% if function.kind in ['Operation', 'Stringifier'] %}
 {% include 'function_impl.cpp' ignore missing %}
-      {% elif function.kind == 'MultiOperation' %}
+    {% elif function.kind == 'MultiOperation' %}
 {% include 'function_multiform_impl.cpp' ignore missing %}
-      {% endif %}
     {% endif %}
   {% endfor %}
 {% endif %}
@@ -178,6 +175,4 @@ bool {{ name }}::is{{ name }}() const
     return true;
 }
 }
-{% if flags and flags|length > 0 %}
-#endif
-{% endif %}
+{% endcall %}

@@ -3,7 +3,7 @@ import os.path
 import sys
 
 from starfish_idl_lexer import StarfishIDLLexer
-from idl_parser import IDLParser, ParseFile
+from idl_parser import IDLParser, ParseFile, ListFromConcat
 
 ROOT_DIR = os.path.join(os.path.dirname(__file__), os.pardir)
 sys.path.insert(0, os.path.join(ROOT_DIR, 'third_party'))
@@ -18,6 +18,61 @@ for rule in REMOVED_RULES:
   delattr(IDLParser, name)
 
 class StarfishIDLParser(IDLParser):
+  def p_Definitions(self, p):
+    """Definitions : ExtendedAttributeList Definition Definitions
+                   | Comments
+                   | """
+    if len(p) > 2:
+        p[2].AddChildren(p[1])
+        p[0] = ListFromConcat(p[2], p[3])
+
+  def p_ExtendedAttributes(self, p):
+    """ExtendedAttributes : ExtendedAttributeComma ExtendedAttribute ExtendedAttributes
+                          | ExtendedAttributeComma
+                          |"""
+    if len(p) > 3:
+      p[0] = ListFromConcat(p[2], p[3])
+
+  def p_ExtendedAttributeComma(self, p):
+    """ExtendedAttributeComma : ',' Comments
+                              | Comments ','
+                              | ','"""
+    p[0] = p[1]
+
+  def p_ExtendedAttribute(self, p):
+    """ExtendedAttribute : ExtendedAttributeNoArgs
+                         | ExtendedAttributeArgList
+                         | ExtendedAttributeIdent
+                         | ExtendedAttributeIdentList
+                         | ExtendedAttributeNamedArgList
+                         | ExtendedAttributeString
+                         | ExtendedAttributeStringList
+                         | Comments ExtendedAttribute"""
+    if len(p) == 2:
+      p[0] = p[1]
+    elif len(p) == 3:
+      p[0] = p[2]
+
+  def p_ExtendedAttributeString(self, p):
+    """ExtendedAttributeString : identifier '=' string"""
+    value = self.BuildAttribute('VALUE', p[3])
+    p[0] = self.BuildNamed('ExtAttribute', p, 1, value)
+
+  def p_ExtendedAttributeStringList(self, p):
+    """ExtendedAttributeStringList : identifier '=' '(' StringList ')'"""
+    value = self.BuildAttribute('VALUE', p[4])
+    p[0] = self.BuildNamed('ExtAttribute', p, 1, value)
+
+  def p_StringList(self, p):
+    """StringList : string Strings"""
+    p[0] = ListFromConcat(p[1], p[2])
+
+  def p_Strings(self, p):
+    """Strings : ',' string Strings
+               |"""
+    if len(p) > 1:
+      p[0] = ListFromConcat(p[2], p[3])
+
   def parse_file(self, file_path):
     return ParseFile(self, file_path)
 

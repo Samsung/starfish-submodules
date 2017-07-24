@@ -4,7 +4,7 @@
     {% else %}
         {% set native_ctor_fn %}nullptr{% endset %}
     {% endif %}
-    {% if constructor and constructor.name|length == 0 and not constructor.unimplemented %}
+    {% if constructor and constructor.name|length == 0 and (not constructor.unimplemented or strict_mode) %}
     FunctionObjectRef::NativeFunctionInfo ctorInfo(AtomicStringRef::create(context, "{{ name }}"), {{ name|lower }}Constructor, {{ constructor.min_passed_count|default(0) }}, {{ native_ctor_fn }}, true, true);
     {% else %}
     FunctionObjectRef::NativeFunctionInfo ctorInfo(AtomicStringRef::create(context, "{{ name }}"), errorOnConstructorFunction, 0, nullptr, true, true);

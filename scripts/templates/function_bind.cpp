@@ -1,5 +1,5 @@
+{%- if not function.name == '_unnamed_' and (not function.unimplemented or strict_mode) %}
 {% import 'util.cpp' as util_macro %}
-{%- if not function.name == '_unnamed_' %}
 {% call util_macro.ifdef(function.flags) %}
     {% set fn_name = '%s%s'|format(function.name, name)
                       if function.custom else function.name %}

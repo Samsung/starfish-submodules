@@ -13,12 +13,8 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-{% if flags and flags|length > 0 %}
-#if defined({{flags[0]}})
-    {%- for idx in range(1, flags|length) %}
-        {{-  ' && defined(%s)'|format(flags[idx]) -}}
-    {% endfor %}
-{% endif %}
+{% import 'util.cpp' as util_macro %}
+{%- call util_macro.ifdef(flags) %}
 
 #include "StarFishConfig.h"
 {% for item in include_paths %}
@@ -30,8 +26,6 @@
 using namespace Escargot;
 
 namespace StarFish {
-
-{% import 'util.cpp' as util_macro %}
 
 {% if used_dictionaries %}
   {%- for dictionary in used_dictionaries %}
@@ -101,4 +95,4 @@ ValueRef* toValueRefFrom{{name}}(ExecutionStateRef* state, {{name}} from)
 {% if flags and flags|length > 0 %}
 #endif
 {% endif %}
-
+{%- endcall %}

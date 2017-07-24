@@ -200,6 +200,7 @@ class StarfishIDLReader():
   def _gen_ir_dictionary(self, node):
     # print dump_node(node)
     result = _gen_basic_named(node)
+    _set_prop_to_dict(result, 'unimplemented', self.treat_as_unimpl)
     keys = []
     for child in node.GetChildren():
       if _is_class(child, 'Key'):
@@ -225,6 +226,7 @@ class StarfishIDLReader():
         _handle_extattrs(result,
                          child.GetChildren(),
                          [_hd_extattr_flags])
+    _set_prop_to_dict(result, 'file_path', self.file_path)
     self.typedefs[node.GetName()] = result
     return result
 
@@ -239,6 +241,7 @@ class StarfishIDLReader():
                          child.GetChildren(),
                          [_hd_extattr_flags])
     result['data'] = items
+    _set_prop_to_dict(result, 'file_path', self.file_path)
     self.enums[node.GetName()] = result
     return result
 
@@ -317,6 +320,7 @@ class StarfishIDLReader():
   def _gen_ir_const(self, node):
     result = _gen_basic_named(node)
     result['type'] = self._gen_ir_type(node)
+    _set_prop_to_dict(result, 'unimplemented', self.treat_as_unimpl)
     for child in node.GetChildren():
       if _is_class(child, 'Value'):
         _set_value_prop(result, child, 'NAME', 'value')
@@ -333,6 +337,7 @@ class StarfishIDLReader():
     # print dump_node(node)
     result = _gen_basic_named(node)
     _set_boolean_prop(result, node, 'INHERIT', 'inherit')
+    _set_prop_to_dict(result, 'unimplemented', self.treat_as_unimpl)
     has_setter = False if node.GetProperty('READONLY') else True
     type_ir = None
 
@@ -391,6 +396,7 @@ class StarfishIDLReader():
     _set_boolean_prop(result, node, 'STATIC', 'static')
     _set_boolean_prop(result, node, 'GETTER', '_is_item_getter')
     _set_boolean_prop(result, node, 'SETTER', '_is_item_setter')
+    _set_prop_to_dict(result, 'unimplemented', self.treat_as_unimpl)
     return_ir = None
     args_ir = None
     for child in node.GetChildren():
@@ -412,7 +418,6 @@ class StarfishIDLReader():
                           _hd_extattr_raise_expection,
                           _hd_extattr_force_deny_strict,
                           _hd_extattr_callwith])
-
     if return_ir is not None:
       _set_prop_to_dict(return_ir, 'object_option', result.pop('object_option', None))
       result['return'] = return_ir
@@ -533,8 +538,13 @@ class StarfishIDLReader():
   def _gen_ir_interface(self, node):
     # print dump_node(node)
     result = _gen_basic_named(node)
+    partial = node.GetProperty('Partial')
+    if partial:
+      _set_prop_to_dict(result, '_partial_target', node.GetName())
+      result['name'] = os.path.basename(self.file_path)
+    _set_prop_to_dict(result, 'partial_interface', partial)
     _set_prop_to_dict(result, 'no_interface', False)
-    _set_prop_to_dict(result, 'partial_interface', False)
+    _set_prop_to_dict(result, 'unimplemented', self.treat_as_unimpl)
     constants = []
     attributes = []
     functions = []
@@ -593,7 +603,7 @@ class StarfishIDLReader():
     if descriptor:
       _set_prop_to_dict(result, 'descriptor', descriptor)
     _set_prop_to_dict(result, 'file_path', self.file_path)
-    self.interfaces[node.GetName()] = result
+    self.interfaces[result['name']] = result
     return result
 
   def _gen_ir_implements(self, node):
@@ -629,7 +639,7 @@ class StarfishIDLReader():
       _set_prop_to_dict(result, propname, getattr(self, propname))
     return result
 
-  def __init__(self, file_path):
+  def __init__(self, file_path, treat_as_unimpl=False):
     self.file_path = os.path.splitext(file_path)[0]
     self.interfaces = {}
     self.dictionaries = {}
@@ -638,6 +648,7 @@ class StarfishIDLReader():
     self.typedefs = {}
     self.callbacks = {}
     self.errors = []
+    self.treat_as_unimpl = treat_as_unimpl
 
 ##########################################################
 
@@ -646,17 +657,23 @@ def merge_irs(to_ir, from_ir):
     name = _propname_from_kind(key)
     if not to_ir.get(name):
       to_ir[name] = {}
-    to_ir[name].update(from_ir.get(name, {}))
+    for key in from_ir[name]:
+      if to_ir[name].get(key):
+        print 'Duplicate ' + name + ": " + key
+        print '* ' + to_ir[name][key]['file_path'] + '.idl'
+        print '* ' + from_ir[name][key]['file_path'] + '.idl'
+        sys.exit(1)
+      to_ir[name][key] = from_ir[name][key]
 
 def apply_types(type_ir, to_ir):
   handler = StarfishIRHandler()
   handler.apply_types(type_ir, to_ir)
 
-def gen_ir_from_file(file_path, debug=False):
+def gen_ir_from_file(file_path, treat_as_unimpl=False, debug=False):
   # TODO Use singleton lexer, parser
   lexer = StarfishIDLLexer(debug=debug)
   parser = StarfishIDLParser(lexer, debug=debug)
-  reader = StarfishIDLReader(file_path)
+  reader = StarfishIDLReader(file_path, treat_as_unimpl=treat_as_unimpl)
   top_nodes = parser.parse_file(file_path)
   result = reader.gen_ir(top_nodes)
   # apply_types(result, result)

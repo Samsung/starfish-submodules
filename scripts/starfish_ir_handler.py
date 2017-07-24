@@ -2,18 +2,11 @@
 import sys
 import types
 
-def _extend_property_array(target, refer, propname):
-  target_array = target.get(propname)
-  ref_array = refer.get(propname)
-  for item in ref_array:
-    if not item in target_array:
-      target_array.append(item)
-
 class StarfishIRHandler():
   def _add_used_typeref(self, name):
     if self.processing and self.processing['name'] == name:
       return
-    if name in self.interfaces:
+    if name in self.interfaces and not self.interfaces[name].get('unimplemented'):
       self.include_paths.add(self.interfaces[name]['file_path'])
 
   def _add_used_dictionary(self, dictionary):
@@ -163,14 +156,36 @@ class StarfishIRHandler():
     for impl_name in interface.get('implements', []):
       if impl_name in self.interfaces:
         refer = self.interfaces[impl_name]
-        _extend_property_array(interface, refer, 'attributes')
-        _extend_property_array(interface, refer, 'functions')
-        _extend_property_array(interface, refer, 'constants')
-        _extend_property_array(interface, refer, 'used_dictionaries')
+        # append to target
+        copy_list = ['constants', 'attributes', 'functions', 'used_dictionaries']
+        for key in copy_list:
+          interface[key] += refer[key]
+        interface['has_unforgeable'] |= refer['has_unforgeable']
         interface['include_paths'] |= refer['include_paths']
         finished.append(impl_name)
     for impl_name in finished:
       interface.get('implements').remove(impl_name)
+
+  def _check_partial_interface(self, interface):
+    if interface.get('partial_interface') and interface.get('_partial_target'):
+      # print ">> to " + interface.get('_partial_target') + " from " + interface['name']
+      if interface.get('_partial_target') in self.interfaces:
+        target = self.interfaces[interface.pop('_partial_target')]
+        # validate
+        copy_list = ['constants', 'attributes', 'functions', 'used_dictionaries']
+        for key in copy_list:
+          for prop_a in interface[key]:
+            for prop_b in target[key]:
+              if prop_a['name'] in prop_b['name']:
+                print 'Duplicate ' + key + ": " + prop_a['name']
+                print '* ' + target['file_path'] + '.idl'
+                print '* ' + interface['file_path'] + '.idl'
+                sys.exit(1)
+        # append to target
+        for key in copy_list:
+          target[key] += interface[key]
+        target['include_paths'] |= interface['include_paths']
+        target['has_unforgeable'] |= interface['has_unforgeable']
 
   def _check_typedef(self, typedef):
     self._change_types(typedef, 'from', False)
@@ -245,9 +260,10 @@ class StarfishIRHandler():
     # cleaning dictionaries
     for key, value in self.dictionaries.iteritems():
       value.pop('_check', None)
-    # Check implementes in interfaces
+    # Check extras in interfaces
     for key, value in to_ir.get('interfaces', {}).iteritems():
       self._check_implement(value)
+      self._check_partial_interface(value)
 
   def __init__(self):
     self.processing = None

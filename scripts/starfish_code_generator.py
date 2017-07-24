@@ -10,6 +10,8 @@ from math import log10
 from jinja2 import Environment, FileSystemLoader
 from starfish_idl_reader import gen_ir_from_file, merge_irs, apply_types
 
+STRICT_MODE = False
+
 CPP_EXT = ".cpp"
 H_EXT = ".h"
 IR_EXT = ".txt"
@@ -34,11 +36,13 @@ def generate_interface_collection_header(interfaces, args):
 
     if interface.get('partial_interface', False):
       continue
-
+    if interface.get('unimplemented', False):
+      continue
     if interface.get('constructor', False) and \
        len(interface['constructor']['name']) > 0:
       constructor_nicknames.append(interface['constructor']['name'])
 
+    # TODO Support multiple flags
     if "flags" in interface:
       flag = interface["flags"][0]
     else:
@@ -49,44 +53,48 @@ def generate_interface_collection_header(interfaces, args):
     else:
       grouped_interfaces[flag] = [interface["name"]]
 
-  def write_backslash_backslash(w, i, l):
-    if i == l:
-      w.write(" \n")
-    else:
-      w.write(" \\\n")
-
   binding_path = os.path.join(STARFISH_PATH, args.out_path)
   with open(os.path.join(binding_path, "Interfaces.h"), 'w') as w:
+    w.write("#ifndef __StarFishInterfaces__\n")
+    w.write("#define __StarFishInterfaces__\n")
+
     for flag in grouped_interfaces:
       if flag != "STARFISH_ENABLE_DEFAULT":
-        w.write("#ifdef {}\n".format(flag))
+        w.write("\n#ifdef {}".format(flag))
       simple_flag = flag[flag.find("ENABLE_") + 7:]
-      w.write("#define STARFISH_ENUM_LAZY_BINDING_NAMES_{}(F) \\\n".format(simple_flag))
-      names_idx = 0
-      names_len = len(grouped_interfaces[flag])
+      w.write("\n#define STARFISH_ENUM_LAZY_BINDING_NAMES_{}(F)".format(simple_flag))
       for name in sorted(grouped_interfaces[flag]):
-        names_idx += 1
-        w.write("    F({})".format(name))
-        write_backslash_backslash(w, names_idx, names_len)
+        w.write(" \\\n    F({})".format(name))
       if flag != "STARFISH_ENABLE_DEFAULT":
-        w.write("#else\n")
-        w.write("#define STARFISH_ENUM_LAZY_BINDING_NAMES_{}(F)\n".format(simple_flag))
-        w.write("#endif\n")
+        w.write("\n#else")
+        w.write("\n#define STARFISH_ENUM_LAZY_BINDING_NAMES_{}(F)".format(simple_flag))
+        w.write("\n#endif")
       w.write("\n")
+    w.write("\n")
 
-    w.write("#define STARFISH_ENUM_LAZY_BINDING_NAMES(F) \\\n")
+    w.write("\n#define STARFISH_ENUM_LAZY_BINDING_NAMES(F)")
     flags_idx = 0
     flags_len = len(grouped_interfaces.keys())
     for flag in grouped_interfaces:
       flags_idx += 1
       simple_flag = flag[flag.find("ENABLE_") + 7:]
-      w.write("    STARFISH_ENUM_LAZY_BINDING_NAMES_{}(F)".format(simple_flag))
-      write_backslash_backslash(w, flags_idx, flags_len)
+      w.write(" \\\n    STARFISH_ENUM_LAZY_BINDING_NAMES_{}(F)".format(simple_flag))
+    w.write("\n")
 
     w.write("\n#define STARFISH_ENUM_LAZY_BINDING_NICKNAMES(F)")
     for nickname in constructor_nicknames:
       w.write(" \\\n    F({})".format(nickname))
     w.write("\n")
+
+    w.write("\n#define STARFISH_ENUM_LAZY_BINDING_UNIMPL_NAMES(F)")
+    if STRICT_MODE:
+      for key in interfaces:
+        if interfaces[key].get('unimplemented') and\
+           not interfaces[key].get('partial_interface'):
+          w.write(" \\\n    F({})".format(key))
+    w.write("\n")
+
+    w.write("#endif\n")
 
 def generate_code(ir, args):
   print "Generating binding code..."
@@ -97,10 +105,10 @@ def generate_code(ir, args):
   for key in interfaces:
     interface = interfaces[key]
     if interface.get('unimplemented', False):
-      print_skip_msg(dictionary.get('name'), "Unimplemented interface")
+      # print_skip_msg(interface.get('name'), "Unimplemented interface")
       continue
     if interface.get('partial_interface', False):
-      print_skip_msg(interface.get('name'), "PartialInterface")
+      # print_skip_msg(interface.get('name'), "PartialInterface")
       continue
     generate_code_with_template(interface, 'base_module' + CPP_EXT, args)
 
@@ -108,7 +116,7 @@ def generate_code(ir, args):
   for key in dictionaries:
     dictionary = dictionaries[key]
     if dictionary.get('unimplemented', False):
-      print_skip_msg(dictionary.get('name'), "Unimplemented dictionary")
+      # print_skip_msg(dictionary.get('name'), "Unimplemented dictionary")
       continue
     generate_code_with_template(dictionary, 'base_dictionary' + CPP_EXT, args)
 
@@ -140,6 +148,11 @@ def prerun_all(dir_path, file_alone=None):
       if os.path.splitext(f)[-1] != '.idl':
         continue
       file_path = os.path.join(root, f)
+      if 'unimpl_' in f:
+        if STRICT_MODE:
+          ir = gen_ir_from_file(file_path, treat_as_unimpl=True)
+          merge_irs(result, ir)
+        continue
       ir = gen_ir_from_file(file_path)
       merge_irs(result, ir)
       if file_path == file_alone:
@@ -216,6 +229,7 @@ if __name__ == "__main__":
   env.globals['nullable_kinds'] = NULLABLE_TYPE_KINDS
   env.globals['string_kinds'] = STRING_KINDS
   env.globals['pointer_kinds'] = POINTER_KINDS
+  env.globals['strict_mode'] = STRICT_MODE
 
   # with open(MODULES_FILE, 'r') as r:
   #  sf_modules = json.loads(r.read())

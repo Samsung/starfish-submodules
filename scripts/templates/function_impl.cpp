@@ -1,4 +1,7 @@
- {% import 'util.cpp' as util_macro %}
+{% if function.unimplemented %}
+{% include 'unimpl_function_impl.cpp' ignore missing %}
+{% else %}
+{% import 'util.cpp' as util_macro %}
 {%- macro gen_function_name(obj) %}
     {% if obj.kind == 'Attribute' %}
         {{- util_macro.gen_getter_function(obj, name) -}}
@@ -186,5 +189,6 @@ static ValueRef* {{ gen_function_name(function) }}(ExecutionStateRef* state, Val
 }
     {% endif %}
     {% endcall %}
+{% endif %}
 {% endif %}
 

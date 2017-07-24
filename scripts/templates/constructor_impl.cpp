@@ -1,3 +1,6 @@
+{% if constructor.unimplemented %}
+{% include 'unimpl_constructor_impl.cpp' ignore missing %}
+{% else %}
 {% import 'util.cpp' as util_macro %}
 {% if constructor.custom %}
 extern ValueRef* {{ name|lower }}Constructor(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression);
@@ -75,4 +78,4 @@ static ValueRef* {{ name|lower }}Constructor(ExecutionStateRef* state, ValueRef*
 }
 
 {% endif %}
-
+{% endif %}
