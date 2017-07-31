@@ -64,7 +64,7 @@ files using the libjpeg library.
 cp %{SOURCE1001} .
 
 %build
-%if "%{?TIZEN_PRODUCT_TV}" == "1"
+%if "%{tizen_profile_name}" == "tv"
 echo "tizen_product_tv"
 export CFLAGS="$CFLAGS -D_TIZEN_PRODUCT_TV -D_USE_PRODUCT_TV"
 %endif
