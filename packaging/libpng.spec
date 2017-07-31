@@ -38,7 +38,7 @@ cp %{SOURCE1001} .
 CFLAGS+=" -D_ARCH_ARM_ -mfpu=neon"
 %endif
 
-%if 0%{?TIZEN_PRODUCT_TV}
+%if "%{tizen_profile_name}" == "tv"
 CFLAGS+=" -D_PNG_COLOR_PICK_ENABLED_ -D_PNG_SEQUENTIAL_READ_SUPPORTED_"
 %endif
 
