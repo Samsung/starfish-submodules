@@ -174,5 +174,19 @@ bool {{ name }}::is{{ name }}() const
 {
     return true;
 }
+
+{% if serializable %}
+bool {{ name }}::isSerializable() const
+{
+    return true;
+}
+{% endif %}
+
+{% if transferable %}
+bool {{ name }}::isTransferable() const
+{
+    return true;
+}
+{% endif %}
 }
 {% endcall %}
