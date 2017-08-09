@@ -116,6 +116,7 @@ _hd_extattr_force_deny_strict = partial(_hd_extattr_bool_t, 'ForceDenyStrictMode
 _hd_extattr_callwith = partial(_hd_extattr_value_t, 'CallWith', 'call_with', None)
 _hd_extattr_primary_global = partial(_hd_extattr_bool_t, 'PrimaryGlobal', 'primary_global', True)
 _hd_extattr_custom_descriptor = partial(_hd_extattr_bool_t, 'CustomDescriptor', '_custom_descriptor', True)
+_hd_extattr_serializable = partial(_hd_extattr_bool_t, 'Serializable', 'serializable', True)
 
 def _hd_extattr_flags(target, extattr):
   if extattr.GetName() == 'STARFISH_TC_COVERAGE':
@@ -589,7 +590,8 @@ class StarfishIDLReader():
                           _hd_extattr_no_interfaceobj,
                           _hd_extattr_primary_global,
                           _hd_extattr_partial_interface,
-                          _hd_extattr_custom_descriptor])
+                          _hd_extattr_custom_descriptor,
+                          _hd_extattr_serializable])
     call_with = result.pop('_call_with', None)
     constructor = result.get('constructor')
     if constructor:

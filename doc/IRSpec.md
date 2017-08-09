@@ -23,6 +23,7 @@
 | **no_interface** | `Boolean`<br>Prevent binding to global window.<br>*Ref: Geolocation.idl* |
 | **partial_interface** | `Boolean`<br>Only used for partial interface by others.<br>*Ref: ChildNode.idl* |
 | **has_unforgeable** | `Boolean`<br>Has unforgeable constant or attribute or operation in this interface or ancestors |
+| serializable | `Boolean`<br>*Ref: Blob.idl* |
 | unimplemented | `Boolean` |
 | constructor | [Constructor Object](#constructor-object) |
 | named_constructor | [Operation Object](#operation-object)<br>*Ref: HTMLImageElement.idl, HTMLAudioElement.idl* |
