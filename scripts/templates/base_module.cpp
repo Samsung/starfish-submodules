@@ -180,6 +180,11 @@ bool {{ name }}::isSerializable() const
 {
     return true;
 }
+
+Serializable* {{ name }}::toSerializable() const
+{
+    return (Serializable*)this;
+}
 {% endif %}
 
 {% if transferable %}
@@ -187,6 +192,10 @@ bool {{ name }}::isTransferable() const
 {
     return true;
 }
+
+Transferable* {{ name }}::toTransferable() const
+{
+    return (Transferable*)this;
 {% endif %}
 }
 {% endcall %}
