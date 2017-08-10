@@ -126,6 +126,7 @@ void attachUnforgeables{{ name }}(ScriptBindingInstance* instance, ObjectRef* ta
     attachUnforgeables{{ parent.name }}(instance, targetObject);
     {% endif %}
     {{ bind_common(condition_unforgeable_fn) }}
+    state->destroy();
 }
 {% endif %}
 
