@@ -3,8 +3,9 @@
 {% call util_macro.ifdef(function.flags) %}
     {% set fn_name = '%s%s'|format(function.name, name)
                       if function.custom else function.name %}
+    {% set fn_static = function.static if not function.operations else function.operations[0].static %}
     StringRef* {{ function.name }}String = StringRef::fromASCII("{{ function.name }}");
-    {% if function.static %}
+    {% if fn_static %}
         {% set object %}{{ name }}Function{% endset %}
     {% else %}
         {% set object %}targetObject{% endset %}

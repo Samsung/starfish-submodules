@@ -68,7 +68,7 @@ if (validArgCount == {{function.min_passing_count|string}}) {
 {%- macro function_code_normal() %}
     {% if name == 'Window' %}
     GENERATE_WINDOW();
-    {% else %}
+    {% elif not function.static %}
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
     {% endif %}
     {% set min_passed_count = function.min_passed_count|default(0) %}
@@ -140,7 +140,7 @@ if (validArgCount == {{function.min_passing_count|string}}) {
 {%- macro function_code_getter_index() %}
     {% if name == 'Window' %}
     GENERATE_WINDOW();
-    {% else %}
+    {% elif not function.static %}
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
     {% endif %}
     {% set has_return = (function.return.name != 'void') %}

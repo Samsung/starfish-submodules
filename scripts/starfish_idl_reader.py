@@ -496,7 +496,7 @@ class StarfishIDLReader():
     unimplemented = obj.get('unimplemented', False)
     index = None
     for idx, fn in enumerate(fns):
-      if name == fn.get('name'):
+      if name == fn.get('name') and obj.get('static') == fn.get('static'):
         index = idx
         break
     if index is not None:
