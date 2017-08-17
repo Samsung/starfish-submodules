@@ -520,6 +520,8 @@ class StarfishIDLReader():
       fns.append(obj)
 
   def _append_to_descriptor(self, op_ir, to):
+    if op_ir.get('unimplemented'):
+      return
     if op_ir.pop('_is_item_getter', False):
       op_ir['enumerable'] = op_ir.pop('enumerable', True)
       key_type = op_ir.get('arguments')[0].get('type')

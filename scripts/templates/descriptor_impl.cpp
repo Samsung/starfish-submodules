@@ -5,7 +5,7 @@
 {%- macro handle_getter(getter, type) %}
 
     {% set getter_name = 'default%s'|format(type) if getter.name == '_unnamed_' else getter.name %}
-    {% set use_nullable = getter.return.kind in nullable_kinds and getter.return.nullable %}
+    {% set use_nullable = getter.return.kind in nullable_kinds %}
     {% set result_name = 'result.getValue()' if use_nullable else 'result' %}
     {% set return_stm = 'return ExposableObjectGetOwnPropertyCallbackResult(%s, true, false, false);'|format(util_macro.gen_native_to_jsvalue(getter.return, result_name)) %}
     // {{type}}
@@ -19,7 +19,7 @@
         ref = ref->getPrototypeObject();
     }
     {% endif %}
-    {{ util_macro.gen_declare_return_value(getter.return)|trim }}
+    {{ util_macro.gen_declare_return_value(getter.return, is_descriptor=True)|trim }}
     {% if type == 'IndexedGetter' %}
     result = self->{{getter_name}}(idx);
     {% else %}
@@ -29,13 +29,10 @@
     if (result.hasValue()) {
         {{ return_stm }}
     }
-    {% elif getter.return.nullable %}
+    {% elif getter.return.kind in pointer_kinds %}
     if (result != nullptr) {
         {{ return_stm }}
     }
-    {% elif getter.return.kind in pointer_kinds %}
-    STARFISH_ASSERT(result != nullptr);
-    {{ return_stm }}
     {% else %}
     {{ return_stm }}
     {% endif %}
@@ -64,6 +61,7 @@ static ExposableObjectGetOwnPropertyCallbackResult {{ name }}GetOwnPropertyCallb
 {% else %}
     // No getter found in {{ name }}
 {% endif %}
+    // NOTE Ignore this when there are multiple return statements in same depth
     return ExposableObjectGetOwnPropertyCallbackResult();
 }
 

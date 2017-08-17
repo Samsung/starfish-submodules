@@ -68,12 +68,12 @@ static ValueRef* {{ util_macro.gen_setter_function(attribute, name) }}(Execution
     {% else %}
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
     {% endif %}
-    {% if attribute.setter.return.name == 'EventHandlerNonNull' %}
-        {% set x=attribute.setter.return.__setitem__('name', 'EventListener') %}
+    {% set arg = attribute.setter.arguments[0] %}
+    {% if arg.type.name == 'EventHandlerNonNull' %}
+        {% set x=arg.type.__setitem__('name', 'EventListener') %}
     {% endif %}
     {% set need_catch = attribute.setter.raises_exception %}
     {% set indent_callexp = 4 if need_catch else 0 %}
-    {% set arg = attribute.setter.arguments[0] %}
     {% set names = {'name': name, 'attrname': attribute.name, 'aname': 'arg0', 'vname': 'value0'} %}
     {% set property_owner = 'window' if name == 'Window' else 'originalObj' %}
     ValueRef* arg0 = argv[0];

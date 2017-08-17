@@ -25,7 +25,16 @@ class StarfishIRHandler():
     kind = type_ir.get('kind')
     if kind == 'Typeref':
       if name in self.typedefs:
-        parent[type_key] = self.typedefs[name].get('from')
+        from_ir = self.typedefs[name]['from'];
+        # To preserve nullability,
+        # do not connect reference directly here
+        # e.g. parent[type_key] = from_ir
+        type_ir['name'] = from_ir['name']
+        type_ir['kind'] = from_ir['kind']
+        if from_ir.get('data'):
+          type_ir['data'] = from_ir['data']
+        if from_ir.get('nullable'):
+          type_ir['nullable'] = from_ir['nullable']
         return
       if name in self.dictionaries:
         dictionary = self.dictionaries[name]
@@ -188,7 +197,14 @@ class StarfishIRHandler():
         target['has_unforgeable'] |= interface['has_unforgeable']
 
   def _check_typedef(self, typedef):
-    self._change_types(typedef, 'from', False)
+    name = typedef['from']['name']
+    if typedef['from']['kind'] == 'Typeref':
+      if name in self.typedefs:
+        # Check until it meets the end of typedef chain
+        typedef['from'] = self.typedefs[name]['from']
+        self._check_typedef(typedef)
+      else:
+        self._change_types(typedef, 'from', False)
 
   def _check_dictionary(self, dictionary):
     self._init_using_info(dictionary)

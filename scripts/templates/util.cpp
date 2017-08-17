@@ -201,8 +201,8 @@ if (!std::isfinite({{names.vname}})) {
 {% endmacro -%}
 
 {################## 'HANDLE RETURNS' ##################}
-{%- macro gen_declare_return_value_impl(type, vname) -%}
-    {% set use_nullable = type.kind in nullable_kinds and type.nullable %}
+{%- macro gen_declare_return_value_impl(type, vname, is_descriptor) -%}
+    {% set use_nullable = type.kind in nullable_kinds and (type.nullable or is_descriptor) %}
     {% set type_exp = gen_type_str(type, use_nullable) %}
     {% if type.kind in pointer_kinds %}
     {{- '%s %s = nullptr;'|format(type_exp, vname) -}}
@@ -213,9 +213,9 @@ if (!std::isfinite({{names.vname}})) {
     {% endif %}
 {%- endmacro -%}
 
-{%- macro gen_declare_return_value(type, vname='result') -%}
+{%- macro gen_declare_return_value(type, vname='result', is_descriptor=False) -%}
 // Declare native value (empty when type is void)
-    {{ gen_declare_return_value_impl(type, vname) }}
+    {{ gen_declare_return_value_impl(type, vname, is_descriptor) }}
 {%- endmacro -%}
 
 {%- macro gen_return_assert(type, vname='result') %}
