@@ -155,9 +155,24 @@ class StarfishIRHandler():
         self._handle_interface_parent(parent)
         if parent.get('has_unforgeable'):
           interface['has_unforgeable'] = True;
+        self._inherit_descriptor(interface, parent)
       else:
         print interface.get('name') + ': Wrong parent interface "' + parent + '"'
         sys.exit(1)
+
+  def _inherit_descriptor(self, child, parent):
+    p_desc = parent.get('descriptor')
+    if not p_desc:
+      return
+    c_desc = child.get('descriptor')
+    if not c_desc:
+      c_desc = {}
+      child['descriptor'] = c_desc
+    def _set_if_necessary(prop_name):
+      if p_desc.get(prop_name) and not c_desc.get(prop_name):
+        c_desc[prop_name] = p_desc[prop_name]
+    for key in ['indexed_getter', 'named_getter', 'setter', 'custom']:
+      _set_if_necessary(key)
 
   def _check_implement(self, interface):
     # Handle implements
