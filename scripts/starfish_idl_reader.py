@@ -595,11 +595,15 @@ class StarfishIDLReader():
                           _hd_extattr_partial_interface,
                           _hd_extattr_custom_descriptor,
                           _hd_extattr_serializable,
-                          _hd_extattr_transferable])
+                          _hd_extattr_transferable,
+                          _hd_extattr_raise_expection])
+    rs_except = result.pop('raises_exception', None)
     call_with = result.pop('_call_with', None)
     constructor = result.get('constructor')
     if constructor:
       _set_prop_to_dict(constructor, 'call_with', call_with)
+      if rs_except == 'Constructor':
+        constructor['raises_exception'] = True
     _set_prop_to_dict(result, 'constants', constants)
     _set_prop_to_dict(result, 'attributes', attributes)
     _set_prop_to_dict(result, 'functions', functions)

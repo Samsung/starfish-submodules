@@ -114,6 +114,7 @@ class StarfishIRHandler():
     op['operations'] = sorted(operations, key=sort_op, reverse=True)
 
   def _check_constructor(self, constructor):
+    self._udpate_has_exception(constructor)
     unimpl = constructor.get('unimplemented', False)
     for arg in constructor.get('arguments', []):
       self._change_types(arg, 'type', unimpl)

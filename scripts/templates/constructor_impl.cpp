@@ -2,6 +2,25 @@
 {% include 'unimpl_constructor_impl.cpp' ignore missing %}
 {% else %}
 {% import 'util.cpp' as util_macro %}
+{%- macro test_macro_a() -%}
+    {% if max_arg == 0 %}
+    result = new {{name}}({{call_with}});
+    {% elif uniformed_call %}
+    result = new {{name}}({{call_with_comma}}{{ 'value'|to_arg_syntax(0, max_arg) }});
+    {% else %}
+    if (validArgCount == {{min_passing_count|string}}) {
+        {% if min_passing_count == 0 %}
+        result = new {{name}}({{call_with}});
+        {% else %}
+        result = new {{name}}({{call_with_comma}}{{'value'|to_arg_syntax(0, min_passing_count)}});
+        {% endif %}
+        {% for count in range(min_passing_count + 1, max_arg + 1) %}
+    } else if (validArgCount == {{count|string}}) {
+        result = new {{name}}({{call_with_comma}}{{'value'|to_arg_syntax(0, count)}});
+        {% endfor %}
+    }
+    {% endif %}
+{%- endmacro -%}
 {% if constructor.custom %}
 extern ValueRef* {{ name|lower }}Constructor(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression);
 
@@ -57,22 +76,15 @@ static ValueRef* {{ name|lower }}Constructor(ExecutionStateRef* state, ValueRef*
     Window* callWith = fetchWindow(state->context());
     {% endif %}
     // Call native function (nargs: {{max_arg if uniformed_call else '%s-%s'|format(min_passing_count, max_arg)}})
-    {% if max_arg == 0 %}
-    result = new {{name}}({{call_with}});
-    {% elif uniformed_call %}
-    result = new {{name}}({{call_with_comma}}{{ 'value'|to_arg_syntax(0, max_arg) }});
-    {% else %}
-    if (validArgCount == {{min_passing_count|string}}) {
-        {% if min_passing_count == 0 %}
-        result = new {{name}}({{call_with}});
-        {% else %}
-        result = new {{name}}({{call_with_comma}}{{'value'|to_arg_syntax(0, min_passing_count)}});
-        {% endif %}
-        {% for count in range(min_passing_count + 1, max_arg + 1) %}
-    } else if (validArgCount == {{count|string}}) {
-        result = new {{name}}({{call_with_comma}}{{'value'|to_arg_syntax(0, count)}});
-        {% endfor %}
+    {% if constructor.raises_exception %}
+    try {
+        {{ test_macro_a()|trim()|indent(4) }}
+    } catch (DOMException* e) {
+        state->throwException(e->scriptValue());
+        STARFISH_RELEASE_ASSERT_NOT_REACHED();
     }
+    {% else %}
+    {{ test_macro_a()|trim() }}
     {% endif %}
     return result->scriptValue();
 }

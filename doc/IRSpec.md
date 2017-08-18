@@ -134,6 +134,7 @@ Extend [Operation Object](#operation-object)
 | ----- | ----- |
 | **prototype** | Object / Error |
 | call_with | Document / Starfish |
+| raises_exception | boolean |
 
 ## Stringifier Object
 Extend [Operation Object](#operation-object)
