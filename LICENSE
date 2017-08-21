@@ -34,7 +34,6 @@ to get original sources with the liberal terms.
 Original liberal license retained
 
   - lib/sha-1.c         - 3-clause BSD license retained, link to original
-  - win32port/zlib      - ZLIB license (see zlib.h)
 
 Relicensed to libwebsocket license
 
