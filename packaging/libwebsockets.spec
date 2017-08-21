@@ -39,8 +39,6 @@ make %{?jobs:-j%jobs}
 rm -rf %{buildroot}
 
 %make_install
-mkdir -p %{buildroot}%{_datadir}/license
-install -m0644 %{_builddir}/%{buildsubdir}/LICENSE %{buildroot}%{_datadir}/license/%{name}
 
 %post -p /sbin/ldconfig
 
@@ -50,7 +48,7 @@ install -m0644 %{_builddir}/%{buildsubdir}/LICENSE %{buildroot}%{_datadir}/licen
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libwebsockets*.so.*
-%{_datadir}/license/%{name}
+%license LICENSE
 
 %files devel
 %defattr(-,root,root,-)
