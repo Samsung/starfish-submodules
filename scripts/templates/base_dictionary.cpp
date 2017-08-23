@@ -73,7 +73,7 @@ ValueRef* toValueRefFrom{{name}}(ExecutionStateRef* state, {{name}} from)
     if (!{{ vname }}.hasValue()) {
         result->set(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")), ValueRef::createNull());
     } else {
-        result->set(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")), {{ util_macro.gen_native_to_jsvalue(key.type, '%s->getValue()'|format(vname)) }});
+        result->set(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")), {{ util_macro.gen_native_to_jsvalue(key.type, '%s.getValue()'|format(vname)) }});
     }
     {% elif key.type.nullable %}
     if ({{ vname }} == nullptr) {
