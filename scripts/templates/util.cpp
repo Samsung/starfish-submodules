@@ -78,6 +78,40 @@
     {% endif %}
 {%- endmacro -%}
 
+{%- macro get_arrayobject_to_native(seq, aname, vname) -%}
+{% set vector_name = '%sInner'|format(vname) if seq.nullable else vname %}
+{% if seq.nullable %}
+{{ gen_type_str(seq, False) }} {{ vector_name }};
+{% endif %}
+int {{ aname }}Size = (int){{ aname }}->asObject()->get(state, ValueRef::create(StringRef::fromASCII("length")))->toNumber(state);
+for (int i = 0; i < {{ aname }}Size; i++) {
+    {% set use_nullable = seq.data.kind in nullable_kinds and seq.data.nullable %}
+    {% set type_exp = gen_type_str(seq.data, use_nullable) %}
+    {% if seq.data.kind == 'Sequence' %}
+    DOES NOT SUPPORT NESTED SEQUENCE YET !! (PLEASE USE `CUSTOM`)
+    {% endif %}
+    ValueRef* itemJS = {{ aname }}->asObject()->get(state, ValueRef::create(i));
+    {% if seq.data.kind in pointer_kinds %}
+    {{type_exp}} itemNV = nullptr;
+    {% else %}
+    {{type_exp}} itemNV;
+    {% endif %}
+    {% if seq.data.nullable %}
+    if (!itemJS->isUndefinedOrNull()) {
+        {{ gen_check_type(seq.data, 'itemJS')|trim }}
+        itemNV = {{gen_esvalue_to_native(seq.data, 'itemJS')}};
+    }
+    {% else %}
+    {{ gen_check_type(seq.data, 'itemJS')|trim }}
+    itemNV = {{gen_esvalue_to_native(seq.data, 'itemJS')}};
+    {% endif %}
+    {{vector_name}}.push_back(itemNV);
+}
+{% if seq.nullable %}
+{{ vname }} = {{ vector_name }};
+{% endif %}
+{%- endmacro -%}
+
 {%- macro gen_type_str(type, use_nullable) -%}
     {% if type.kind in string_kinds %}
         {% set type_str = 'String*'%}
@@ -87,6 +121,8 @@
         {% set type_str = '%s*'|format(type.name) %}
     {% elif type.kind == 'PrimitiveType' %}
         {% set type_str  = gen_primitive_type_str(type) %}
+    {% elif type.kind == 'Sequence' %}
+        {% set type_str  = 'GCVector<%s>'|format(gen_type_str(type.data, type.data.kind in nullable_kinds and type.data.nullable)) %}
     {% else %}
         {% set type_str = '%s'|format(type.name) %}
     {% endif %}
@@ -98,10 +134,16 @@
 {%- endmacro -%}
 
 {%- macro gen_check_type(type, aname, skip_type_check=False) -%}
-    {% if type.kind == 'Typeref' and not skip_type_check -%}
-        CHECK_TYPEOF({{aname}}, {{type.name}});
-    {%- endif %}
-{% endmacro -%}
+    {% if type.kind == 'Typeref' and not skip_type_check %}
+CHECK_TYPEOF({{aname}}, {{type.name}});
+    {% elif type.kind == 'Sequence' and not skip_type_check %}
+if (!{{aname}}->isObject() || !{{aname}}->asObject()->isArrayObject()) {
+    auto msg = StringRef::fromASCII("Illegal invocation");
+    state->throwException(ValueRef::create(TypeErrorObjectRef::create(state, msg)));
+    STARFISH_RELEASE_ASSERT_NOT_REACHED();
+}
+    {% endif %}
+{%- endmacro -%}
 
 {%- macro gen_check_finite_number(arg, names) -%}
     {% if (arg.type.kind == 'PrimitiveType') and
@@ -154,8 +196,12 @@ if (!std::isfinite({{names.vname}})) {
     {{ '%s %s;'|format(type_exp, names.vname) }}
     {% endif %}
     {###### Assigning native variable of an argument ######}
-    {% set check_type = gen_check_type(arg.type, names.aname, skip_type_check) %}
+    {% set check_type = gen_check_type(arg.type, names.aname, skip_type_check)|trim %}
+    {% if arg.type.kind == 'Sequence' %}
+    {% set assign_exp = get_arrayobject_to_native(arg.type, names.aname, names.vname) %}
+    {% else %}
     {% set assign_exp = '%s = %s;'|format(names.vname, gen_esvalue_to_native(arg.type, names.aname, fromattr)) %}
+    {% endif %}
     {% set check_finite_number = gen_check_finite_number(arg, names) %}
     {% set assign_exp_with_check = '%s\n%s\n%s'|format(check_type, assign_exp, check_finite_number)|trim %}
     {% if (arg.type.kind == 'Callback') and fromattr %}
@@ -239,7 +285,25 @@ ValueRef::create({{var_name}})
 {%- endmacro -%}
 
 {%- macro gen_return_code(type, vname='result') -%}
+    {% if type.kind == 'Sequence' %}
+ArrayObjectRef* arrayObj = ArrayObjectRef::create(state);
+for (unsigned aidx = 0; aidx < {{ vname }}.size(); aidx++) {
+    {% if type.data.kind in nullable_kinds and type.data.nullable %}
+    ValueRef* item = {{ vname }}[aidx].hasValue() ? {{ gen_native_to_jsvalue(type.data, '%s[aidx].getValue()'|format(vname)) }} : ValueRef::createNull();
+    {% elif type.data.kind in pointer_kinds and type.data.nullable %}
+    ValueRef* item = {{ vname }}[aidx] != nullptr ? {{ gen_native_to_jsvalue(type.data, '%s[aidx]'|format(vname)) }} : ValueRef::createNull();
+    {% else %}
+        {% if type.data.kind in pointer_kinds %}
+    STARFISH_ASSERT({{ vname }}[aidx] != nullptr);
+        {% endif %}
+    ValueRef* item = {{ gen_native_to_jsvalue(type.data, '%s[aidx]'|format(vname)) }};
+    {% endif %}
+    arrayObj->set(state, ValueRef::create(aidx), item);
+}
+return ValueRef::create(arrayObj);
+    {% else %}
 return {{ gen_native_to_jsvalue(type, vname) }};
+    {% endif %}
 {%- endmacro -%}
 
 {%- macro handle_return_impl(return_type, vname='result') -%}
@@ -250,16 +314,16 @@ return {{ gen_native_to_jsvalue(type, vname) }};
     if (!{{ vname }}.hasValue()) {
         return ValueRef::createNull();
     }
-    {{ gen_type_str(return_type, False) }} {{ vname }}_value = {{ vname }}.getValue();
-    {{ gen_return_code(return_type, '%s_value'|format(vname)) }}
+    {{ gen_type_str(return_type, False) }} {{ vname }}Value = {{ vname }}.getValue();
+    {{ gen_return_code(return_type, '%sValue'|format(vname))|indent(4) }}
     {%- elif return_type.nullable -%}
     if ({{ vname }} == nullptr) {
         return ValueRef::createNull();
     }
-    {{ gen_return_code(return_type, vname) }}
+    {{ gen_return_code(return_type, vname)|indent(4) }}
     {%- else -%}
     {{ gen_return_assert(return_type)|trim }}
-    {{ gen_return_code(return_type, vname) }}
+    {{ gen_return_code(return_type, vname)|indent(4) }}
     {%- endif %}
 {%- endmacro -%}
 

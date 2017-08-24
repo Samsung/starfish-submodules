@@ -257,6 +257,7 @@ class StarfishIDLReader():
         # Sequence | Promise
         result['kind'] = child.GetClass()
         result['name'] = child.GetClass()
+        _set_boolean_prop(result, child, 'NULLABLE', 'nullable')
         for subt in child.GetChildren():
           if subt.GetClass() == 'Type':
             result['data'] = self._gen_ir_type(subt)

@@ -21,6 +21,7 @@
 | unsigned long long | uint64_t |
 | float, unrestricted_float, double, unrestricted_double | double |
 | DOMString | String*(as arguments) |
+| Sequence<T> | GCVector<T> |
 | dicrionary | [How to create dictionary](/doc/HowToCreateDictionary.md) |
 | enum | [How to create enum](/doc/HowToCreateEnum.md) |
 | XXX* | XXX* |
