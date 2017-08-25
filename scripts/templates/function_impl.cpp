@@ -52,11 +52,7 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {% if function.raises_exception %}
     try {
     {% endif %}
-    {% if return_type.kind == 'Promise' and not return_type.data.kind in pointer_kinds %}
 {{ gen_native_call_impl(return_type, uniformed_call)|indent(spaces, True) }}
-    {% else %}
-{{ gen_native_call_impl(return_type, uniformed_call)|indent(spaces, True) }}
-    {% endif %}
     {% if function.raises_exception %}
     } catch (DOMException* e) {
         state->throwException(e->scriptValue());
@@ -125,7 +121,7 @@ if (validArgCount == {{function.min_passing_count|string}}) {
 
 {%- macro handle_ellipsis(start_idx) %}
     {% set ellp_type = function.arguments[start_idx].type -%}
-    {% set type_exp = util_macro.gen_type_str(ellp_type, ellp_type.nullable and ellp_type in nullable_kinds) -%}
+    {% set type_exp = util_macro.gen_type_str(ellp_type, ellp_type.nullable and ellp_type in non_nullable_type_kinds) -%}
     // Handle ellipsis arguments from index{{start_idx}}
     GCVector<{{type_exp}}> value{{start_idx}};
     {% if function.min_passed_count == 0 or skip_type_check %}

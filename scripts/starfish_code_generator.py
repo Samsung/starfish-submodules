@@ -19,9 +19,11 @@ SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_PATH = os.path.join(SCRIPT_PATH, 'templates')
 STARFISH_PATH = os.path.join(SCRIPT_PATH, '..', '..')
 
-NULLABLE_TYPE_KINDS = ['StringType', 'PrimitiveType', 'Dictionary', 'Sequence']
-STRING_KINDS = ['StringType', 'Enum']
-POINTER_KINDS = ['Typeref', 'Callback', 'Promise']
+NON_NULLABLE_TYPE_KINDS = ['StringType', 'PrimitiveType', 'Dictionary', 'Sequence']
+STRING_TYPE_KINDS = ['StringType', 'Enum']
+POINTER_TYPE_KINDS = ['Typeref', 'Callback', 'Promise']
+NUMBER_TYPE_NAMES = ['short', 'long', 'long long', 'float', 'double', 'unsigned long', 'unsigned short', 'unsigned long long']
+STRONG_TYPE_KINDS = ['Sequence', 'Dictionary', 'Typeref', 'Callback', 'Promise']
 
 _root_dir=None
 
@@ -226,9 +228,11 @@ if __name__ == "__main__":
   env.filters['digit'] = filter_digit
 
   # Set globals
-  env.globals['nullable_kinds'] = NULLABLE_TYPE_KINDS
-  env.globals['string_kinds'] = STRING_KINDS
-  env.globals['pointer_kinds'] = POINTER_KINDS
+  env.globals['non_nullable_type_kinds'] = NON_NULLABLE_TYPE_KINDS
+  env.globals['string_type_kinds'] = STRING_TYPE_KINDS
+  env.globals['pointer_type_kinds'] = POINTER_TYPE_KINDS
+  env.globals['strong_type_kinds'] = STRONG_TYPE_KINDS
+  env.globals['number_type_names'] = NUMBER_TYPE_NAMES
   env.globals['strict_mode'] = STRICT_MODE
 
   # with open(MODULES_FILE, 'r') as r:

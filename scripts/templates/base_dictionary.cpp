@@ -66,7 +66,7 @@ ValueRef* toValueRefFrom{{name}}(ExecutionStateRef* state, {{name}} from)
 {% for key in members %}
     {% if not key.unimplemented %}
     {% set vname = 'value%d'|format(loop.index - 1) %}
-    {% set use_nullable = key.type.kind in nullable_kinds and key.type.nullable %}
+    {% set use_nullable = key.type.kind in non_nullable_type_kinds and key.type.nullable %}
     {{ util_macro.gen_declare_return_value(key.type, vname)|trim }}
     {{ vname }} = from.{{ key.name }}();
     {% if use_nullable %}
@@ -81,7 +81,7 @@ ValueRef* toValueRefFrom{{name}}(ExecutionStateRef* state, {{name}} from)
     } else {
         result->set(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")), {{ vname }}->scriptValue());
     }
-    {% elif key.type.kind in pointer_kinds %}
+    {% elif key.type.kind in pointer_type_kinds %}
     STARFISH_ASSERT({{ vname }} != nullptr);
     result->set(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")), {{ util_macro.gen_native_to_jsvalue(key.type, vname) }});
     {% else %}

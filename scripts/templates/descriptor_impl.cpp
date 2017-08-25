@@ -5,7 +5,7 @@
 {%- macro handle_getter(getter, type) %}
 
     {% set getter_name = 'default%s'|format(type) if getter.name == '_unnamed_' else getter.name %}
-    {% set use_nullable = getter.return.kind in nullable_kinds %}
+    {% set use_nullable = getter.return.kind in non_nullable_type_kinds %}
     {% set result_name = 'result.getValue()' if use_nullable else 'result' %}
     {% set return_stm = 'return ExposableObjectGetOwnPropertyCallbackResult(%s, true, false, false);'|format(util_macro.gen_native_to_jsvalue(getter.return, result_name)) %}
     // {{type}}
@@ -29,7 +29,7 @@
     if (result.hasValue()) {
         {{ return_stm }}
     }
-    {% elif getter.return.kind in pointer_kinds %}
+    {% elif getter.return.kind in pointer_type_kinds %}
     if (result != nullptr) {
         {{ return_stm }}
     }

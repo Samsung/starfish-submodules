@@ -95,20 +95,27 @@ class StarfishIRHandler():
   def _check_multioperation(self, op):
     operations = op.get('operations', [])
     def sort_op(item):
-      return item['min_passed_count']
+      condition_c = 0
+      if item.get('conditions'):
+        condition_c = len(item['conditions'])
+      return item['min_passed_count'] * 100 + condition_c
 
     for subop in operations:
       self._check_operation(subop)
       conditions = []
+      strong_condition_count = 0
       for key, arg in enumerate(subop.get('arguments', [])):
         if arg.get('optional') or arg.get('ellipsis'):
           continue
         if arg['type'].get('nullable', False):
           continue
         # TODO May add Dictionary here
-        if arg['type']['kind'] in ['Typeref']:
+        if not arg['type']['kind'] in ['Any', 'UnionType']:
           conditions.append(key)
+          if arg['type']['kind'] in ['Sequence', 'Dictionary', 'Typeref', 'Callback', 'Promise']:
+            strong_condition_count += 1
       subop['conditions'] = conditions
+      subop['strong_condition_count'] = strong_condition_count
 
     # Sort operations by max 'min_passed_count' order
     op['operations'] = sorted(operations, key=sort_op, reverse=True)

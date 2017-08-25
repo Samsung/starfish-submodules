@@ -21,10 +21,12 @@
 | unsigned long long | uint64_t |
 | float, unrestricted_float, double, unrestricted_double | double |
 | DOMString | String*(as arguments) |
+| object | ScriptObject |
+| any | ScriptValue |
 | Sequence<T> | GCVector<T> |
 | dicrionary | [How to create dictionary](/doc/HowToCreateDictionary.md) |
 | enum | [How to create enum](/doc/HowToCreateEnum.md) |
-| XXX* | XXX* |
+| XXX | XXX* (e.g. EventTarget -> EventTarget*, Node -> Node*) |
 | *? | Wrap Nullable<T> if T is primitive type, DOMString or dictionary, otherwise use pointer as raw (e.g, DOMString should be converted to `Nullable<String*>`) |
 
 ### Header Hierarchy
