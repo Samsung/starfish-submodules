@@ -158,7 +158,10 @@ class StarfishIRHandler():
     if descriptor and not descriptor.get('custom'):
       self._check_operation(descriptor.get('indexed_getter'))
       self._check_operation(descriptor.get('named_getter'))
-      self._check_operation(descriptor.get('setter'))
+      self._check_operation(descriptor.get('indexed_setter'))
+      self._check_operation(descriptor.get('named_setter'))
+      self._check_operation(descriptor.get('indexed_deleter'))
+      self._check_operation(descriptor.get('named_deleter'))
 
     # Update used dictionary and typeref info
     self._flush_using_info(interface)

@@ -133,11 +133,11 @@ static ExposableObjectEnumerationCallbackResultVector {{ name }}EnumerationCallb
     }
     {% endif %}
     {% if ngetter and ngetter.enumerable %}
-    std::vector<const char*> enums;
+    GCVector<String*> enums;
     self->defaultNamedEnumerator(enums);
     for (size_t i = 0; i < enums.size(); i++) {
         v.push_back(ExposableObjectEnumerationCallbackResult(
-            ValueRef::create(StringRef::fromASCII(enums[i])), false, true, false));
+            ValueRef::create(toJSString(enums[i])), false, true, false));
     }
     {% endif %}
     return v;

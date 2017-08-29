@@ -77,3 +77,4 @@ bool is{{ name }}(ExecutionStateRef* state, ValueRef* from)
     return false;
 }
 }
+
