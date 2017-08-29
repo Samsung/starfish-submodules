@@ -39,7 +39,7 @@
     {% elif type.kind == 'Sequence' %}
         ({{ aname }}->isObject() && {{ aname }}->asObject()->isArrayObject())
     {% elif type.kind == 'Promise' %}
-        ({{ aname }}->isObject() || !{{ aname }}->asObject()->isPromiseObject())
+        ({{ aname }}->isObject() && {{ aname }}->asObject()->isPromiseObject())
     {% elif type.kind == 'Dictionary' %}
         {{ aname }}->isObject()
     {% elif type.kind == 'Callback' %}
@@ -53,6 +53,18 @@
             {{ aname }}->isBoolean()
         {% elif type.name in number_type_names %}
             {{ aname }}->isNumber()
+        {% else %}
+            TYPE {{ type.name }} IS NOT SUPPORTED
+        {% endif %}
+    {% elif type.kind == 'UnionType' %}
+        is{{ type.name }}(state, {{ aname }})
+    {% elif type.kind == 'SpecialType' %}
+        {% if type.name == 'ArrayBuffer' %}
+            ({{ aname }}->isObject() && {{ aname }}->asObject()->isArrayBufferObject())
+        {% elif type.name == 'ArrayBufferView' %}
+            ({{ aname }}->isObject() && {{ aname }}->asObject()->isArrayBufferView())
+        {% elif type.name == 'Function' %}
+            {{ aname }}->isFunction()
         {% else %}
             TYPE {{ type.name }} IS NOT SUPPORTED
         {% endif %}
@@ -95,6 +107,8 @@ ScriptObject
         {% else %}
             {{- '%s::to%s(%s)'|format(type.name, type.name, aname) -}}
         {% endif %}
+    {% elif type.kind == 'UnionType' %}
+        {{- 'to%sFromValueRef(state, %s)'|format(type.name, aname) -}}
     {% elif type.kind == 'PrimitiveType' %}
         {% if type.name == 'boolean' %}
             {{- '%s->toBoolean(state)'|format(aname) -}}
@@ -106,6 +120,14 @@ ScriptObject
             {{- '%s->toNumber(state)'|format(aname) -}}
         {% elif type.name == 'object' %}
             {{- '%s->toObject(state)'|format(aname) -}}
+        {% endif %}
+    {% elif type.kind == 'SpecialType' %}
+        {% if type.name == 'ArrayBuffer' %}
+            {{- '%s->asObject()->asArrayBufferObject()'|format(aname) -}}
+        {% elif type.name == 'ArrayBufferView' %}
+            {{- '%s->asObject()->asArrayBufferView()'|format(aname) -}}
+        {% elif type.name == 'Function' %}
+            {{- '%s->asFunction()'|format(aname) -}}
         {% endif %}
     {% endif %}
 {%- endmacro -%}
@@ -149,12 +171,20 @@ for (int i = 0; i < {{ aname }}Size; i++) {
         {% set type_str = 'String*'%}
     {% elif type.kind == 'Any' %}
         {% set type_str = 'ScriptValue'%}
-    {% elif type.kind in pointer_type_kinds %}
-        {% set type_str = '%s*'|format(type.name) %}
     {% elif type.kind == 'PrimitiveType' %}
         {% set type_str  = gen_primitive_type_str(type)|trim %}
     {% elif type.kind == 'Sequence' %}
         {% set type_str  = 'GCVector<%s>'|format(gen_type_str(type.data, type.data.kind in non_nullable_type_kinds and type.data.nullable)) %}
+    {% elif type.kind == 'SpecialType' %}
+        {% if type.name == 'ArrayBuffer' %}
+            {% set type_str  = 'ScriptArrayBuffer' %}
+        {% elif type.name == 'ArrayBufferView' %}
+            {% set type_str  = 'ScriptArrayBufferView' %}
+        {% elif type.name == 'Function' %}
+            {% set type_str  = 'ScriptFunction' %}
+        {% endif %}
+    {% elif type.kind in pointer_type_kinds %}
+        {% set type_str = '%s*'|format(type.name) %}
     {% else %}
         {% set type_str = '%s'|format(type.name) %}
     {% endif %}
@@ -168,7 +198,7 @@ for (int i = 0; i < {{ aname }}Size; i++) {
 {%- macro gen_check_type_exception(type, aname, skip_type_check=False) -%}
     {% if type.kind == 'Typeref' and not skip_type_check %}
 CHECK_TYPEOF({{aname}}, {{type.name}});
-    {% elif type.kind in strong_ype_kinds and type.kind != 'Dictionary' and not skip_type_check %}
+    {% elif type.kind in strong_type_kinds and type.kind != 'Dictionary' and not skip_type_check %}
 if (!{{ gen_check_type(type, aname)|trim }}) {
     THROW_EXCEPTION(ILLEGAL_INVOKE);
 }
@@ -305,12 +335,12 @@ STARFISH_ASSERT({{ vname }} != nullptr);
 ValueRef::create(toJSString({{var_name}}))
     {%- elif type.kind == 'Any' %}
 {{var_name}}
+    {%- elif type.kind in ['Dictionary', 'UnionType'] %}
+toValueRefFrom{{type.name}}(state, {{var_name}})
+    {%- elif type.kind in ['PrimitiveType', 'SpecialType'] %}
+ValueRef::create({{var_name}})
     {%- elif type.kind in pointer_type_kinds %}
 {{var_name}}->scriptValue()
-    {%- elif type.kind == 'Dictionary' %}
-toValueRefFrom{{type.name}}(state, var_name)
-    {%- elif type.kind == 'PrimitiveType' %}
-ValueRef::create({{var_name}})
     {%- endif %}
 {%- endmacro -%}
 

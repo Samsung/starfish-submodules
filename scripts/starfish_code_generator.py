@@ -12,20 +12,19 @@ from starfish_idl_reader import gen_ir_from_file, merge_irs, apply_types
 
 STRICT_MODE = False
 
-CPP_EXT = ".cpp"
-H_EXT = ".h"
 IR_EXT = ".txt"
 SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_PATH = os.path.join(SCRIPT_PATH, 'templates')
 STARFISH_PATH = os.path.join(SCRIPT_PATH, '..', '..')
 
-NON_NULLABLE_TYPE_KINDS = ['StringType', 'PrimitiveType', 'Dictionary', 'Sequence']
+NON_NULLABLE_TYPE_KINDS = ['StringType', 'PrimitiveType', 'Dictionary', 'Sequence', 'UnionType']
 STRING_TYPE_KINDS = ['StringType', 'Enum']
-POINTER_TYPE_KINDS = ['Typeref', 'Callback', 'Promise']
+POINTER_TYPE_KINDS = ['Typeref', 'Callback', 'Promise', 'SpecialType']
 NUMBER_TYPE_NAMES = ['short', 'long', 'long long', 'float', 'double', 'unsigned long', 'unsigned short', 'unsigned long long']
-STRONG_TYPE_KINDS = ['Sequence', 'Dictionary', 'Typeref', 'Callback', 'Promise']
+STRONG_TYPE_KINDS = ['Sequence', 'Dictionary', 'Typeref', 'Promise', 'SpecialType']
 
 _root_dir=None
+_out_dir=None
 
 def print_skip_msg(name, reason):
   print "> Skip generating code for '" + name + "': " + reason
@@ -112,7 +111,7 @@ def generate_code(ir, args):
     if interface.get('partial_interface', False):
       # print_skip_msg(interface.get('name'), "PartialInterface")
       continue
-    generate_code_with_template(interface, 'base_module' + CPP_EXT, args)
+    generate_code_with_template(interface, interface['name'] + 'Binding.cpp', 'base_module.cpp', args)
 
   dictionaries = ir['dictionaries']
   for key in dictionaries:
@@ -120,20 +119,26 @@ def generate_code(ir, args):
     if dictionary.get('unimplemented', False):
       # print_skip_msg(dictionary.get('name'), "Unimplemented dictionary")
       continue
-    generate_code_with_template(dictionary, 'base_dictionary' + CPP_EXT, args)
+    generate_code_with_template(dictionary, dictionary['name'] + 'Binding.cpp', 'base_dictionary.cpp', args)
 
-def generate_code_with_template(ir, template, args):
+  for key in ir['unions']:
+    union = ir['unions'][key]
+    if union.get('unimplemented', False):
+      continue
+    generate_code_with_template(union, union['name'] + 'Union.h', 'base_union.h', args)
+    generate_code_with_template(union, union['name'] + 'Binding.cpp', 'base_union.cpp', args)
+
+def generate_code_with_template(ir, out_name, template, args):
   template = env.get_template(template)
 
   binding_path = os.path.join(STARFISH_PATH, args.out_path)
   if not os.path.exists(binding_path):
-    raise Exception("\"[starfish_root]/src/binding\" doesn't exist")
+    raise Exception("Out path \"" + binding_path + "\" doesn't exist")
 
-  path = ir['name'] + 'Binding' + CPP_EXT
-  with open(os.path.join(binding_path, path), 'w') as w:
+  with open(os.path.join(binding_path, out_name), 'w') as w:
     ret = template.render(**ir)
     w.write(ret)
-    print("> Generated Code for Module \"{}\"".format(ir['name']))
+    print("> Generated Code \"{}\"".format(out_name))
     # print(ret)
 
   if args.log_idl:
@@ -161,6 +166,7 @@ def prerun_all(dir_path, file_alone=None):
         print("Generated IR from {}".format(file_path))
         file_result = ir
   apply_types(result, result)
+  # pprint.pprint(result, indent='2')
   if file_result:
     return result, file_result
   else:
@@ -195,6 +201,9 @@ def filter_first_word_capitalize(word):
 def filter_to_header_path(inputtxt):
   return inputtxt.replace(_root_dir, '') + '.h'
 
+def filter_to_union_header_path(union_name):
+  return _out_dir.replace(_root_dir, '') + union_name + 'Union.h'
+
 def filter_digit(num):
   return int(log10(num)) + 1
 
@@ -224,7 +233,8 @@ if __name__ == "__main__":
   env.filters['assert_false'] = filter_assert_false
   env.filters['to_arg_syntax'] = filter_to_argument_syntax
   env.filters['first_word_capitalize'] = filter_first_word_capitalize
-  env.filters['to_header_path'] = filter_to_header_path
+  env.filters['to_h_path'] = filter_to_header_path
+  env.filters['to_union_h_path'] = filter_to_union_header_path
   env.filters['digit'] = filter_digit
 
   # Set globals
@@ -240,6 +250,10 @@ if __name__ == "__main__":
   _root_dir = args.root_path
   if not _root_dir.endswith('/'):
     _root_dir = _root_dir + '/'
+
+  _out_dir = args.out_path
+  if not _out_dir.endswith('/'):
+    _out_dir = _out_dir + '/'
 
   if args.file is not None:
     all_irs, file_ir = prerun_all(args.root_path, args.file)

@@ -64,9 +64,12 @@
 
 #include "StarFishConfig.h"
 {% for item in include_paths %}
-#include "{{item|to_header_path}}"
+#include "{{item|to_h_path}}"
 {% endfor %}
-#include "{{file_path|to_header_path}}"
+{% for item in used_unions %}
+#include "{{item|to_union_h_path}}"
+{% endfor %}
+#include "{{file_path|to_h_path}}"
 
 #include <EscargotPublic.h>
 using namespace Escargot;
@@ -76,6 +79,11 @@ namespace StarFish {
 {% if used_dictionaries %}
   {%- for dictionary in used_dictionaries %}
 {% include 'dictionary_impl.cpp' ignore missing %}
+  {% endfor %}
+{% endif %}
+{% if used_unions %}
+  {%- for union_item in used_unions %}
+{% include 'union_impl.cpp' ignore missing %}
   {% endfor %}
 {% endif %}
 {% if constructor %}

@@ -25,7 +25,9 @@ class StarfishIRHandler():
     kind = type_ir.get('kind')
     if kind == 'Typeref':
       if name in self.typedefs:
-        from_ir = self.typedefs[name]['from'];
+        typedef = self.typedefs[name]
+        self._change_types(typedef, 'from', unimpl)
+        from_ir = typedef['from'];
         # To preserve nullability,
         # do not connect reference directly here
         # e.g. parent[type_key] = from_ir
@@ -35,6 +37,8 @@ class StarfishIRHandler():
           type_ir['data'] = from_ir['data']
         if from_ir.get('nullable'):
           type_ir['nullable'] = from_ir['nullable']
+        if from_ir.get('unrestricted'):
+          type_ir['unrestricted'] = from_ir['unrestricted']
         return
       if name in self.dictionaries:
         dictionary = self.dictionaries[name]
@@ -53,8 +57,13 @@ class StarfishIRHandler():
       if not unimpl:
         self._add_used_typeref(name)
     elif kind == 'UnionType':
-      for idx, subtype_ir in enumerate(type_ir.get('data', [])):
-        self._change_types(type_ir.get('data'), idx, unimpl)
+      union_name = self._create_union_name(type_ir)
+      type_ir['name'] = union_name
+      self.used_unions.add(union_name)
+      if union_name in self.unions:
+        type_ir['data'] = self.unions[union_name]['data']
+      else:
+        self.unions[union_name] = type_ir
     elif kind in ['Sequence', 'Promise']:
       self._change_types(type_ir, 'data', unimpl)
 
@@ -219,15 +228,11 @@ class StarfishIRHandler():
         target['include_paths'] |= interface['include_paths']
         target['has_unforgeable'] |= interface['has_unforgeable']
 
-  def _check_typedef(self, typedef):
-    name = typedef['from']['name']
-    if typedef['from']['kind'] == 'Typeref':
-      if name in self.typedefs:
-        # Check until it meets the end of typedef chain
-        typedef['from'] = self.typedefs[name]['from']
-        self._check_typedef(typedef)
-      else:
-        self._change_types(typedef, 'from', False)
+  def _check_union(self, union_ir):
+    self._init_using_info(union_ir)
+    for idx, subtype_ir in enumerate(union_ir.get('data', [])):
+      self._change_types(union_ir['data'], idx, False)
+    self._flush_using_info(union_ir)
 
   def _check_dictionary(self, dictionary):
     self._init_using_info(dictionary)
@@ -256,22 +261,43 @@ class StarfishIRHandler():
     return resolved_parent
 
   def _init_using_info(self, from_obj):
+    if from_obj == None:
+      return
     self.processing = from_obj
     if from_obj.get('used_dictionaries', None) is None:
       from_obj['used_dictionaries'] = []
+    if from_obj.get('used_unions', None) is None:
+      from_obj['used_unions'] = set()
     if from_obj.get('include_paths', None) is None:
       from_obj['include_paths'] = set()
     self.used_dictionaries = from_obj['used_dictionaries']
+    self.used_unions = from_obj['used_unions']
     self.include_paths = from_obj['include_paths']
     self.has_exception = False
 
   def _flush_using_info(self, to_obj):
+    if to_obj == None:
+      return
     if self.has_exception:
       self.include_paths.add('core/dom/DOMException')
-    self.include_paths.discard(self.processing['file_path'])
+    if self.processing.get('file_path'):
+      self.include_paths.discard(self.processing['file_path'])
     self.used_dictionaries = []
+    self.used_unions = set()
     self.include_paths = set()
     self.processing = None
+
+  def _create_union_name(self, uniontype_ir):
+    result = ''
+    for subtype_ir in uniontype_ir.get('data', []):
+      if subtype_ir.get('kind') == 'UnionType':
+        result = result + 'Or' + self._create_union_name(subtype_ir)
+      elif not subtype_ir.get('name'):
+        print 'Subtype of Union should have type name'
+        sys.exit(1)
+      else:
+        result = result + 'Or' + subtype_ir['name']
+    return result[2:]
 
   def apply_types(self, type_ir, to_ir):
     self.dictionaries = {}
@@ -285,8 +311,8 @@ class StarfishIRHandler():
     self.typedefs.update(type_ir.get('typedefs', {}))
     self.enums.update(type_ir.get('enums', {}))
     # Check typedefs
-    for key, value in to_ir.get('typedefs', {}).iteritems():
-      self._check_typedef(value)
+    for key in to_ir.get('typedefs', {}):
+      self._change_types(to_ir['typedefs'][key], 'from', False)
     # Check callbacks
     for key, value in to_ir.get('callbacks', {}).iteritems():
       self._check_operation(value)
@@ -303,12 +329,18 @@ class StarfishIRHandler():
     for key, value in to_ir.get('interfaces', {}).iteritems():
       self._check_implement(value)
       self._check_partial_interface(value)
+    # Check unions
+    for key in self.unions:
+      self._check_union(self.unions[key])
+    to_ir['unions'] = self.unions
 
   def __init__(self):
     self.processing = None
     self.used_dictionaries = []
+    self.used_unions = set()
     self.include_paths = set()
     self.has_exception = False
+    self.unions = {}
 
 
 

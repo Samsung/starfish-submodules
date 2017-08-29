@@ -18,9 +18,12 @@
 
 #include "StarFishConfig.h"
 {% for item in include_paths %}
-#include "{{item|to_header_path}}"
+#include "{{item|to_h_path}}"
 {% endfor %}
-#include "{{file_path|to_header_path}}"
+{% for item in used_unions %}
+#include "{{item|to_union_h_path}}"
+{% endfor %}
+#include "{{file_path|to_h_path}}"
 
 #include <EscargotPublic.h>
 using namespace Escargot;
@@ -60,7 +63,7 @@ namespace StarFish {
     return result;
 }
 
-ValueRef* toValueRefFrom{{name}}(ExecutionStateRef* state, {{name}} from)
+ValueRef* toValueRefFrom{{name}}(ExecutionStateRef* state, {{name}}& from)
 {
     ObjectRef* result = ObjectRef::create(state);
 {% for key in members %}

@@ -270,12 +270,16 @@ class StarfishIDLReader():
           if subt.GetClass() == 'Type':
             subtypes.append(self._gen_ir_type(subt))
         result['data'] = subtypes
+        result['unimplemented'] = self.treat_as_unimpl
       elif _is_class(child, 'Any'):
         result['kind'] = child.GetClass()
         result['name'] = child.GetClass()
       elif 'Type' in child.GetClass():
         # PrimitiveType | StringType | Typeref
-        result['kind'] = child.GetClass()
+        if child.GetName() in ['ArrayBuffer', 'ArrayBufferView', 'Function']:
+          result['kind'] = 'SpecialType'
+        else:
+          result['kind'] = child.GetClass()
         result['name'] = child.GetName()
         if 'UNRESTRICTED' in child.GetProperties():
           result['unrestricted'] = child.GetProperties()['UNRESTRICTED']

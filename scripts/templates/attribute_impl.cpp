@@ -49,7 +49,6 @@ static ValueRef* {{ util_macro.gen_getter_function(attribute, name) }}(Execution
     }
     {% endif %}
     {{ util_macro.handle_return(attribute.getter.return)|trim }}
-    {{- 'Error : Unimplemented return type' | assert_true(attribute.getter.return.name in ['object', 'Sequence', 'UnionType', 'Promise']) }}
 }
 {% endif %}
 {% endif %}
