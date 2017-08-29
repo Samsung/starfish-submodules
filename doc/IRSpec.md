@@ -187,7 +187,10 @@ Extend [Type Object](#type-object)
 | ----- | ----- |
 | indexed_getter | [Operation Object](#operation-object) |
 | named_getter | [Operation Object](#operation-object) |
-| setter | [Operation Object](#operation-object)<br>*Ref: CSSStyleDeclaration.idl* |
+| indexed_setter | [Operation Object](#operation-object) |
+| named_setter | [Operation Object](#operation-object)<br>*Ref: CSSStyleDeclaration.idl* |
+| indexed_deleter | [Operation Object](#operation-object) |
+| named_deleter | [Operation Object](#operation-object) |
 | custom | `Boolean` |
 
 ## Serializer Object

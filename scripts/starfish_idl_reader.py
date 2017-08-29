@@ -403,6 +403,7 @@ class StarfishIDLReader():
     _set_boolean_prop(result, node, 'STATIC', 'static')
     _set_boolean_prop(result, node, 'GETTER', '_is_item_getter')
     _set_boolean_prop(result, node, 'SETTER', '_is_item_setter')
+    _set_boolean_prop(result, node, 'DELETER', '_is_item_deleter')
     _set_prop_to_dict(result, 'unimplemented', self.treat_as_unimpl)
     return_ir = None
     args_ir = None
@@ -524,25 +525,41 @@ class StarfishIDLReader():
     else:
       fns.append(obj)
 
+  def _handle_descriptor(self, desc):
+    # Validate descriptor
+    if len(desc.get('arguments')) < 1:
+      raise RuntimeError('Not enough argument')
+    key_type = desc.get('arguments')[0].get('type')
+    desc_type = ""
+    if key_type.get('kind') == 'PrimitiveType':
+      desc_type = "indexed"
+    elif key_type.get('kind') == 'StringType':
+      desc_type = "named"
+    else:
+      raise RuntimeError('Wrong argument type')
+    desc['enumerable'] = desc.pop('enumerable', True)
+    return desc_type
+
   def _append_to_descriptor(self, op_ir, to):
     if op_ir.get('unimplemented'):
       return
-    if op_ir.pop('_is_item_getter', False):
-      op_ir['enumerable'] = op_ir.pop('enumerable', True)
-      key_type = op_ir.get('arguments')[0].get('type')
-      if key_type.get('kind') == 'PrimitiveType':
-        to['indexed_getter'] = op_ir
-      elif key_type.get('kind') == 'StringType':
-        to['named_getter'] = op_ir
-      else:
-        print 'Wrong getter format'
-        sys.exit(1)
-    elif op_ir.pop('_is_item_setter', False):
-      op_ir['enumerable'] = op_ir.pop('enumerable', True)
-      if len(op_ir.get('arguments')) != 2:
-        print 'Wrong setter format'
-        sys.exit(1)
-      to['setter'] = op_ir
+    try:
+      if op_ir.pop('_is_item_getter', False):
+        desc_type = self._handle_descriptor(op_ir)
+        to[desc_type + '_getter'] = op_ir
+      elif op_ir.pop('_is_item_setter', False):
+        desc_type = self._handle_descriptor(op_ir)
+        if len(op_ir.get('arguments')) != 2:
+          raise RuntimeError('Not enough setter argument')
+        to[desc_type + '_setter'] = op_ir
+      elif op_ir.pop('_is_item_deleter', False):
+        desc_type = self._handle_descriptor(op_ir)
+        to[desc_type + '_deleter'] = op_ir
+    except RuntimeError as err:
+      print 'Err: Wrong descriptor format '
+      print '> ' + str(err)
+      print '> ' + self.file_path
+      sys.exit(1)
 
   def _gen_ir_interface(self, node):
     # print dump_node(node)

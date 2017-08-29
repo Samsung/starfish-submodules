@@ -1,6 +1,22 @@
 {% import 'util.cpp' as util_macro %}
 {% set igetter = descriptor.indexed_getter %}
 {% set ngetter = descriptor.named_getter %}
+{% set isetter = descriptor.indexed_setter %}
+{% set nsetter = descriptor.named_setter %}
+{% set ideleter = descriptor.indexed_deleter %}
+{% set ndeleter = descriptor.named_deleter %}
+
+{%- macro raises_exception(exist, indent) %}
+{% if exist %}
+{{ 'try {
+%s} catch (DOMException* e) {
+    state->throwException(e->scriptValue());
+    STARFISH_RELEASE_ASSERT_NOT_REACHED();
+}'|format(caller())|indent(indent, true) }}
+{% else %}
+{{ caller() }}
+{% endif %}
+{%- endmacro -%}
 
 {%- macro handle_getter(getter, type) %}
 
@@ -41,8 +57,10 @@
 static ExposableObjectGetOwnPropertyCallbackResult {{ name }}GetOwnPropertyCallback(ExecutionStateRef* state, ObjectRef* jsSelf, ValueRef* key)
 {
 {% if igetter or ngetter %}
+    {% set exception = igetter.raises_exception if igetter else ngetter.raises_exception %}
     {{name}}* self = ({{name}}*)jsSelf->extraData();
     STARFISH_ASSERT(self->is{{name}}());
+    {% call raises_exception(exception, 4) %}
     {% if igetter and ngetter %}
     uint32_t idx = key->toArrayIndex(state);
     if (idx == ValueRef::InvalidArrayIndexValue) {
@@ -58,6 +76,7 @@ static ExposableObjectGetOwnPropertyCallbackResult {{ name }}GetOwnPropertyCallb
     {% elif ngetter %}
     {{- handle_getter(ngetter, 'NamedGetter') }}
     {% endif %}
+    {% endcall %}
 {% else %}
     // No getter found in {{ name }}
 {% endif %}
@@ -67,18 +86,38 @@ static ExposableObjectGetOwnPropertyCallbackResult {{ name }}GetOwnPropertyCallb
 
 static bool {{ name }}DefineOwnPropertyCallback(ExecutionStateRef* state, ObjectRef* jsSelf, ValueRef* key, ValueRef* value)
 {
-    {% if descriptor.setter %}
-    {% set setter_name = 'defaultSetter' if descriptor.setter.name == '_unnamed_' else descriptor.setter.name %}
+{% if isetter or nsetter %}
     {% set names = {'name': name, 'fname': 'Setter', 'aname': 'value', 'vname': 'valueTo'} %}
+    {% set setarg = isetter.arguments[1] if isetter else nsetter.arguments[1] %}
+    {% set isetter_name = 'defaultIndexedSetter' if isetter and isetter.name == '_unnamed_' else (isetter.name if isetter else '') %}
+    {% set nsetter_name = 'defaultNamedSetter' if nsetter and nsetter.name == '_unnamed_' else (nsetter.name if nsetter else '') %}
+    {% set iassing_exp = 'self->%s(idx, valueTo);'|format(isetter_name) %}
+    {% set nassing_exp = 'self->%s(toBrowserString(state, key), valueTo);'|format(nsetter_name) %}
+    {% set exception = isetter.raises_exception if isetter else nsetter.raises_exception %}
     {{name}}* self = ({{name}}*)jsSelf->extraData();
     STARFISH_ASSERT(self->is{{name}}());
-    {{ util_macro.handle_arg(descriptor.setter.arguments[1], names)|trim }}
-    self->{{setter_name}}(toBrowserString(state, key), valueTo);
-    return true;
+    {{ util_macro.handle_arg(setarg, names)|trim }}
+    {% call raises_exception(exception, 4) %}
+    {% if isetter and nsetter %}
+    uint32_t idx = key->toArrayIndex(state);
+    if (idx == ValueRef::InvalidArrayIndexValue) {
+        {{ nassing_exp|indent(8) }}
+    } else if (idx < self->length()) {
+        {{ iassing_exp|indent(8) }}
+    }
+    {% elif isetter %}
+    uint32_t idx = key->toArrayIndex(state);
+    if (idx != ValueRef::InvalidArrayIndexValue) {
+        {{ iassing_exp|indent(8) }}
+    }
     {% else %}
-    // No setter found in {{ name }}
-    return false;
+    {{ nassing_exp|indent(4) }}
     {% endif %}
+    {% endcall %}
+{% else %}
+    // No setter found in {{ name }}
+{% endif %}
+    return true;
 }
 
 static ExposableObjectEnumerationCallbackResultVector {{ name }}EnumerationCallback(ExecutionStateRef* state, ObjectRef* jsSelf)
