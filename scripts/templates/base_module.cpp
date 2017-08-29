@@ -117,6 +117,7 @@ namespace StarFish {
 ExposableObjectGetOwnPropertyCallbackResult {{ name }}GetOwnPropertyCallback(ExecutionStateRef* state, ObjectRef* self, ValueRef* key);
 bool {{ name }}DefineOwnPropertyCallback(ExecutionStateRef* state, ObjectRef* self, ValueRef* propertyName, ValueRef* value)
 ExposableObjectEnumerationCallbackResultVector {{ name }}EnumerationCallback(ExecutionStateRef* state, ObjectRef* self);
+bool {{ name }}DeleteOwnPropertyCallback(ExecutionStateRef* state, ObjectRef* self, ValueRef* propertyName);
   {% else %}
     {% include 'descriptor_impl.cpp' ignore missing %}
   {% endif %}
@@ -161,7 +162,7 @@ void {{ name }}::init(ScriptBindingInstance* instance, void* domObjectPointer)
     {% if primary_global %}
     m_object = context->globalObject();
     {% elif descriptor %}
-    m_object = ObjectRef::createExposableObject(state, {{ name }}GetOwnPropertyCallback, {{ name }}DefineOwnPropertyCallback, {{ name }}EnumerationCallback);
+    m_object = ObjectRef::createExposableObject(state, {{ name }}GetOwnPropertyCallback, {{ name }}DefineOwnPropertyCallback, {{ name }}EnumerationCallback, {{ name }}DeleteOwnPropertyCallback);
     {% else %}
     m_object = ObjectRef::create(state);
     {% endif %}

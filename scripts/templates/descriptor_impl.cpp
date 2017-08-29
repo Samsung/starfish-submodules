@@ -120,6 +120,11 @@ static bool {{ name }}DefineOwnPropertyCallback(ExecutionStateRef* state, Object
     return true;
 }
 
+static bool {{ name }}DeleteOwnPropertyCallback(ExecutionStateRef* state, ObjectRef* jsSelf, ValueRef* key)
+{
+    return true;
+}
+
 static ExposableObjectEnumerationCallbackResultVector {{ name }}EnumerationCallback(ExecutionStateRef* state, ObjectRef* jsSelf)
 {
     {{name}}* self = ({{name}}*)jsSelf->extraData();
