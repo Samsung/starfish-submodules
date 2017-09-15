@@ -1,0 +1,175 @@
+#ifndef __TizenDeviceAPILoaderForEscargot__
+#define __TizenDeviceAPILoaderForEscargot__
+
+#ifdef TIZEN_DEVICE_API
+
+#include "StarFishConfig.h"
+#include "EscargotPublic.h"
+
+#undef LOGGER_TAG
+#define LOGGER_TAG "StarFishDeviceAPI"
+
+#ifndef __MODULE__
+#define __MODULE__ \
+    (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+#endif
+
+#define _LOGGER_LOG(prio, fmt, args...)                                     \
+    dlog_print(prio, LOGGER_TAG, "%s: %s(%d) > " fmt, __MODULE__, __func__, \
+               __LINE__, ##args);
+
+#define _LOGGER_SLOG(prio, fmt, args...)                                    \
+    dlog_print(prio, LOGGER_TAG, "%s: %s(%d) > " fmt, __MODULE__, __func__, \
+               __LINE__, ##args);
+
+#define DEVICEAPI_LOG_INFO(fmt, args...) _LOGGER_LOG(DLOG_INFO, fmt, ##args)
+#define DEVICEAPI_LOG_ERROR(fmt, args...) _LOGGER_LOG(DLOG_ERROR, fmt, ##args)
+#define DEVICEAPI_LOG_WARN(fmt, args...) _LOGGER_LOG(DLOG_WARN, fmt, ##args)
+
+#define DEVICEAPI_SLOG_INFO(fmt, args...) _LOGGER_SLOG(DLOG_INFO, fmt, ##args)
+#define DEVICEAPI_SLOG_ERROR(fmt, args...) _LOGGER_SLOG(DLOG_ERROR, fmt, ##args)
+#define DEVICEAPI_SLOG_WARN(fmt, args...) _LOGGER_SLOG(DLOG_WARN, fmt, ##args)
+
+namespace wrt {
+namespace xwalk {
+    class Extension;
+    class ExtensionInstance;
+}
+}
+
+namespace DeviceAPI {
+
+class ESPostListener;
+
+#define FOR_EACH_EARLY_TIZEN_STRINGS(F) \
+    F(tizen)                            \
+    F(xwalk)                            \
+    F(webapis)
+
+#define FOR_EACH_LAZY_TIZEN_STRINGS(F) \
+    F(utils)                           \
+    F(sa)                              \
+    F(common)                          \
+    F(extension)                       \
+    F(postMessage)                     \
+    F(sendSyncMessage)                 \
+    F(sendSyncData)                    \
+    F(sendRuntimeMessage)              \
+    F(sendRuntimeSyncMessage)          \
+    F(sendRuntimeAsyncMessage)         \
+    F(setMessageListener)              \
+    F(receiveChunkData)                \
+    F(reply)                           \
+    F(chunk_id)                        \
+    F(string)                          \
+    F(octet)
+
+#define SUPPORTED_TIZEN_PROPERTY(F) \
+    F(application)                  \
+    F(messageport)
+
+#define SUPPORTED_TIZEN_ENTRYPOINTS(F) \
+    F(ApplicationControl)              \
+    F(ApplicationControlData)
+
+class TizenStrings {
+public:
+    TizenStrings(Escargot::ContextRef* context);
+    void initializeEarlyStrings();
+    void initializeLazyStrings();
+
+    typedef std::unordered_map<
+        Escargot::StringRef*, Escargot::AtomicStringRef*,
+        std::hash<Escargot::StringRef*>, std::equal_to<Escargot::StringRef*>,
+        std::allocator<
+            std::pair<const Escargot::StringRef*, Escargot::AtomicStringRef*>>>
+        EntryPointsMap;
+    EntryPointsMap& entryPoints()
+    {
+        return m_entryPoints;
+    }
+
+#define DECLARE_TIZEN_STRING(name) Escargot::AtomicStringRef* name;
+    FOR_EACH_EARLY_TIZEN_STRINGS(DECLARE_TIZEN_STRING);
+    FOR_EACH_LAZY_TIZEN_STRINGS(DECLARE_TIZEN_STRING);
+    SUPPORTED_TIZEN_PROPERTY(DECLARE_TIZEN_STRING);
+    SUPPORTED_TIZEN_ENTRYPOINTS(DECLARE_TIZEN_STRING);
+#undef DECLARE_TIZEN_STRING
+
+private:
+    Escargot::ContextRef* m_context;
+    EntryPointsMap m_entryPoints;
+    bool m_initialized;
+};
+
+/*
+ * Extension: (tizen, utils, common, messageport, sensorservice...) * 1
+ * ExtensionManager: (manager) * 1
+ * ExtensionInstance: (tizen, utils, common, messageport, sensorservice...) *
+ * number of ESVMInstances
+ * ExtensionManagerInstance: (manager) * number of ESVMInstances
+ */
+
+class ExtensionManagerInstance {
+public:
+    ExtensionManagerInstance(Escargot::ContextRef* context);
+    ~ExtensionManagerInstance();
+    static ExtensionManagerInstance* get(Escargot::ContextRef* context);
+    TizenStrings* strings()
+    {
+        return m_strings;
+    }
+    wrt::xwalk::ExtensionInstance* getExtensionInstanceFromCallingContext(
+        Escargot::ContextRef*, Escargot::ValueRef* thisValue);
+    Escargot::ObjectRef* initializeExtensionInstance(const char*);
+
+private:
+    struct ChunkData {
+        ChunkData()
+        {
+        }
+        ChunkData(uint8_t* buffer, size_t length)
+            : m_buffer(buffer)
+            , m_length(length)
+        {
+        }
+        uint8_t* m_buffer;
+        size_t m_length;
+    };
+
+    typedef std::map<size_t, ChunkData> ChunkDataMap;
+    typedef std::map<Escargot::ObjectRef*, wrt::xwalk::ExtensionInstance*>
+        ExtensionInstanceMap;
+    typedef std::vector<ESPostListener*> ESPostListenerVector;
+
+    Escargot::ObjectRef* createExtensionObject();
+    size_t addChunk(uint8_t* buffer, size_t length);
+    ChunkData getChunk(size_t chunkID);
+
+    Escargot::ContextRef* m_context;
+    ExtensionInstanceMap m_extensionInstances;
+    ESPostListenerVector m_postListeners;
+    ChunkDataMap m_chunkDataMap;
+    size_t m_chunkID;
+    TizenStrings* m_strings;
+
+    // static members
+    typedef std::map<Escargot::ContextRef*, ExtensionManagerInstance*>
+        ExtensionManagerInstanceMap;
+    static wrt::xwalk::Extension* getExtension(const char* apiName);
+    static ExtensionManagerInstanceMap s_extensionManagerInstances;
+};
+
+inline ExtensionManagerInstance* ExtensionManagerInstanceGet(
+    Escargot::ContextRef* context)
+{
+    return ExtensionManagerInstance::get(context);
+}
+
+void initialize(Escargot::ContextRef* context);
+void close(Escargot::ContextRef* context);
+}
+
+#endif // TIZEN_DEVICE_API
+
+#endif // __TizenDeviceAPILoaderForEscargot__
