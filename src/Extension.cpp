@@ -119,10 +119,10 @@ namespace xwalk {
                                        size_t value_len)
     {
 #if 0
-  if( rv_provider_ ){
-      std::string ret = rv_provider_->GetRuntimeVariable(key);
-      strncpy(value, ret.c_str(), value_len);
-  }
+        if( rv_provider_ ){
+            std::string ret = rv_provider_->GetRuntimeVariable(key);
+            strncpy(value, ret.c_str(), value_len);
+        }
 #else
         DEVICEAPI_LOG_INFO("GETRUNTIMEVAR: not implemented");
         STARFISH_ASSERT_NOT_REACHED();
@@ -313,11 +313,12 @@ void ESPostDataListener::PostDataToJS(const std::string& msg, uint8_t* buffer,
     auto result =
         sb->run([&](Escargot::ExecutionStateRef* state) -> Escargot::ValueRef* {
 #if 0
-        Escargot::ValueRef* arguments[] = {Escargot::ValueRef::create(Escargot::StringRef::fromASCII(msg.c_str()))};
-        return listener_->call(state, Escargot::ValueRef::createNull(), 1, arguments);
+            Escargot::ValueRef* arguments[] = {Escargot::ValueRef::create(Escargot::StringRef::fromASCII(msg.c_str()))};
+            return listener_->call(state, Escargot::ValueRef::createNull(), 1, arguments);
 #else
             DEVICEAPI_LOG_ERROR("NOT IMPLEMENTED");
             STARFISH_ASSERT_NOT_REACHED();
+            return Escargot::ValueRef::createEmpty();
 #endif
         });
     sb->destroy();

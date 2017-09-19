@@ -272,7 +272,7 @@ Escargot::ObjectRef* ExtensionManagerInstance::createExtensionObject()
                         }
                     }
 
-                    Escargot::StringRef* message = argv[0]->asString();
+                    Escargot::StringRef* message = argv[0]->toString(state);
                     extensionInstance->HandleSyncData(
                         message->toStdUTF8String(), chunkData.m_buffer,
                         chunkData.m_length);
@@ -387,52 +387,54 @@ Escargot::ObjectRef* ExtensionManagerInstance::createExtensionObject()
 
     Escargot::FunctionObjectRef* setMessageListenerFn =
         Escargot::FunctionObjectRef::create(
-            state, Escargot::FunctionObjectRef::NativeFunctionInfo(
-                       m_strings->setMessageListener,
-                       [](Escargot::ExecutionStateRef* state,
-                          Escargot::ValueRef* thisValue, size_t argc,
-                          Escargot::ValueRef** argv,
-                          bool isNewExpression) -> Escargot::ValueRef* {
-                           DEVICEAPI_LOG_ERROR("extension.setMessageListener");
-                           printArguments(state->context(), argc, argv);
+            state,
+            Escargot::FunctionObjectRef::NativeFunctionInfo(
+                m_strings->setMessageListener,
+                [](Escargot::ExecutionStateRef* state,
+                   Escargot::ValueRef* thisValue, size_t argc,
+                   Escargot::ValueRef** argv,
+                   bool isNewExpression) -> Escargot::ValueRef* {
+                    DEVICEAPI_LOG_ERROR("extension.setMessageListener");
+                    printArguments(state->context(), argc, argv);
 
-                           ExtensionManagerInstance* extensionManagerInstance =
-                               get(state->context());
-                           wrt::xwalk::ExtensionInstance* extensionInstance =
-                               extensionManagerInstance
-                                   ->getExtensionInstanceFromCallingContext(
-                                       state->context(), thisValue);
+                    ExtensionManagerInstance* extensionManagerInstance =
+                        get(state->context());
+                    wrt::xwalk::ExtensionInstance* extensionInstance =
+                        extensionManagerInstance
+                            ->getExtensionInstanceFromCallingContext(
+                                state->context(), thisValue);
 
-                           if (!extensionInstance || argc != 1) {
-                               return Escargot::ValueRef::create(false);
-                           }
+                    if (!extensionInstance || argc != 1) {
+                        return Escargot::ValueRef::create(false);
+                    }
 
-                           Escargot::ValueRef* listenerValue = argv[0];
-                           if (listenerValue->isUndefined()) {
-                               return Escargot::ValueRef::create(true);
-                           }
+                    Escargot::ValueRef* listenerValue = argv[0];
+                    if (listenerValue->isUndefined()) {
+                        extensionInstance->set_post_message_listener(nullptr);
+                        return Escargot::ValueRef::create(true);
+                    }
 
-                           if (!listenerValue->isFunction()) {
-                               DEVICEAPI_LOG_ERROR(
-                                   "Trying to set message listener with "
-                                   "invalid value.");
-                               return Escargot::ValueRef::create(false);
-                           }
+                    if (!listenerValue->isFunction()) {
+                        DEVICEAPI_LOG_ERROR(
+                            "Trying to set message listener with "
+                            "invalid value.");
+                        return Escargot::ValueRef::create(false);
+                    }
 
-                           Escargot::FunctionObjectRef* listener =
-                               listenerValue->asFunction();
-                           ESPostMessageListener* postMessageListener =
-                               ESPostMessageListener::create(state->context(),
-                                                             listener);
-                           extensionInstance->set_post_message_listener(
-                               postMessageListener);
+                    Escargot::FunctionObjectRef* listener =
+                        listenerValue->asFunction();
+                    ESPostMessageListener* postMessageListener =
+                        ESPostMessageListener::create(state->context(),
+                                                      listener);
+                    extensionInstance->set_post_message_listener(
+                        postMessageListener);
 
-                           extensionManagerInstance->m_postListeners.push_back(
-                               postMessageListener);
+                    extensionManagerInstance->m_postListeners.push_back(
+                        postMessageListener);
 
-                           return Escargot::ValueRef::create(true);
-                       },
-                       0, nullptr, true, true));
+                    return Escargot::ValueRef::create(true);
+                },
+                0, nullptr, true, true));
 
     extensionObject->defineDataProperty(
         state,
@@ -473,7 +475,7 @@ Escargot::ObjectRef* ExtensionManagerInstance::createExtensionObject()
 
                     Escargot::StringRef* type = argv[1]->toString(state);
                     bool isStringType =
-                        (type->equals(strings->octet->string()));
+                        (!type->equals(strings->octet->string()));
 
                     Escargot::ValueRef* ret;
                     if (isStringType) {
