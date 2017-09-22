@@ -27,6 +27,8 @@ void TizenStrings::initializeEarlyStrings()
     DEVICEAPI_LOG_INFO("Enter");
 
     FOR_EACH_EARLY_TIZEN_STRINGS(INIT_TIZEN_STRING)
+    SUPPORTED_TIZEN_PROPERTY(INIT_TIZEN_STRING)
+    SUPPORTED_TIZEN_ENTRYPOINTS(INIT_TIZEN_STRING)
 }
 
 void TizenStrings::initializeLazyStrings()
@@ -130,12 +132,17 @@ Escargot::ObjectRef* ExtensionManagerInstance::initializeExtensionInstance(
     str.append(" done ');");
     str.append("return exports;})");
 
+    std::string jsFileName = apiName;
+    jsFileName += ".js";
+    jsFileName = "tizen_api_internal_" + jsFileName;
     Escargot::StringRef* apiSource =
         Escargot::StringRef::fromASCII(str.c_str());
-    Escargot::FunctionObjectRef* initializer = m_context->scriptParser()
-                                                   ->parse(apiSource, nullptr)
-                                                   .m_script->execute(state)
-                                                   ->asFunction();
+    Escargot::FunctionObjectRef* initializer =
+        m_context->scriptParser()
+            ->parse(apiSource,
+                    Escargot::StringRef::fromASCII(jsFileName.c_str()))
+            .m_script->execute(state)
+            ->asFunction();
     Escargot::ObjectRef* extensionObject = createExtensionObject();
     wrt::xwalk::ExtensionInstance* extensionInstance =
         extension->CreateInstance();
