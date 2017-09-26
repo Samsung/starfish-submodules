@@ -7,8 +7,14 @@ import json
 import sys
 from math import log10
 
-from jinja2 import Environment, FileSystemLoader
 from starfish_idl_reader import gen_ir_from_file, merge_irs, apply_types
+
+try:
+  from jinja2 import Environment, FileSystemLoader
+except ImportError:
+  print "Error: Jinja2 not found"
+  print "Exiting..."
+  os._exit(0)
 
 STRICT_MODE = False
 
