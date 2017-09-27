@@ -10,7 +10,7 @@ Name:           libjpeg-turbo
 Version:        %{srcver}
 Release:        1
 Summary:        A MMX/SSE2 accelerated library for manipulating JPEG image files
-License:        BSD-3-Clause
+License:        BSD License (BSD 3-clause, Historic Permission Notice and Disclaimer, libjpeg License)
 Group:          Graphics & UI Framework/Libraries
 Url:            http://sourceforge.net/projects/libjpeg-turbo
 Source0:        http://downloads.sourceforge.net/project/%{name}/%{version}/%{name}-%{version}.tar.gz

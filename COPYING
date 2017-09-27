@@ -1,10 +1,8 @@
-*******************************************************************************
-**     License
-*******************************************************************************
+This software is based in part on the work of the Independent JPEG Group.
 
-Most of libjpeg-turbo inherits the non-restrictive, BSD-style license used by
-libjpeg (see README.)  The TurboJPEG/OSS wrapper (both C and Java versions) and
-associated test programs bear a similar license, which is reproduced below:
+
+
+Copyright (C) 2009-2015 D. R. Commander.  All Rights Reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -29,3 +27,14 @@ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
+
+
+
+Copyright (C) 1988-1989 by Jef Poskanzer.
+
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose and without fee is hereby granted, provided
+that the above copyright notice appear in all copies and that both that
+copyright notice and this permission notice appear in supporting
+documentation.  This software is provided "as is" without express or
+implied warranty.
