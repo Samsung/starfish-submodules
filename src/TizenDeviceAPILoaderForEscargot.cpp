@@ -13,7 +13,7 @@ using namespace Escargot;
 
 namespace DeviceAPI {
 
-TizenStrings::TizenStrings(Escargot::ContextRef* context)
+TizenStrings::TizenStrings(ContextRef* context)
     : m_context(context)
     , m_initialized(false)
 {
@@ -21,7 +21,7 @@ TizenStrings::TizenStrings(Escargot::ContextRef* context)
 }
 
 #define INIT_TIZEN_STRING(name) \
-    name = Escargot::AtomicStringRef::create(m_context, "" #name);
+    name = AtomicStringRef::create(m_context, "" #name);
 void TizenStrings::initializeEarlyStrings()
 {
     DEVICEAPI_LOG_INFO("Enter");
@@ -40,24 +40,43 @@ void TizenStrings::initializeLazyStrings()
 
     FOR_EACH_LAZY_TIZEN_STRINGS(INIT_TIZEN_STRING)
 
-    // FIXME: this should be automated
-    m_entryPoints[ApplicationControl->string()] = application;
-    m_entryPoints[ApplicationControlData->string()] = application;
-
     m_initialized = true;
 }
 #undef INIT_TIZEN_STRING
 
-void printArguments(Escargot::ContextRef* context, size_t argc,
-                    Escargot::ValueRef** argv)
+void printArguments(ContextRef* context, size_t argc, ValueRef** argv)
 {
     DEVICEAPI_LOG_INFO("printing %u arguments", argc);
-    Escargot::ExecutionStateRef* state =
-        Escargot::ExecutionStateRef::create(context);
+    ExecutionStateRef* state = ExecutionStateRef::create(context);
     for (size_t i = 0; i < argc; i++) {
         DEVICEAPI_LOG_INFO("argument %u : %s", i,
                            argv[i]->toString(state)->toStdUTF8String().c_str());
     }
+}
+
+void* ExtensionManagerInstance::operator new(size_t size)
+{
+    static bool typeInited = false;
+    static GC_descr descr;
+    if (!typeInited) {
+        GC_word obj_bitmap[GC_BITMAP_SIZE(ExtensionManagerInstance)] = { 0 };
+        GC_set_bit(obj_bitmap,
+                   GC_WORD_OFFSET(ExtensionManagerInstance, m_context));
+        GC_set_bit(obj_bitmap,
+                   GC_WORD_OFFSET(ExtensionManagerInstance, m_strings));
+#define DECLARE_TIZEN_VALUE(name)                                   \
+    GC_set_bit(obj_bitmap, GC_WORD_OFFSET(ExtensionManagerInstance, \
+                                          VALUE_NAME_STRCAT(m_##name)));
+        FOR_EACH_EARLY_TIZEN_STRINGS(DECLARE_TIZEN_VALUE);
+        FOR_EACH_LAZY_TIZEN_STRINGS(DECLARE_TIZEN_VALUE);
+        SUPPORTED_TIZEN_PROPERTY(DECLARE_TIZEN_VALUE);
+        SUPPORTED_TIZEN_ENTRYPOINTS(DECLARE_TIZEN_VALUE);
+#undef DECLARE_TIZEN_VALUE
+        descr = GC_make_descriptor(obj_bitmap,
+                                   GC_WORD_LEN(ExtensionManagerInstance));
+        typeInited = true;
+    }
+    return GC_MALLOC_EXPLICITLY_TYPED(size, descr);
 }
 
 wrt::xwalk::Extension* ExtensionManagerInstance::getExtension(
@@ -99,17 +118,16 @@ wrt::xwalk::Extension* ExtensionManagerInstance::getExtension(
 
 // Caution: this function is called only inside existing js execution context,
 // so we don't handle JS exception around ESFunctionObject::call()
-Escargot::ObjectRef* ExtensionManagerInstance::initializeExtensionInstance(
+ObjectRef* ExtensionManagerInstance::initializeExtensionInstance(
     const char* apiName)
 {
     DEVICEAPI_LOG_INFO("Enter");
 
-    Escargot::ExecutionStateRef* state =
-        Escargot::ExecutionStateRef::create(m_context);
+    ExecutionStateRef* state = ExecutionStateRef::create(m_context);
     wrt::xwalk::Extension* extension = getExtension(apiName);
     if (!extension) {
         DEVICEAPI_LOG_INFO("Cannot load extension %s", apiName);
-        return Escargot::ObjectRef::create(state);
+        return ObjectRef::create(state);
     }
     std::string str;
     str.append("(function(extension){");
@@ -135,394 +153,344 @@ Escargot::ObjectRef* ExtensionManagerInstance::initializeExtensionInstance(
     std::string jsFileName = apiName;
     jsFileName += ".js";
     jsFileName = "tizen_api_internal_" + jsFileName;
-    Escargot::StringRef* apiSource =
-        Escargot::StringRef::fromASCII(str.c_str());
-    Escargot::FunctionObjectRef* initializer =
+    StringRef* apiSource = StringRef::fromASCII(str.c_str());
+    FunctionObjectRef* initializer =
         m_context->scriptParser()
-            ->parse(apiSource,
-                    Escargot::StringRef::fromASCII(jsFileName.c_str()))
+            ->parse(apiSource, StringRef::fromASCII(jsFileName.c_str()))
             .m_script->execute(state)
             ->asFunction();
-    Escargot::ObjectRef* extensionObject = createExtensionObject();
+    ObjectRef* extensionObject = createExtensionObject();
     wrt::xwalk::ExtensionInstance* extensionInstance =
         extension->CreateInstance();
     m_extensionInstances[extensionObject] = extensionInstance;
-    Escargot::ValueRef* arguments[] = { Escargot::ValueRef::create(
-        extensionObject) };
-    return initializer
-        ->call(state, Escargot::ValueRef::createNull(), 1, arguments)
+    ValueRef* arguments[] = { ValueRef::create(extensionObject) };
+    return initializer->call(state, ValueRef::createNull(), 1, arguments)
         ->toObject(state);
 }
 
-Escargot::ObjectRef* ExtensionManagerInstance::createExtensionObject()
+ObjectRef* ExtensionManagerInstance::createExtensionObject()
 {
     DEVICEAPI_LOG_INFO("Enter");
 
-    Escargot::ExecutionStateRef* state =
-        Escargot::ExecutionStateRef::create(m_context);
-    Escargot::ObjectRef* extensionObject = Escargot::ObjectRef::create(state);
+    ExecutionStateRef* state = ExecutionStateRef::create(m_context);
+    ObjectRef* extensionObject = ObjectRef::create(state);
 
-    Escargot::FunctionObjectRef* postMessageFn =
-        Escargot::FunctionObjectRef::create(
-            state,
-            Escargot::FunctionObjectRef::NativeFunctionInfo(
-                m_strings->postMessage,
-                [](Escargot::ExecutionStateRef* state,
-                   Escargot::ValueRef* thisValue, size_t argc,
-                   Escargot::ValueRef** argv,
-                   bool isNewExpression) -> Escargot::ValueRef* {
-                    DEVICEAPI_LOG_ERROR("extension.postMessage UNIMPLEMENTED");
-                    printArguments(state->context(), argc, argv);
-                    STARFISH_RELEASE_ASSERT_NOT_REACHED();
-                    return Escargot::ValueRef::createEmpty();
-                },
-                0, nullptr, true, true));
+    FunctionObjectRef* postMessageFn = FunctionObjectRef::create(
+        state,
+        FunctionObjectRef::NativeFunctionInfo(
+            m_strings->postMessage,
+            [](ExecutionStateRef* state, ValueRef* thisValue, size_t argc,
+               ValueRef** argv, bool isNewExpression) -> ValueRef* {
+                DEVICEAPI_LOG_ERROR("extension.postMessage UNIMPLEMENTED");
+                printArguments(state->context(), argc, argv);
+                STARFISH_RELEASE_ASSERT_NOT_REACHED();
+                return ValueRef::createEmpty();
+            },
+            0, nullptr, true, true));
 
     extensionObject->defineDataProperty(
-        state, Escargot::ValueRef::create(m_strings->postMessage->string()),
-        Escargot::ValueRef::create(postMessageFn), true, true, true);
+        state, ValueRef::create(m_strings->postMessage->string()),
+        ValueRef::create(postMessageFn), true, true, true);
 
-    Escargot::FunctionObjectRef* sendSyncMessageFn =
-        Escargot::FunctionObjectRef::create(
-            state, Escargot::FunctionObjectRef::NativeFunctionInfo(
-                       m_strings->sendSyncMessage,
-                       [](Escargot::ExecutionStateRef* state,
-                          Escargot::ValueRef* thisValue, size_t argc,
-                          Escargot::ValueRef** argv,
-                          bool isNewExpression) -> Escargot::ValueRef* {
-                           DEVICEAPI_LOG_INFO("extension.sendSyncMessage");
-                           printArguments(state->context(), argc, argv);
+    FunctionObjectRef* sendSyncMessageFn = FunctionObjectRef::create(
+        state,
+        FunctionObjectRef::NativeFunctionInfo(
+            m_strings->sendSyncMessage,
+            [](ExecutionStateRef* state, ValueRef* thisValue, size_t argc,
+               ValueRef** argv, bool isNewExpression) -> ValueRef* {
+                DEVICEAPI_LOG_INFO("extension.sendSyncMessage");
+                printArguments(state->context(), argc, argv);
 
-                           ExtensionManagerInstance* extensionManagerInstance =
-                               get(state->context());
-                           wrt::xwalk::ExtensionInstance* extensionInstance =
-                               extensionManagerInstance
-                                   ->getExtensionInstanceFromCallingContext(
-                                       state->context(), thisValue);
-                           if (!extensionInstance || argc != 1) {
-                               return Escargot::ValueRef::create(false);
-                           }
+                ExtensionManagerInstance* extensionManagerInstance =
+                    get(state->context());
+                wrt::xwalk::ExtensionInstance* extensionInstance =
+                    extensionManagerInstance
+                        ->getExtensionInstanceFromCallingContext(
+                            state->context(), thisValue);
+                if (!extensionInstance || argc != 1) {
+                    return ValueRef::create(false);
+                }
 
-                           Escargot::StringRef* message = argv[0]->asString();
-                           extensionInstance->HandleSyncMessage(
-                               message->toStdUTF8String());
+                StringRef* message = argv[0]->toString(state);
+                extensionInstance->HandleSyncMessage(
+                    message->toStdUTF8String());
 
-                           std::string reply =
-                               extensionInstance->sync_replay_msg();
-                           DEVICEAPI_LOG_INFO(
-                               "extension.sendSyncMessage Done with reply %s",
-                               reply.c_str());
+                std::string reply = extensionInstance->sync_replay_msg();
+                DEVICEAPI_LOG_INFO(
+                    "extension.sendSyncMessage Done with reply %s",
+                    reply.c_str());
 
-                           if (reply.empty()) {
-                               return Escargot::ValueRef::createNull();
-                           }
-                           return Escargot::ValueRef::create(
-                               Escargot::StringRef::fromASCII(reply.c_str()));
-                       },
-                       0, nullptr, true, true));
+                if (reply.empty()) {
+                    return ValueRef::createNull();
+                }
+                return ValueRef::create(StringRef::fromASCII(reply.c_str()));
+            },
+            0, nullptr, true, true));
 
     extensionObject->defineDataProperty(
-        state, Escargot::ValueRef::create(m_strings->sendSyncMessage->string()),
-        Escargot::ValueRef::create(sendSyncMessageFn), true, true, true);
+        state, ValueRef::create(m_strings->sendSyncMessage->string()),
+        ValueRef::create(sendSyncMessageFn), true, true, true);
 
-    Escargot::FunctionObjectRef* sendSyncDataFn =
-        Escargot::FunctionObjectRef::create(
-            state,
-            Escargot::FunctionObjectRef::NativeFunctionInfo(
-                m_strings->sendSyncData,
-                [](Escargot::ExecutionStateRef* state,
-                   Escargot::ValueRef* thisValue, size_t argc,
-                   Escargot::ValueRef** argv,
-                   bool isNewExpression) -> Escargot::ValueRef* {
-                    DEVICEAPI_LOG_INFO("extension.sendSyncData");
-                    printArguments(state->context(), argc, argv);
+    FunctionObjectRef* sendSyncDataFn = FunctionObjectRef::create(
+        state,
+        FunctionObjectRef::NativeFunctionInfo(
+            m_strings->sendSyncData,
+            [](ExecutionStateRef* state, ValueRef* thisValue, size_t argc,
+               ValueRef** argv, bool isNewExpression) -> ValueRef* {
+                DEVICEAPI_LOG_INFO("extension.sendSyncData");
+                printArguments(state->context(), argc, argv);
 
-                    ExtensionManagerInstance* extensionManagerInstance =
-                        get(state->context());
-                    wrt::xwalk::ExtensionInstance* extensionInstance =
-                        extensionManagerInstance
-                            ->getExtensionInstanceFromCallingContext(
-                                state->context(), thisValue);
-                    if (!extensionInstance || argc < 1) {
-                        return Escargot::ValueRef::create(false);
-                    }
+                ExtensionManagerInstance* extensionManagerInstance =
+                    get(state->context());
+                wrt::xwalk::ExtensionInstance* extensionInstance =
+                    extensionManagerInstance
+                        ->getExtensionInstanceFromCallingContext(
+                            state->context(), thisValue);
+                if (!extensionInstance || argc < 1) {
+                    return ValueRef::create(false);
+                }
 
-                    ChunkData chunkData(nullptr, 0);
-                    if (argc > 1) {
-                        Escargot::ValueRef* dataValue = argv[1];
-                        if (dataValue->isObject()) {
-                            Escargot::ObjectRef* arrayData =
-                                dataValue->toObject(state);
-                            size_t length =
-                                arrayData
-                                    ->get(state,
-                                          Escargot::ValueRef::create(
-                                              Escargot::StringRef::fromASCII(
-                                                  "length")))
-                                    ->toLength(state);
-                            uint8_t* buffer =
-                                (uint8_t*)malloc(sizeof(uint8_t) * length);
-                            for (size_t i = 0; i < length; i++) {
-                                buffer[i] = static_cast<uint8_t>(
-                                    arrayData
-                                        ->get(state,
-                                              Escargot::ValueRef::create(i))
-                                        ->toNumber(state));
-                            }
-                            chunkData = ChunkData(buffer, length);
-                        } else if (dataValue->isString()) {
-                            Escargot::StringRef* stringData =
-                                dataValue->toString(state);
-                            chunkData = ChunkData(
-                                (uint8_t*)stringData->toStdUTF8String().c_str(),
-                                stringData->length());
+                ChunkData chunkData(nullptr, 0);
+                if (argc > 1) {
+                    ValueRef* dataValue = argv[1];
+                    if (dataValue->isObject()) {
+                        ObjectRef* arrayData = dataValue->toObject(state);
+                        size_t length =
+                            arrayData
+                                ->get(state,
+                                      ValueRef::create(
+                                          StringRef::fromASCII("length")))
+                                ->toLength(state);
+                        uint8_t* buffer =
+                            (uint8_t*)malloc(sizeof(uint8_t) * length);
+                        for (size_t i = 0; i < length; i++) {
+                            buffer[i] = static_cast<uint8_t>(
+                                arrayData->get(state, ValueRef::create(i))
+                                    ->toNumber(state));
                         }
+                        chunkData = ChunkData(buffer, length);
+                    } else if (dataValue->isString()) {
+                        StringRef* stringData = dataValue->toString(state);
+                        chunkData = ChunkData(
+                            (uint8_t*)stringData->toStdUTF8String().c_str(),
+                            stringData->length());
                     }
+                }
 
-                    Escargot::StringRef* message = argv[0]->toString(state);
-                    extensionInstance->HandleSyncData(
-                        message->toStdUTF8String(), chunkData.m_buffer,
-                        chunkData.m_length);
+                StringRef* message = argv[0]->toString(state);
+                extensionInstance->HandleSyncData(message->toStdUTF8String(),
+                                                  chunkData.m_buffer,
+                                                  chunkData.m_length);
 
-                    uint8_t* replyBuffer = nullptr;
-                    size_t replyLength = 0;
-                    std::string reply = extensionInstance->sync_data_reply_msg(
-                        &replyBuffer, &replyLength);
+                uint8_t* replyBuffer = nullptr;
+                size_t replyLength = 0;
+                std::string reply = extensionInstance->sync_data_reply_msg(
+                    &replyBuffer, &replyLength);
 
-                    DEVICEAPI_LOG_INFO(
-                        "extension.sendSyncData Done with reply %s (buffer %s)",
-                        reply.c_str(), replyBuffer);
+                DEVICEAPI_LOG_INFO(
+                    "extension.sendSyncData Done with reply %s (buffer %s)",
+                    reply.c_str(), replyBuffer);
 
-                    if (reply.empty()) {
-                        return Escargot::ValueRef::createNull();
-                    }
+                if (reply.empty()) {
+                    return ValueRef::createNull();
+                }
 
-                    Escargot::ObjectRef* returnObject =
-                        Escargot::ObjectRef::create(state);
+                ObjectRef* returnObject = ObjectRef::create(state);
+                returnObject->defineDataProperty(
+                    state,
+                    ValueRef::create(
+                        extensionManagerInstance->strings()->reply->string()),
+                    ValueRef::create(StringRef::fromASCII(reply.c_str())), true,
+                    true, true);
+
+                if (replyBuffer || replyLength > 0) {
+                    size_t chunkID = extensionManagerInstance->addChunk(
+                        replyBuffer, replyLength);
                     returnObject->defineDataProperty(
-                        state, Escargot::ValueRef::create(
-                                   extensionManagerInstance->strings()
-                                       ->reply->string()),
-                        Escargot::ValueRef::create(
-                            Escargot::StringRef::fromASCII(reply.c_str())),
-                        true, true, true);
+                        state,
+                        ValueRef::create(extensionManagerInstance->strings()
+                                             ->chunk_id->string()),
+                        ValueRef::create(chunkID), true, true, true);
+                }
 
-                    if (replyBuffer || replyLength > 0) {
-                        size_t chunkID = extensionManagerInstance->addChunk(
-                            replyBuffer, replyLength);
-                        returnObject->defineDataProperty(
-                            state, Escargot::ValueRef::create(
-                                       extensionManagerInstance->strings()
-                                           ->chunk_id->string()),
-                            Escargot::ValueRef::create(chunkID), true, true,
-                            true);
-                    }
-
-                    return Escargot::ValueRef::create(returnObject);
-                },
-                0, nullptr, true, true));
+                return ValueRef::create(returnObject);
+            },
+            0, nullptr, true, true));
 
     extensionObject->defineDataProperty(
-        state, Escargot::ValueRef::create(m_strings->sendSyncData->string()),
-        Escargot::ValueRef::create(sendSyncDataFn), true, true, true);
+        state, ValueRef::create(m_strings->sendSyncData->string()),
+        ValueRef::create(sendSyncDataFn), true, true, true);
 
-    Escargot::FunctionObjectRef* sendRuntimeMessageFn =
-        Escargot::FunctionObjectRef::create(
-            state, Escargot::FunctionObjectRef::NativeFunctionInfo(
-                       m_strings->sendRuntimeMessage,
-                       [](Escargot::ExecutionStateRef* state,
-                          Escargot::ValueRef* thisValue, size_t argc,
-                          Escargot::ValueRef** argv,
-                          bool isNewExpression) -> Escargot::ValueRef* {
-                           DEVICEAPI_LOG_ERROR(
-                               "extension.sendRuntimeMessage UNIMPLEMENTED");
-                           printArguments(state->context(), argc, argv);
-                           STARFISH_RELEASE_ASSERT_NOT_REACHED();
-                           return Escargot::ValueRef::createEmpty();
-                       },
-                       0, nullptr, true, true));
-
-    extensionObject->defineDataProperty(
+    FunctionObjectRef* sendRuntimeMessageFn = FunctionObjectRef::create(
         state,
-        Escargot::ValueRef::create(m_strings->sendRuntimeMessage->string()),
-        Escargot::ValueRef::create(sendRuntimeMessageFn), true, true, true);
+        FunctionObjectRef::NativeFunctionInfo(
+            m_strings->sendRuntimeMessage,
+            [](ExecutionStateRef* state, ValueRef* thisValue, size_t argc,
+               ValueRef** argv, bool isNewExpression) -> ValueRef* {
+                DEVICEAPI_LOG_ERROR(
+                    "extension.sendRuntimeMessage UNIMPLEMENTED");
+                printArguments(state->context(), argc, argv);
+                STARFISH_RELEASE_ASSERT_NOT_REACHED();
+                return ValueRef::createEmpty();
+            },
+            0, nullptr, true, true));
 
-    Escargot::FunctionObjectRef* sendRuntimeAsyncMessageFn =
-        Escargot::FunctionObjectRef::create(
-            state,
-            Escargot::FunctionObjectRef::NativeFunctionInfo(
-                m_strings->sendRuntimeAsyncMessage,
-                [](Escargot::ExecutionStateRef* state,
-                   Escargot::ValueRef* thisValue, size_t argc,
-                   Escargot::ValueRef** argv,
-                   bool isNewExpression) -> Escargot::ValueRef* {
+    extensionObject->defineDataProperty(
+        state, ValueRef::create(m_strings->sendRuntimeMessage->string()),
+        ValueRef::create(sendRuntimeMessageFn), true, true, true);
+
+    FunctionObjectRef* sendRuntimeAsyncMessageFn = FunctionObjectRef::create(
+        state,
+        FunctionObjectRef::NativeFunctionInfo(
+            m_strings->sendRuntimeAsyncMessage,
+            [](ExecutionStateRef* state, ValueRef* thisValue, size_t argc,
+               ValueRef** argv, bool isNewExpression) -> ValueRef* {
+                DEVICEAPI_LOG_ERROR(
+                    "extension.sendRuntimeAsyncMessage UNIMPLEMENTED");
+                printArguments(state->context(), argc, argv);
+                STARFISH_RELEASE_ASSERT_NOT_REACHED();
+                return ValueRef::createEmpty();
+            },
+            0, nullptr, true, true));
+
+    extensionObject->defineDataProperty(
+        state, ValueRef::create(m_strings->sendRuntimeAsyncMessage->string()),
+        ValueRef::create(sendRuntimeAsyncMessageFn), true, true, true);
+
+    FunctionObjectRef* sendRuntimeSyncMessageFn = FunctionObjectRef::create(
+        state,
+        FunctionObjectRef::NativeFunctionInfo(
+            m_strings->sendRuntimeSyncMessage,
+            [](ExecutionStateRef* state, ValueRef* thisValue, size_t argc,
+               ValueRef** argv, bool isNewExpression) -> ValueRef* {
+                DEVICEAPI_LOG_ERROR(
+                    "extension.sendRuntimeSyncMessage UNIMPLEMENTED");
+                printArguments(state->context(), argc, argv);
+                STARFISH_RELEASE_ASSERT_NOT_REACHED();
+                return ValueRef::createEmpty();
+            },
+            0, nullptr, true, true));
+
+    extensionObject->defineDataProperty(
+        state, ValueRef::create(m_strings->sendRuntimeSyncMessage->string()),
+        ValueRef::create(sendRuntimeSyncMessageFn), true, true, true);
+
+    FunctionObjectRef* setMessageListenerFn = FunctionObjectRef::create(
+        state,
+        FunctionObjectRef::NativeFunctionInfo(
+            m_strings->setMessageListener,
+            [](ExecutionStateRef* state, ValueRef* thisValue, size_t argc,
+               ValueRef** argv, bool isNewExpression) -> ValueRef* {
+                DEVICEAPI_LOG_ERROR("extension.setMessageListener");
+                printArguments(state->context(), argc, argv);
+
+                ExtensionManagerInstance* extensionManagerInstance =
+                    get(state->context());
+                wrt::xwalk::ExtensionInstance* extensionInstance =
+                    extensionManagerInstance
+                        ->getExtensionInstanceFromCallingContext(
+                            state->context(), thisValue);
+
+                if (!extensionInstance || argc != 1) {
+                    return ValueRef::create(false);
+                }
+
+                ValueRef* listenerValue = argv[0];
+                if (listenerValue->isUndefined()) {
+                    extensionInstance->set_post_message_listener(nullptr);
+                    return ValueRef::create(true);
+                }
+
+                if (!listenerValue->isFunction()) {
                     DEVICEAPI_LOG_ERROR(
-                        "extension.sendRuntimeAsyncMessage UNIMPLEMENTED");
-                    printArguments(state->context(), argc, argv);
-                    STARFISH_RELEASE_ASSERT_NOT_REACHED();
-                    return Escargot::ValueRef::createEmpty();
-                },
-                0, nullptr, true, true));
+                        "Trying to set message listener with "
+                        "invalid value.");
+                    return ValueRef::create(false);
+                }
+
+                FunctionObjectRef* listener = listenerValue->asFunction();
+                ESPostMessageListener* postMessageListener =
+                    ESPostMessageListener::create(state->context(), listener);
+                extensionInstance->set_post_message_listener(
+                    postMessageListener);
+
+                extensionManagerInstance->m_postListeners.push_back(
+                    postMessageListener);
+
+                return ValueRef::create(true);
+            },
+            0, nullptr, true, true));
 
     extensionObject->defineDataProperty(
-        state, Escargot::ValueRef::create(
-                   m_strings->sendRuntimeAsyncMessage->string()),
-        Escargot::ValueRef::create(sendRuntimeAsyncMessageFn), true, true,
-        true);
+        state, ValueRef::create(m_strings->setMessageListener->string()),
+        ValueRef::create(setMessageListenerFn), true, true, true);
 
-    Escargot::FunctionObjectRef* sendRuntimeSyncMessageFn =
-        Escargot::FunctionObjectRef::create(
-            state,
-            Escargot::FunctionObjectRef::NativeFunctionInfo(
-                m_strings->sendRuntimeSyncMessage,
-                [](Escargot::ExecutionStateRef* state,
-                   Escargot::ValueRef* thisValue, size_t argc,
-                   Escargot::ValueRef** argv,
-                   bool isNewExpression) -> Escargot::ValueRef* {
-                    DEVICEAPI_LOG_ERROR(
-                        "extension.sendRuntimeSyncMessage UNIMPLEMENTED");
-                    printArguments(state->context(), argc, argv);
-                    STARFISH_RELEASE_ASSERT_NOT_REACHED();
-                    return Escargot::ValueRef::createEmpty();
-                },
-                0, nullptr, true, true));
-
-    extensionObject->defineDataProperty(
+    FunctionObjectRef* receiveChunkDataFn = FunctionObjectRef::create(
         state,
-        Escargot::ValueRef::create(m_strings->sendRuntimeSyncMessage->string()),
-        Escargot::ValueRef::create(sendRuntimeSyncMessageFn), true, true, true);
+        FunctionObjectRef::NativeFunctionInfo(
+            m_strings->receiveChunkData,
+            [](ExecutionStateRef* state, ValueRef* thisValue, size_t argc,
+               ValueRef** argv, bool isNewExpression) -> ValueRef* {
+                DEVICEAPI_LOG_ERROR("extension.receiveChunkData");
+                printArguments(state->context(), argc, argv);
 
-    Escargot::FunctionObjectRef* setMessageListenerFn =
-        Escargot::FunctionObjectRef::create(
-            state,
-            Escargot::FunctionObjectRef::NativeFunctionInfo(
-                m_strings->setMessageListener,
-                [](Escargot::ExecutionStateRef* state,
-                   Escargot::ValueRef* thisValue, size_t argc,
-                   Escargot::ValueRef** argv,
-                   bool isNewExpression) -> Escargot::ValueRef* {
-                    DEVICEAPI_LOG_ERROR("extension.setMessageListener");
-                    printArguments(state->context(), argc, argv);
+                ExtensionManagerInstance* extensionManagerInstance =
+                    get(state->context());
+                wrt::xwalk::ExtensionInstance* extensionInstance =
+                    extensionManagerInstance
+                        ->getExtensionInstanceFromCallingContext(
+                            state->context(), thisValue);
 
-                    ExtensionManagerInstance* extensionManagerInstance =
-                        get(state->context());
-                    wrt::xwalk::ExtensionInstance* extensionInstance =
-                        extensionManagerInstance
-                            ->getExtensionInstanceFromCallingContext(
-                                state->context(), thisValue);
+                if (!extensionInstance || argc < 1) {
+                    return ValueRef::create(false);
+                }
 
-                    if (!extensionInstance || argc != 1) {
-                        return Escargot::ValueRef::create(false);
+                TizenStrings* strings = extensionManagerInstance->strings();
+
+                size_t chunkID = argv[0]->toNumber(state);
+                ExtensionManagerInstance::ChunkData chunkData =
+                    extensionManagerInstance->getChunk(chunkID);
+                if (!chunkData.m_buffer) {
+                    return ValueRef::createNull();
+                }
+
+                StringRef* type = argv[1]->toString(state);
+                bool isStringType = (!type->equals(strings->octet->string()));
+
+                ValueRef* ret;
+                if (isStringType) {
+                    ret = ValueRef::create(
+                        StringRef::fromASCII((const char*)chunkData.m_buffer));
+                } else {
+                    ArrayObjectRef* octetArray = ArrayObjectRef::create(state);
+                    for (size_t i = 0; i < chunkData.m_length; i++) {
+                        octetArray->set(
+                            state, ValueRef::create(i),
+                            ValueRef::create(chunkData.m_buffer[i]));
                     }
-
-                    Escargot::ValueRef* listenerValue = argv[0];
-                    if (listenerValue->isUndefined()) {
-                        extensionInstance->set_post_message_listener(nullptr);
-                        return Escargot::ValueRef::create(true);
-                    }
-
-                    if (!listenerValue->isFunction()) {
-                        DEVICEAPI_LOG_ERROR(
-                            "Trying to set message listener with "
-                            "invalid value.");
-                        return Escargot::ValueRef::create(false);
-                    }
-
-                    Escargot::FunctionObjectRef* listener =
-                        listenerValue->asFunction();
-                    ESPostMessageListener* postMessageListener =
-                        ESPostMessageListener::create(state->context(),
-                                                      listener);
-                    extensionInstance->set_post_message_listener(
-                        postMessageListener);
-
-                    extensionManagerInstance->m_postListeners.push_back(
-                        postMessageListener);
-
-                    return Escargot::ValueRef::create(true);
-                },
-                0, nullptr, true, true));
+                    ret = ValueRef::create(octetArray);
+                }
+                free(chunkData.m_buffer);
+                return ret;
+            },
+            0, nullptr, true, true));
 
     extensionObject->defineDataProperty(
-        state,
-        Escargot::ValueRef::create(m_strings->setMessageListener->string()),
-        Escargot::ValueRef::create(setMessageListenerFn), true, true, true);
-
-    Escargot::FunctionObjectRef* receiveChunkDataFn =
-        Escargot::FunctionObjectRef::create(
-            state,
-            Escargot::FunctionObjectRef::NativeFunctionInfo(
-                m_strings->receiveChunkData,
-                [](Escargot::ExecutionStateRef* state,
-                   Escargot::ValueRef* thisValue, size_t argc,
-                   Escargot::ValueRef** argv,
-                   bool isNewExpression) -> Escargot::ValueRef* {
-                    DEVICEAPI_LOG_ERROR("extension.receiveChunkData");
-                    printArguments(state->context(), argc, argv);
-
-                    ExtensionManagerInstance* extensionManagerInstance =
-                        get(state->context());
-                    wrt::xwalk::ExtensionInstance* extensionInstance =
-                        extensionManagerInstance
-                            ->getExtensionInstanceFromCallingContext(
-                                state->context(), thisValue);
-
-                    if (!extensionInstance || argc < 1) {
-                        return Escargot::ValueRef::create(false);
-                    }
-
-                    TizenStrings* strings = extensionManagerInstance->strings();
-
-                    size_t chunkID = argv[0]->toNumber(state);
-                    ExtensionManagerInstance::ChunkData chunkData =
-                        extensionManagerInstance->getChunk(chunkID);
-                    if (!chunkData.m_buffer) {
-                        return Escargot::ValueRef::createNull();
-                    }
-
-                    Escargot::StringRef* type = argv[1]->toString(state);
-                    bool isStringType =
-                        (!type->equals(strings->octet->string()));
-
-                    Escargot::ValueRef* ret;
-                    if (isStringType) {
-                        ret = Escargot::ValueRef::create(
-                            Escargot::StringRef::fromASCII(
-                                (const char*)chunkData.m_buffer));
-                    } else {
-                        Escargot::ArrayObjectRef* octetArray =
-                            Escargot::ArrayObjectRef::create(state);
-                        for (size_t i = 0; i < chunkData.m_length; i++) {
-                            octetArray->set(state,
-                                            Escargot::ValueRef::create(i),
-                                            Escargot::ValueRef::create(
-                                                chunkData.m_buffer[i]));
-                        }
-                        ret = Escargot::ValueRef::create(octetArray);
-                    }
-                    free(chunkData.m_buffer);
-                    return ret;
-                },
-                0, nullptr, true, true));
-
-    extensionObject->defineDataProperty(
-        state,
-        Escargot::ValueRef::create(m_strings->receiveChunkData->string()),
-        Escargot::ValueRef::create(receiveChunkDataFn), true, true, true);
+        state, ValueRef::create(m_strings->receiveChunkData->string()),
+        ValueRef::create(receiveChunkDataFn), true, true, true);
 
     return extensionObject;
 }
 
 wrt::xwalk::ExtensionInstance*
 ExtensionManagerInstance::getExtensionInstanceFromCallingContext(
-    Escargot::ContextRef* context, Escargot::ValueRef* thisValue)
+    ContextRef* context, ValueRef* thisValue)
 {
     if (thisValue->isUndefinedOrNull()) {
         return nullptr;
     }
 
-    Escargot::ExecutionStateRef* state =
-        Escargot::ExecutionStateRef::create(m_context);
+    ExecutionStateRef* state = ExecutionStateRef::create(m_context);
     auto it = m_extensionInstances.find(thisValue->toObject(state));
     if (it == m_extensionInstances.end()) {
         return nullptr;
@@ -556,285 +524,259 @@ ExtensionManagerInstance::ChunkData ExtensionManagerInstance::getChunk(
 ExtensionManagerInstance::ExtensionManagerInstanceMap
     ExtensionManagerInstance::s_extensionManagerInstances;
 
-ExtensionManagerInstance::ExtensionManagerInstance(
-    Escargot::ContextRef* context)
+ExtensionManagerInstance::ExtensionManagerInstance(ContextRef* context)
     : m_context(context)
     , m_chunkID(0)
 {
     DEVICEAPI_LOG_INFO("new ExtensionManagerInstance %p", this);
+
+#define DECLARE_TIZEN_OBJECT(name) VALUE_NAME_STRCAT(m_##name) = nullptr;
+    FOR_EACH_EARLY_TIZEN_STRINGS(DECLARE_TIZEN_OBJECT);
+    FOR_EACH_LAZY_TIZEN_STRINGS(DECLARE_TIZEN_OBJECT);
+    SUPPORTED_TIZEN_PROPERTY(DECLARE_TIZEN_OBJECT);
+    SUPPORTED_TIZEN_ENTRYPOINTS(DECLARE_TIZEN_OBJECT);
+#undef DECLARE_TIZEN_OBJECT
+
     m_strings = new TizenStrings(m_context);
-    Escargot::ExecutionStateRef* state =
-        Escargot::ExecutionStateRef::create(m_context);
+    ExecutionStateRef* state = ExecutionStateRef::create(m_context);
 
-    Escargot::ValueRef* tizenGetter =
-        Escargot::ValueRef::create(Escargot::FunctionObjectRef::create(
-            state,
-            Escargot::FunctionObjectRef::NativeFunctionInfo(
-                m_strings->tizen,
-                [](Escargot::ExecutionStateRef* state,
-                   Escargot::ValueRef* thisValue, size_t argc,
-                   Escargot::ValueRef** argv,
-                   bool isNewExpression) -> Escargot::ValueRef* {
-                    DEVICEAPI_LOG_INFO("Enter");
+    ValueRef* tizenGetter = ValueRef::create(FunctionObjectRef::create(
+        state,
+        FunctionObjectRef::NativeFunctionInfo(
+            m_strings->tizen,
+            [](ExecutionStateRef* state, ValueRef* thisValue, size_t argc,
+               ValueRef** argv, bool isNewExpression) -> ValueRef* {
+                DEVICEAPI_LOG_INFO("Enter");
 
-                    ExtensionManagerInstance* extensionManagerInstance =
-                        get(state->context());
-                    TizenStrings* strings = extensionManagerInstance->strings();
-                    strings->initializeLazyStrings();
+                ExtensionManagerInstance* extensionManagerInstance =
+                    get(state->context());
 
-                    // initialize tizen object
-                    Escargot::ObjectRef* tizenObject =
-                        extensionManagerInstance->initializeExtensionInstance(
-                            "tizen");
+                if (extensionManagerInstance->m_tizenValue) {
+                    return extensionManagerInstance->m_tizenValue;
+                }
 
-#define DEFINE_SUPPORTED_TIZEN_API(name)                                      \
-    tizenObject->defineAccessorProperty(                                      \
-        state,                                                                \
-        Escargot::ValueRef::create(Escargot::StringRef::fromASCII("" #name)), \
-        Escargot::ObjectRef::AccessorPropertyDescriptor(                      \
-            Escargot::ValueRef::create(Escargot::FunctionObjectRef::create(   \
-                state,                                                        \
-                Escargot::FunctionObjectRef::NativeFunctionInfo(              \
-                    Escargot::AtomicStringRef::create(state->context(),       \
-                                                      "" #name),              \
-                    [](Escargot::ExecutionStateRef* state,                    \
-                       Escargot::ValueRef* thisValue, size_t argc,            \
-                       Escargot::ValueRef** argv,                             \
-                       bool isNewExpression) -> Escargot::ValueRef* {         \
-                        DEVICEAPI_LOG_INFO("Loading plugin for %s API",       \
-                                           "" #name);                         \
-                        ExtensionManagerInstance* extensionManagerInstance =  \
-                            get(state->context());                            \
-                        Escargot::ObjectRef* apiObject =                      \
-                            extensionManagerInstance                          \
-                                ->initializeExtensionInstance("" #name);      \
-                        thisValue->toObject(state)->defineDataProperty(       \
-                            state,                                            \
-                            Escargot::ValueRef::create(                       \
-                                Escargot::StringRef::fromASCII("" #name)),    \
-                            Escargot::ValueRef::create(apiObject), false,     \
-                            true, false);                                     \
-                        return Escargot::ValueRef::create(apiObject);         \
-                    },                                                        \
-                    0, nullptr, true, true))),                                \
-            nullptr,                                                          \
-            Escargot::ObjectRef::PresentAttribute::EnumerablePresent));
+                TizenStrings* strings = extensionManagerInstance->strings();
+                strings->initializeLazyStrings();
 
-                    SUPPORTED_TIZEN_PROPERTY(DEFINE_SUPPORTED_TIZEN_API)
-#undef DEFINE_SUPPORTED_TIZEN_API
+                // initialize tizen object
+                ObjectRef* tizenObject =
+                    extensionManagerInstance->initializeExtensionInstance(
+                        "tizen");
+                extensionManagerInstance->m_tizenValue =
+                    ValueRef::create(tizenObject);
 
-#if 0
-#define DEFINE_SUPPORTED_TIZEN_API_ENTRYPOINT(name)                            \
+#define DEFINE_SUPPORTED_TIZEN_API(name)                                       \
     tizenObject->defineAccessorProperty(                                       \
-        state,                                                                 \
-        Escargot::ValueRef::create(Escargot::StringRef::fromASCII("" #name)),  \
-        Escargot::ObjectRef::AccessorPropertyDescriptor(                       \
-            Escargot::ValueRef::create(Escargot::FunctionObjectRef::create(    \
+        state, ValueRef::create(StringRef::fromASCII("" #name)),               \
+        ObjectRef::AccessorPropertyDescriptor(                                 \
+            ValueRef::create(FunctionObjectRef::create(                        \
                 state,                                                         \
-                Escargot::FunctionObjectRef::NativeFunctionInfo(               \
-                    Escargot::AtomicStringRef::create(state->context(),        \
-                                                      "" #name),               \
-                    [](Escargot::ExecutionStateRef* state,                     \
-                       Escargot::ValueRef* thisValue, size_t argc,             \
-                       Escargot::ValueRef** argv,                              \
-                       bool isNewExpression) -> Escargot::ValueRef* {          \
+                FunctionObjectRef::NativeFunctionInfo(                         \
+                    AtomicStringRef::create(state->context(), "" #name),       \
+                    [](ExecutionStateRef* state, ValueRef* thisValue,          \
+                       size_t argc, ValueRef** argv,                           \
+                       bool isNewExpression) -> ValueRef* {                    \
                         ExtensionManagerInstance* extensionManagerInstance =   \
                             get(state->context());                             \
-                        TizenStrings* strings =                                \
-                            extensionManagerInstance->strings();               \
-                        Escargot::StringRef* propertyName =                    \
-                            Escargot::StringRef::fromASCII("" #name);          \
-                        thisValue->toObject(state)->deleteOwnProperty(         \
-                            state, ValueRef::create(propertyName));            \
-                        thisValue->toObject(state)->get(                       \
-                            state, Escargot::ValueRef::create(                 \
-                                       strings->entryPoints()                  \
-                                           .find(propertyName)                 \
-                                           ->second->string()));               \
-                        Escargot::ValueRef* ret =                              \
-                            thisValue->toObject(state)->get(                   \
-                                state, ValueRef::create(propertyName));        \
+                        if (extensionManagerInstance->VALUE_NAME_STRCAT(       \
+                                m_##name)) {                                   \
+                            return extensionManagerInstance                    \
+                                ->VALUE_NAME_STRCAT(m_##name);                 \
+                        }                                                      \
+                        DEVICEAPI_LOG_INFO("Loading plugin for %s", "" #name); \
+                        ObjectRef* apiObject =                                 \
+                            extensionManagerInstance                           \
+                                ->initializeExtensionInstance("" #name);       \
+                        extensionManagerInstance->VALUE_NAME_STRCAT(           \
+                            m_##name) = ValueRef::create(apiObject);           \
                         thisValue->toObject(state)->defineDataProperty(        \
-                            state, Escargot::ValueRef::create(propertyName),   \
-                            ret, true, true, true);                            \
-                        return ret;                                            \
+                            state,                                             \
+                            ValueRef::create(StringRef::fromASCII("" #name)),  \
+                            ValueRef::create(apiObject), false, true, false);  \
+                        return ValueRef::create(apiObject);                    \
                     },                                                         \
                     0, nullptr, true, true))),                                 \
-            Escargot::ValueRef::create(Escargot::FunctionObjectRef::create(    \
-                state, Escargot::FunctionObjectRef::NativeFunctionInfo(        \
-                           Escargot::AtomicStringRef::create(state->context(), \
-                                                             "" #name),        \
-                           [](Escargot::ExecutionStateRef* state,              \
-                              Escargot::ValueRef* thisValue, size_t argc,      \
-                              Escargot::ValueRef** argv,                       \
-                              bool isNewExpression) -> Escargot::ValueRef* {   \
-                               thisValue->toObject(state)->defineDataProperty( \
-                                   state, Escargot::ValueRef::create(          \
-                                              Escargot::StringRef::fromASCII(  \
-                                                  "" #name)),                  \
-                                   thisValue, true, true, true);               \
-                               return Escargot::ValueRef::createEmpty();       \
-                           },                                                  \
-                           0, nullptr, true, true))),                          \
-            Escargot::ObjectRef::PresentAttribute::AllPresent));
+            nullptr, ObjectRef::PresentAttribute::EnumerablePresent));
 
-                    SUPPORTED_TIZEN_ENTRYPOINTS(DEFINE_SUPPORTED_TIZEN_API_ENTRYPOINT)
-#undef DEFINE_SUPPORTED_TIZEN_API_ENTRYPOINT
-#endif
+                SUPPORTED_TIZEN_PROPERTY(DEFINE_SUPPORTED_TIZEN_API)
+#undef DEFINE_SUPPORTED_TIZEN_API
 
-                    // re-define tizen object
-                    thisValue->toObject(state)->defineDataProperty(
-                        state,
-                        Escargot::ValueRef::create(strings->tizen->string()),
-                        Escargot::ValueRef::create(tizenObject), false, true,
-                        false);
+#define DEFINE_SUPPORTED_TIZEN_ENTRYPOINTS(name)                               \
+    ObjectRef::NativeDataAccessorPropertyData* nativeData##name =              \
+        new NativeDataAccessorPropertyDataForEntryPoint(                       \
+            true, true, true,                                                  \
+            [](ExecutionStateRef* state, ObjectRef* self,                      \
+               ObjectRef::NativeDataAccessorPropertyData* data) -> ValueRef* { \
+                ExtensionManagerInstance* extensionManagerInstance =           \
+                    get(state->context());                                     \
+                if (extensionManagerInstance->VALUE_NAME_STRCAT(m_##name)) {   \
+                    return extensionManagerInstance->VALUE_NAME_STRCAT(        \
+                        m_##name);                                             \
+                }                                                              \
+                DEVICEAPI_LOG_INFO("Loading plugin for %s", "" #name);         \
+                extensionManagerInstance->m_tizenValue->toObject(state)->get(  \
+                    state,                                                     \
+                    ValueRef::create(StringRef::fromASCII("application")));    \
+                NativeDataAccessorPropertyDataForEntryPoint* myData =          \
+                    (NativeDataAccessorPropertyDataForEntryPoint*)data;        \
+                extensionManagerInstance->VALUE_NAME_STRCAT(m_##name) =        \
+                    myData->m_data;                                            \
+                return myData->m_data;                                         \
+            },                                                                 \
+            [](ExecutionStateRef* state, ObjectRef* self,                      \
+               ObjectRef::NativeDataAccessorPropertyData* data,                \
+               ValueRef* setterInputData) -> bool {                            \
+                NativeDataAccessorPropertyDataForEntryPoint* myData =          \
+                    (NativeDataAccessorPropertyDataForEntryPoint*)data;        \
+                myData->m_data = setterInputData;                              \
+                return true;                                                   \
+            });                                                                \
+    tizenObject->defineNativeDataAccessorProperty(                             \
+        state, ValueRef::create(StringRef::fromASCII(#name)),                  \
+        nativeData##name);
 
-                    return Escargot::ValueRef::create(tizenObject);
-                },
-                0, nullptr, true, true)));
+                SUPPORTED_TIZEN_ENTRYPOINTS(DEFINE_SUPPORTED_TIZEN_ENTRYPOINTS)
+#undef DEFINE_SUPPORTED_TIZEN_ENTRYPOINTS
+
+                return ValueRef::create(tizenObject);
+            },
+            0, nullptr, true, true)));
 
     m_context->globalObject()->defineAccessorProperty(
-        state, Escargot::ValueRef::create(m_strings->tizen->string()),
-        Escargot::ObjectRef::AccessorPropertyDescriptor(
+        state, ValueRef::create(m_strings->tizen->string()),
+        ObjectRef::AccessorPropertyDescriptor(
             tizenGetter, nullptr,
-            Escargot::ObjectRef::PresentAttribute::EnumerablePresent));
+            ObjectRef::PresentAttribute::EnumerablePresent));
 
-    Escargot::ValueRef* xwalkGetter =
-        Escargot::ValueRef::create(Escargot::FunctionObjectRef::create(
-            state,
-            Escargot::FunctionObjectRef::NativeFunctionInfo(
-                m_strings->xwalk,
-                [](Escargot::ExecutionStateRef* state,
-                   Escargot::ValueRef* thisValue, size_t argc,
-                   Escargot::ValueRef** argv,
-                   bool isNewExpression) -> Escargot::ValueRef* {
-                    DEVICEAPI_LOG_INFO("Enter");
+    ValueRef* xwalkGetter = ValueRef::create(FunctionObjectRef::create(
+        state,
+        FunctionObjectRef::NativeFunctionInfo(
+            m_strings->xwalk,
+            [](ExecutionStateRef* state, ValueRef* thisValue, size_t argc,
+               ValueRef** argv, bool isNewExpression) -> ValueRef* {
+                DEVICEAPI_LOG_INFO("xwalkGetter Enter");
 
-                    ExtensionManagerInstance* extensionManagerInstance =
-                        get(state->context());
-                    TizenStrings* strings = extensionManagerInstance->strings();
-                    strings->initializeLazyStrings();
+                ExtensionManagerInstance* extensionManagerInstance =
+                    get(state->context());
+                if (extensionManagerInstance->m_xwalkValue) {
+                    return extensionManagerInstance->m_xwalkValue;
+                }
+                DEVICEAPI_LOG_INFO("Loading plugin for xwalk.utils");
 
-                    // initialize xwalk object
-                    DEVICEAPI_LOG_INFO("Loading plugin for xwalk.utils");
-                    Escargot::ObjectRef* xwalkObject =
-                        extensionManagerInstance->initializeExtensionInstance(
-                            "utils");
+                TizenStrings* strings = extensionManagerInstance->strings();
+                strings->initializeLazyStrings();
 
-                    // re-define xwalk object
-                    thisValue->toObject(state)->defineDataProperty(
-                        state,
-                        Escargot::ValueRef::create(strings->xwalk->string()),
-                        Escargot::ValueRef::create(xwalkObject), false, true,
-                        false);
+                // initialize xwalk object
+                ObjectRef* xwalkObject =
+                    extensionManagerInstance->initializeExtensionInstance(
+                        "utils");
+                extensionManagerInstance->m_xwalkValue =
+                    ValueRef::create(xwalkObject);
 
-                    return Escargot::ValueRef::create(xwalkObject);
-                },
-                0, nullptr, true, true)));
+                // re-define xwalk object
+                thisValue->toObject(state)->defineDataProperty(
+                    state, ValueRef::create(strings->xwalk->string()),
+                    ValueRef::create(xwalkObject), false, true, false);
+
+                return ValueRef::create(xwalkObject);
+            },
+            0, nullptr, true, true)));
 
     m_context->globalObject()->defineAccessorProperty(
-        state, Escargot::ValueRef::create(m_strings->xwalk->string()),
-        Escargot::ObjectRef::AccessorPropertyDescriptor(
+        state, ValueRef::create(m_strings->xwalk->string()),
+        ObjectRef::AccessorPropertyDescriptor(
             xwalkGetter, nullptr,
-            Escargot::ObjectRef::PresentAttribute::EnumerablePresent));
+            ObjectRef::PresentAttribute::EnumerablePresent));
 
-    Escargot::ValueRef* webapisGetter =
-        Escargot::ValueRef::create(Escargot::FunctionObjectRef::create(
-            state,
-            Escargot::FunctionObjectRef::NativeFunctionInfo(
-                m_strings->webapis,
-                [](Escargot::ExecutionStateRef* state,
-                   Escargot::ValueRef* thisValue, size_t argc,
-                   Escargot::ValueRef** argv,
-                   bool isNewExpression) -> Escargot::ValueRef* {
-                    DEVICEAPI_LOG_INFO("Enter");
+    ValueRef* webapisGetter = ValueRef::create(FunctionObjectRef::create(
+        state,
+        FunctionObjectRef::NativeFunctionInfo(
+            m_strings->webapis,
+            [](ExecutionStateRef* state, ValueRef* thisValue, size_t argc,
+               ValueRef** argv, bool isNewExpression) -> ValueRef* {
+                DEVICEAPI_LOG_INFO("webapisGetter Enter");
 
-                    ExtensionManagerInstance* extensionManagerInstance =
-                        get(state->context());
-                    TizenStrings* strings = extensionManagerInstance->strings();
-                    strings->initializeLazyStrings();
+                ExtensionManagerInstance* extensionManagerInstance =
+                    get(state->context());
+                TizenStrings* strings = extensionManagerInstance->strings();
+                strings->initializeLazyStrings();
 
-                    // initialize webapis object
-                    Escargot::ObjectRef* webapisObject =
-                        ObjectRef::create(state);
-                    webapisObject->defineAccessorProperty(
-                        state,
-                        Escargot::ValueRef::create(strings->sa->string()),
-                        Escargot::ObjectRef::AccessorPropertyDescriptor(
-                            Escargot::ValueRef::create(
-                                Escargot::FunctionObjectRef::create(
-                                    state,
-                                    Escargot::FunctionObjectRef::NativeFunctionInfo(
-                                        strings->sa,
-                                        [](Escargot::ExecutionStateRef* state,
-                                           Escargot::ValueRef* thisValue,
-                                           size_t argc,
-                                           Escargot::ValueRef** argv,
-                                           bool isNewExpression)
-                                            -> Escargot::ValueRef* {
-                                                DEVICEAPI_LOG_INFO(
-                                                    "Loading plugin for "
-                                                    "Samsung Accessory "
-                                                    "protocol API");
-                                                ExtensionManagerInstance*
-                                                    extensionManagerInstance =
-                                                        get(state->context());
-                                                Escargot::ObjectRef* saObject =
-                                                    extensionManagerInstance
-                                                        ->initializeExtensionInstance(
-                                                            "sa");
-                                                thisValue->toObject(state)
-                                                    ->defineDataProperty(
-                                                        state,
-                                                        Escargot::ValueRef::
-                                                            create("sa"),
-                                                        Escargot::ValueRef::
-                                                            create(saObject),
-                                                        false, true, false);
-                                                return Escargot::ValueRef::
-                                                    create(saObject);
-                                            },
-                                        0, nullptr, true, true))),
-                            nullptr, Escargot::ObjectRef::PresentAttribute::
-                                         EnumerablePresent));
+                // initialize webapis object
+                ObjectRef* webapisObject = ObjectRef::create(state);
+                webapisObject->defineAccessorProperty(
+                    state, ValueRef::create(strings->sa->string()),
+                    ObjectRef::AccessorPropertyDescriptor(
+                        ValueRef::create(FunctionObjectRef::create(
+                            state,
+                            FunctionObjectRef::NativeFunctionInfo(
+                                strings->sa,
+                                [](ExecutionStateRef* state,
+                                   ValueRef* thisValue, size_t argc,
+                                   ValueRef** argv,
+                                   bool isNewExpression) -> ValueRef* {
+                                    ExtensionManagerInstance*
+                                        extensionManagerInstance =
+                                            get(state->context());
+                                    if (extensionManagerInstance->m_saValue) {
+                                        return extensionManagerInstance
+                                            ->m_saValue;
+                                    }
+                                    DEVICEAPI_LOG_INFO(
+                                        "Loading plugin for Samsung "
+                                        "Accessory "
+                                        "protocol API");
+                                    ObjectRef* saObject =
+                                        extensionManagerInstance
+                                            ->initializeExtensionInstance("sa");
+                                    thisValue->toObject(state)
+                                        ->defineDataProperty(
+                                            state, ValueRef::create("sa"),
+                                            ValueRef::create(saObject), false,
+                                            true, false);
+                                    extensionManagerInstance->m_saValue =
+                                        ValueRef::create(saObject);
+                                    return ValueRef::create(saObject);
+                                },
+                                0, nullptr, true, true))),
+                        nullptr,
+                        ObjectRef::PresentAttribute::EnumerablePresent));
 
-                    // re-define webapis object
-                    thisValue->toObject(state)->defineDataProperty(
-                        state,
-                        Escargot::ValueRef::create(strings->webapis->string()),
-                        Escargot::ValueRef::create(webapisObject), false, true,
-                        false);
-
-                    return Escargot::ValueRef::create(webapisObject);
-                },
-                0, nullptr, true, true)));
+                // re-define webapis object
+                thisValue->toObject(state)->defineDataProperty(
+                    state, ValueRef::create(strings->webapis->string()),
+                    ValueRef::create(webapisObject), false, true, false);
+                return ValueRef::create(webapisObject);
+            },
+            0, nullptr, true, true)));
 
     m_context->globalObject()->defineAccessorProperty(
-        state, Escargot::ValueRef::create(m_strings->webapis->string()),
-        Escargot::ObjectRef::AccessorPropertyDescriptor(
+        state, ValueRef::create(m_strings->webapis->string()),
+        ObjectRef::AccessorPropertyDescriptor(
             webapisGetter, nullptr,
-            Escargot::ObjectRef::PresentAttribute::EnumerablePresent));
+            ObjectRef::PresentAttribute::EnumerablePresent));
 
     s_extensionManagerInstances[m_context] = this;
-    DEVICEAPI_LOG_INFO("%zu => %zu", s_extensionManagerInstances.size() - 1,
+    DEVICEAPI_LOG_INFO("ExtensionManagerInstance %zu => %zu",
+                       s_extensionManagerInstances.size() - 1,
                        s_extensionManagerInstances.size());
 }
 
 ExtensionManagerInstance::~ExtensionManagerInstance()
 {
-    DEVICEAPI_LOG_INFO("delete ExtensionManagerInstance %p", this);
+    DEVICEAPI_LOG_INFO(
+        "ExtensionManagerInstance delete ExtensionManagerInstance %p", this);
     for (auto it : m_extensionInstances)
         delete it.second;
     for (auto it : m_postListeners)
         it->finalize();
     auto it = s_extensionManagerInstances.find(m_context);
     s_extensionManagerInstances.erase(it);
-    DEVICEAPI_LOG_INFO("%zu => %zu", s_extensionManagerInstances.size() + 1,
+    DEVICEAPI_LOG_INFO("ExtensionManagerInstance %zu => %zu",
+                       s_extensionManagerInstances.size() + 1,
                        s_extensionManagerInstances.size());
 }
 
-ExtensionManagerInstance* ExtensionManagerInstance::get(
-    Escargot::ContextRef* context)
+ExtensionManagerInstance* ExtensionManagerInstance::get(ContextRef* context)
 {
     auto it = s_extensionManagerInstances.find(context);
     if (it == s_extensionManagerInstances.end())
@@ -843,15 +785,17 @@ ExtensionManagerInstance* ExtensionManagerInstance::get(
         return it->second;
 }
 
-void initialize(Escargot::ContextRef* context)
+ExtensionManagerInstance* initialize(ContextRef* context)
 {
-    DEVICEAPI_LOG_INFO("Enter with context %p", context);
-    new ExtensionManagerInstance(context);
+    DEVICEAPI_LOG_INFO("ExtensionManagerInstance Enter with context %p",
+                       context);
+    return new ExtensionManagerInstance(context);
 }
 
-void close(Escargot::ContextRef* context)
+void close(ContextRef* context)
 {
-    DEVICEAPI_LOG_INFO("Enter with context %p", context);
+    DEVICEAPI_LOG_INFO("ExtensionManagerInstance Enter with context %p",
+                       context);
     delete ExtensionManagerInstance::get(context);
 }
 }

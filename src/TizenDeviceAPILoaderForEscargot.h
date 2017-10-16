@@ -29,6 +29,7 @@
 #define DEVICEAPI_SLOG_INFO(fmt, args...) _LOGGER_SLOG(DLOG_INFO, fmt, ##args)
 #define DEVICEAPI_SLOG_ERROR(fmt, args...) _LOGGER_SLOG(DLOG_ERROR, fmt, ##args)
 #define DEVICEAPI_SLOG_WARN(fmt, args...) _LOGGER_SLOG(DLOG_WARN, fmt, ##args)
+#define VALUE_NAME_STRCAT(name) name##Value
 
 namespace wrt {
 namespace xwalk {
@@ -78,17 +79,6 @@ public:
     void initializeEarlyStrings();
     void initializeLazyStrings();
 
-    typedef std::unordered_map<
-        Escargot::StringRef*, Escargot::AtomicStringRef*,
-        std::hash<Escargot::StringRef*>, std::equal_to<Escargot::StringRef*>,
-        std::allocator<
-            std::pair<const Escargot::StringRef*, Escargot::AtomicStringRef*>>>
-        EntryPointsMap;
-    EntryPointsMap& entryPoints()
-    {
-        return m_entryPoints;
-    }
-
 #define DECLARE_TIZEN_STRING(name) Escargot::AtomicStringRef* name;
     FOR_EACH_EARLY_TIZEN_STRINGS(DECLARE_TIZEN_STRING);
     FOR_EACH_LAZY_TIZEN_STRINGS(DECLARE_TIZEN_STRING);
@@ -98,7 +88,6 @@ public:
 
 private:
     Escargot::ContextRef* m_context;
-    EntryPointsMap m_entryPoints;
     bool m_initialized;
 };
 
@@ -110,10 +99,14 @@ private:
  * ExtensionManagerInstance: (manager) * number of ESVMInstances
  */
 
-class ExtensionManagerInstance {
+class ExtensionManagerInstance : public gc {
 public:
     ExtensionManagerInstance(Escargot::ContextRef* context);
     ~ExtensionManagerInstance();
+
+    void* operator new(size_t size);
+    void* operator new[](size_t size) = delete;
+
     static ExtensionManagerInstance* get(Escargot::ContextRef* context);
     TizenStrings* strings()
     {
@@ -152,6 +145,13 @@ private:
     ChunkDataMap m_chunkDataMap;
     size_t m_chunkID;
     TizenStrings* m_strings;
+#define DECLARE_TIZEN_OBJECT(name) \
+    Escargot::ValueRef* VALUE_NAME_STRCAT(m_##name);
+    FOR_EACH_EARLY_TIZEN_STRINGS(DECLARE_TIZEN_OBJECT);
+    FOR_EACH_LAZY_TIZEN_STRINGS(DECLARE_TIZEN_OBJECT);
+    SUPPORTED_TIZEN_PROPERTY(DECLARE_TIZEN_OBJECT);
+    SUPPORTED_TIZEN_ENTRYPOINTS(DECLARE_TIZEN_OBJECT);
+#undef DECLARE_TIZEN_OBJECT
 
     // static members
     typedef std::map<Escargot::ContextRef*, ExtensionManagerInstance*>
@@ -166,9 +166,30 @@ inline ExtensionManagerInstance* ExtensionManagerInstanceGet(
     return ExtensionManagerInstance::get(context);
 }
 
-void initialize(Escargot::ContextRef* context);
+ExtensionManagerInstance* initialize(Escargot::ContextRef* context);
 void close(Escargot::ContextRef* context);
 }
+
+class NativeDataAccessorPropertyDataForEntryPoint
+    : public Escargot::ObjectRef::NativeDataAccessorPropertyData {
+public:
+    NativeDataAccessorPropertyDataForEntryPoint(
+        bool isWritable, bool isEnumerable, bool isConfigurable,
+        Escargot::ObjectRef::NativeDataAccessorPropertyGetter getter,
+        Escargot::ObjectRef::NativeDataAccessorPropertySetter setter)
+        : NativeDataAccessorPropertyData(isWritable, isEnumerable,
+                                         isConfigurable, getter, setter)
+    {
+        m_data = Escargot::ValueRef::createUndefined();
+    }
+
+    void* operator new(size_t size)
+    {
+        return GC_MALLOC(size);
+    }
+
+    Escargot::ValueRef* m_data;
+};
 
 #endif // TIZEN_DEVICE_API
 
