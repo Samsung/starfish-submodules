@@ -44,12 +44,10 @@ class ESPostListener;
 
 #define FOR_EACH_EARLY_TIZEN_STRINGS(F) \
     F(tizen)                            \
-    F(xwalk)                            \
-    F(webapis)
+    F(xwalk)
 
 #define FOR_EACH_LAZY_TIZEN_STRINGS(F) \
     F(utils)                           \
-    F(sa)                              \
     F(common)                          \
     F(extension)                       \
     F(postMessage)                     \
