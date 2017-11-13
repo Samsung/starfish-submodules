@@ -1,7 +1,7 @@
 // Copyright 2014 Samsung Electronics Co, Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-
+#ifdef defined(TIZEN_DEVICE_API)
 #include "Extension.h"
 
 #include <dlfcn.h>
@@ -329,3 +329,4 @@ void ESPostDataListener::PostDataToJS(const std::string& msg, uint8_t* buffer,
 }
 
 } // namespace DeviceAPI
+#endif

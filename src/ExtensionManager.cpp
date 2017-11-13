@@ -1,7 +1,7 @@
 // Copyright 2014 Samsung Electronics Co, Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-
+#ifdef defined(TIZEN_DEVICE_API)
 #include "ExtensionManager.h"
 
 #include <glob.h>
@@ -171,3 +171,4 @@ void ExtensionManager::RegisterExtensionsByMetadata(
 
 } // namespace xwalk
 } // namespace wrt
+#endif
