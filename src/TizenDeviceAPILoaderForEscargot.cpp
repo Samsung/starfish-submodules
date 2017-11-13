@@ -1,4 +1,4 @@
-#ifdef TIZEN_DEVICE_API
+#if defined(TIZEN_DEVICE_API)
 #include "TizenDeviceAPILoaderForEscargot.h"
 
 #include "EscargotPublic.h"
