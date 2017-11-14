@@ -206,6 +206,7 @@ bool {{ name }}::isTransferable() const
 Transferable* {{ name }}::toTransferable() const
 {
     return (Transferable*)this;
+}
 {% endif %}
 }
 {% endcall %}
