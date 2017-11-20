@@ -78,7 +78,7 @@ static ValueRef* {{ util_macro.gen_setter_function(attribute, name) }}(Execution
     ValueRef* arg0 = argv[0];
     {{ util_macro.handle_arg(arg, names, fromattr=True)|trim }}
     {{- 'Error : Wrong argument type' | assert_true(arg.type.name in ['void']) }}
-    {{- 'Error : Unimplemented argument type' | assert_true(arg.type.name in ['object', 'Sequence', 'UnionType', 'Promise']) }}
+    {{- 'Error : Unimplemented argument type' | assert_true(arg.type.name in ['object', 'UnionType', 'Promise']) }}
     {% if need_catch %}
     try {
     {% endif %}
