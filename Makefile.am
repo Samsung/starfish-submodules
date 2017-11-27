@@ -84,8 +84,8 @@ libjpeg_la_SOURCES += jsimd_none.c
 endif
 
 
-bin_PROGRAMS = cjpeg djpeg jpegtran rdjpgcom wrjpgcom
-noinst_PROGRAMS = jcstest
+bin_PROGRAMS = 
+noinst_PROGRAMS = jcstest cjpeg djpeg jpegtran rdjpgcom wrjpgcom
 
 
 if WITH_TURBOJPEG

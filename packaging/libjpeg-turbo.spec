@@ -100,7 +100,9 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %manifest %{name}.manifest
 %defattr(-,root,root)
-%{_bindir}/*
+%{_libdir}/libturbojpeg.so.*
+%{_libdir}/libjpeg.so.%{libver}
+%{_libdir}/libjpeg.so.%{major}
 %license COPYING
 %license README
 
