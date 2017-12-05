@@ -8,6 +8,7 @@ import sys
 from math import log10
 
 from starfish_idl_reader import gen_ir_from_file, merge_irs, apply_types
+from starfish_interface_collection import gen_interface_collection
 
 try:
   from jinja2 import Environment, FileSystemLoader
@@ -35,79 +36,11 @@ _out_dir=None
 def print_skip_msg(name, reason):
   print "> Skip generating code for '" + name + "': " + reason
 
-def generate_interface_collection_header(interfaces, args):
-  grouped_interfaces = {}
-  constructor_nicknames = []
-  for key in interfaces:
-    interface = interfaces[key]
-
-    if interface.get('partial_interface', False):
-      continue
-    if interface.get('unimplemented', False):
-      continue
-    if interface.get('constructor', False) and \
-       len(interface['constructor']['name']) > 0:
-      constructor_nicknames.append(interface['constructor']['name'])
-
-    # TODO Support multiple flags
-    if "flags" in interface:
-      flag = interface["flags"][0]
-    else:
-      flag = "STARFISH_ENABLE_DEFAULT"
-
-    if grouped_interfaces.has_key(flag):
-      grouped_interfaces.get(flag).append(interface["name"])
-    else:
-      grouped_interfaces[flag] = [interface["name"]]
-
-  binding_path = os.path.join(STARFISH_PATH, args.out_path)
-  with open(os.path.join(binding_path, "Interfaces.h"), 'w') as w:
-    w.write("#ifndef __StarFishInterfaces__\n")
-    w.write("#define __StarFishInterfaces__\n")
-
-    for flag in grouped_interfaces:
-      if flag != "STARFISH_ENABLE_DEFAULT":
-        w.write("\n#ifdef {}".format(flag))
-      simple_flag = flag[flag.find("ENABLE_") + 7:]
-      w.write("\n#define STARFISH_ENUM_LAZY_BINDING_NAMES_{}(F)".format(simple_flag))
-      for name in sorted(grouped_interfaces[flag]):
-        w.write(" \\\n    F({})".format(name))
-      if flag != "STARFISH_ENABLE_DEFAULT":
-        w.write("\n#else")
-        w.write("\n#define STARFISH_ENUM_LAZY_BINDING_NAMES_{}(F)".format(simple_flag))
-        w.write("\n#endif")
-      w.write("\n")
-    w.write("\n")
-
-    w.write("\n#define STARFISH_ENUM_LAZY_BINDING_NAMES(F)")
-    flags_idx = 0
-    flags_len = len(grouped_interfaces.keys())
-    for flag in grouped_interfaces:
-      flags_idx += 1
-      simple_flag = flag[flag.find("ENABLE_") + 7:]
-      w.write(" \\\n    STARFISH_ENUM_LAZY_BINDING_NAMES_{}(F)".format(simple_flag))
-    w.write("\n")
-
-    w.write("\n#define STARFISH_ENUM_LAZY_BINDING_NICKNAMES(F)")
-    for nickname in constructor_nicknames:
-      w.write(" \\\n    F({})".format(nickname))
-    w.write("\n")
-
-    w.write("\n#define STARFISH_ENUM_LAZY_BINDING_UNIMPL_NAMES(F)")
-    if STRICT_MODE:
-      for key in interfaces:
-        if interfaces[key].get('unimplemented') and\
-           not interfaces[key].get('partial_interface'):
-          w.write(" \\\n    F({})".format(key))
-    w.write("\n")
-
-    w.write("#endif\n")
-
 def generate_code(ir, args):
   print "Generating binding code..."
   interfaces = ir['interfaces']
 
-  generate_interface_collection_header(interfaces, args)
+  gen_interface_collection(interfaces, os.path.join(STARFISH_PATH, args.out_path), STRICT_MODE)
 
   for key in interfaces:
     interface = interfaces[key]
