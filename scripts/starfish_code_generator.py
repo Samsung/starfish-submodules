@@ -45,12 +45,15 @@ def generate_code(ir, args):
   for key in interfaces:
     interface = interfaces[key]
     if interface.get('unimplemented', False):
-      # print_skip_msg(interface.get('name'), "Unimplemented interface")
       continue
     if interface.get('partial_interface', False):
-      # print_skip_msg(interface.get('name'), "PartialInterface")
       continue
-    generate_code_with_template(interface, interface['name'] + 'Binding.cpp', 'base_module.cpp', args)
+
+    if interface.get('primary_global'):
+      template = 'base_window.cpp'
+    else:
+      template = 'base_module.cpp'
+    generate_code_with_template(interface, interface['name'] + 'Binding.cpp', template, args)
 
   dictionaries = ir['dictionaries']
   for key in dictionaries:
