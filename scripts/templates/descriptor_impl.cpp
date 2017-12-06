@@ -58,15 +58,9 @@ static ExposableObjectGetOwnPropertyCallbackResult {{ name }}GetOwnPropertyCallb
 {
 {% if igetter or ngetter %}
     {% set exception = igetter.raises_exception if igetter else ngetter.raises_exception %}
-    {% if primary_global %}
-    STARFISH_ASSERT(((ScriptWrappable*)jsSelf->extraData())->isWindowProxy());
-    Window* self = ((WindowProxy*)jsSelf->extraData())->window();
-    ObjectRef* scriptObject = self->scriptObject();
-    {% else %}
     STARFISH_ASSERT(((ScriptWrappable*)jsSelf->extraData())->is{{name}}());
     {{name}}* self = ({{name}}*)jsSelf->extraData();
     ObjectRef* scriptObject = jsSelf;
-    {% endif %}
     {% call raises_exception(exception, 4) %}
     {% if igetter and ngetter %}
     uint32_t idx = key->toArrayIndex(state);
@@ -101,13 +95,8 @@ static bool {{ name }}DefineOwnPropertyCallback(ExecutionStateRef* state, Object
     {% set iassing_exp = 'self->%s(idx, valueTo);'|format(isetter_name) %}
     {% set nassing_exp = 'self->%s(toBrowserString(state, key), valueTo);'|format(nsetter_name) %}
     {% set exception = isetter.raises_exception if isetter else nsetter.raises_exception %}
-    {% if primary_global %}
-    STARFISH_ASSERT(((ScriptWrappable*)jsSelf->extraData())->isWindowProxy());
-    Window* self = ((WindowProxy*)jsSelf->extraData())->window();
-    {% else %}
     STARFISH_ASSERT(((ScriptWrappable*)jsSelf->extraData())->is{{name}}());
     {{name}}* self = ({{name}}*)jsSelf->extraData();
-    {% endif %}
     {{ util_macro.handle_arg(setarg, names)|trim }}
     {% call raises_exception(exception, 4) %}
     {% if isetter and nsetter %}
@@ -139,13 +128,8 @@ static bool {{ name }}DeleteOwnPropertyCallback(ExecutionStateRef* state, Object
 
 static ExposableObjectEnumerationCallbackResultVector {{ name }}EnumerationCallback(ExecutionStateRef* state, ObjectRef* jsSelf)
 {
-    {% if primary_global %}
-    STARFISH_ASSERT(((ScriptWrappable*)jsSelf->extraData())->isWindowProxy());
-    Window* self = ((WindowProxy*)jsSelf->extraData())->window();
-    {% else %}
     STARFISH_ASSERT(((ScriptWrappable*)jsSelf->extraData())->is{{name}}());
     {{name}}* self = ({{name}}*)jsSelf->extraData();
-    {% endif %}
     ExposableObjectEnumerationCallbackResultVector v;
     {% if igetter and igetter.enumerable %}
     size_t len = self->length();
