@@ -48,11 +48,7 @@ def generate_code(ir, args):
       continue
     if interface.get('partial_interface', False):
       continue
-
-    if interface.get('primary_global'):
-      template = 'base_window.cpp'
-    else:
-      template = 'base_module.cpp'
+    template = 'base_module.cpp'
     generate_code_with_template(interface, interface['name'] + 'Binding.cpp', template, args)
 
   dictionaries = ir['dictionaries']

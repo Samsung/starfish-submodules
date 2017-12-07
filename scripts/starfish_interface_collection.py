@@ -130,7 +130,6 @@ def gen_interface_collection(interfaces, outpath, mode_strict):
     w.write('\n#define STARFISH_ENUM_BINDING_CLASSES(F)')
     w.write(' \\\n    STARFISH_BINDING_GROUPS_DEFAULT(F)')
     w.write(' \\\n    STARFISH_BINDING_GROUPS_NOINTERFACE(F)')
-    w.write(' \\\n    F(WindowProxy)')
 
     # Unimpl (only strict mode)
     w.write("\n#define STARFISH_ENUM_BINDING_UNIMPL_NAMES(F)")
