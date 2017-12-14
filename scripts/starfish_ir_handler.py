@@ -171,6 +171,8 @@ class StarfishIRHandler():
     if parent and type(parent) == types.StringType:
       if parent in self.interfaces:
         parent = self.interfaces[parent]
+        if parent.get('static_interface'):
+          del parent['static_interface']
         interface['parent'] = parent
         self._handle_interface_parent(parent)
         if parent.get('has_unforgeable'):

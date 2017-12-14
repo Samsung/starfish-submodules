@@ -576,11 +576,13 @@ class StarfishIDLReader():
     functions = []
     descriptor = {}
     has_unforgeable = False
+    static_interface = True
     for child in node.GetChildren():
       if _is_class(child, 'Const'):
         constants.append(self._gen_ir_node(child))
       elif _is_class(child, 'Attribute'):
         attr_ir = self._gen_ir_node(child)
+        static_interface = False
         if not has_unforgeable and attr_ir.get('unforgeable'):
           has_unforgeable = True;
         attributes.append(attr_ir)
@@ -590,8 +592,11 @@ class StarfishIDLReader():
         self._append_to_functions(op_ir, functions)
         if not has_unforgeable and op_ir.get('unforgeable'):
           has_unforgeable = True;
+        if not op_ir.get('static'):
+          static_interface = False
       elif _is_class(child, 'Stringifier'):
         strgf, forward = self._gen_ir_stringifier(child)
+        static_interface = False
         functions.append(strgf)
         if forward is None:
           continue
@@ -604,8 +609,10 @@ class StarfishIDLReader():
         _set_prop_to_dict(result, 'serializer', self._gen_ir_node(child))
       elif _is_class(child, 'Iterable'):
         _set_prop_to_dict(result, 'iterable', self._gen_ir_node(child.GetChildren()[0]))
+        static_interface = False
       elif _is_class(child, 'Inherit'):
         _set_prop_to_dict(result, 'parent', child.GetName())
+        static_interface = False
       elif _is_class(child, 'ExtAttributes'):
         _handle_extattrs(result,
                          child.GetChildren(),
@@ -623,6 +630,7 @@ class StarfishIDLReader():
     call_with = result.pop('_call_with', None)
     constructor = result.get('constructor')
     if constructor:
+      static_interface = False
       _set_prop_to_dict(constructor, 'call_with', call_with)
       if rs_except == 'Constructor':
         constructor['raises_exception'] = True
@@ -630,6 +638,7 @@ class StarfishIDLReader():
     _set_prop_to_dict(result, 'attributes', attributes)
     _set_prop_to_dict(result, 'functions', functions)
     _set_prop_to_dict(result, 'has_unforgeable', has_unforgeable)
+    _set_prop_to_dict(result, 'static_interface', static_interface)
     if result.pop('_custom_descriptor', False):
       descriptor['custom'] = True
     if descriptor:

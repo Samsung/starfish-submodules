@@ -154,6 +154,7 @@ FunctionObjectRef* binding{{ name }}(
 }
 {% include 'constructor_named_bind.cpp' ignore missing %}
 
+{% if not static_interface %}
 void {{ name }}::init(ScriptBindingInstance* instance, void* domObjectPointer)
 {
     ContextRef* context = instance->scriptContext();
@@ -184,6 +185,7 @@ bool {{ name }}::is{{ name }}() const
 {
     return true;
 }
+{% endif %}
 
 {% if serializable %}
 bool {{ name }}::isSerializable() const

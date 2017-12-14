@@ -26,6 +26,7 @@
 | **no_interface** | `Boolean`<br>Prevent binding to global window.<br>*Ref: Geolocation.idl* |
 | **partial_interface** | `Boolean`<br>Only used for partial interface by others.<br>*Ref: ChildNode.idl* |
 | **has_unforgeable** | `Boolean`<br>Has unforgeable constant or attribute or operation in this interface or ancestors |
+| static_interface | `Boolean`<br>*(Whether it contains only static methods and therefore is a utilitarian interface)*<br>*Ref: CSS.idl* |
 | serializable | `Boolean`<br>*Ref: Blob.idl* |
 | transferable | `Boolean`<br>*Ref: ImageBitmap.idl* |
 | unimplemented | `Boolean` |
