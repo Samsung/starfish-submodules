@@ -64,6 +64,8 @@ void* ExtensionManagerInstance::operator new(size_t size)
                    GC_WORD_OFFSET(ExtensionManagerInstance, m_context));
         GC_set_bit(obj_bitmap,
                    GC_WORD_OFFSET(ExtensionManagerInstance, m_strings));
+        GC_set_bit(obj_bitmap,
+                   GC_WORD_OFFSET(ExtensionManagerInstance, m_webWidgetAPIInstance));
 #define DECLARE_TIZEN_VALUE(name)                                   \
     GC_set_bit(obj_bitmap, GC_WORD_OFFSET(ExtensionManagerInstance, \
                                           VALUE_NAME_STRCAT(m_##name)));
@@ -638,6 +640,11 @@ ExtensionManagerInstance::ExtensionManagerInstance(ContextRef* context)
                 SUPPORTED_TIZEN_ENTRYPOINTS(DEFINE_SUPPORTED_TIZEN_ENTRYPOINTS)
 #undef DEFINE_SUPPORTED_TIZEN_ENTRYPOINTS
 
+                WebWidgetAPIInstance* ww = new(GC) WebWidgetAPIInstance();
+                extensionManagerInstance->m_webWidgetAPIInstance = ww;
+                ObjectRef* widgetAPIObj = ww->createWebWidgetAPIObject(state->context());
+                tizenObject->defineDataProperty(state, ValueRef::create(StringRef::fromASCII("webWidget")), ValueRef::create(widgetAPIObj), false, true, false);
+
                 return ValueRef::create(tizenObject);
             },
             0, nullptr, true, true)));
@@ -687,6 +694,8 @@ ExtensionManagerInstance::ExtensionManagerInstance(ContextRef* context)
         ObjectRef::AccessorPropertyDescriptor(
             xwalkGetter, nullptr,
             ObjectRef::PresentAttribute::EnumerablePresent));
+
+    m_webWidgetAPIInstance = nullptr;
 
     s_extensionManagerInstances[m_context] = this;
     DEVICEAPI_LOG_INFO("ExtensionManagerInstance %zu => %zu",

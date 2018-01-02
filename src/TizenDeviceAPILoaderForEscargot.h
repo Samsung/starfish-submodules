@@ -5,6 +5,7 @@
 
 #include "StarFishConfig.h"
 #include "EscargotPublic.h"
+#include "WebWidgetAPIInstance.h"
 
 #undef LOGGER_TAG
 #define LOGGER_TAG "StarFishDeviceAPI"
@@ -42,6 +43,40 @@ namespace DeviceAPI {
 
 class ESPostListener;
 
+#if defined(STARFISH_TIZEN_WEARABLE)
+#define FOR_EACH_EARLY_TIZEN_STRINGS(F) \
+    F(tizen) \
+    F(xwalk) \
+    F(webapis)
+
+#define FOR_EACH_LAZY_TIZEN_STRINGS(F) \
+    F(common) \
+    F(extension) \
+    F(postMessage) \
+    F(sendSyncMessage) \
+    F(sendSyncData) \
+    F(sendRuntimeMessage) \
+    F(sendRuntimeSyncMessage) \
+    F(sendRuntimeAsyncMessage) \
+    F(setMessageListener) \
+    F(receiveChunkData) \
+    F(reply) \
+    F(chunk_id) \
+    F(string) \
+    F(octet)
+
+#define SUPPORTED_TIZEN_PROPERTY(F) \
+    F(application) \
+    F(filesystem) \
+    F(systeminfo) \
+    F(sensorservice) \
+    F(preference) \
+    F(widgetservice)
+
+#define SUPPORTED_TIZEN_ENTRYPOINTS(F) \
+    F(ApplicationControl) \
+    F(ApplicationControlData)
+#else
 #define FOR_EACH_EARLY_TIZEN_STRINGS(F) \
     F(tizen)                            \
     F(xwalk)
@@ -70,6 +105,7 @@ class ESPostListener;
 #define SUPPORTED_TIZEN_ENTRYPOINTS(F) \
     F(ApplicationControl)              \
     F(ApplicationControlData)
+#endif // defined(STARFISH_TIZEN_WEARABLE)
 
 class TizenStrings {
 public:
@@ -113,6 +149,10 @@ public:
     wrt::xwalk::ExtensionInstance* getExtensionInstanceFromCallingContext(
         Escargot::ContextRef*, Escargot::ValueRef* thisValue);
     Escargot::ObjectRef* initializeExtensionInstance(const char*);
+    WebWidgetAPIInstance* webWidgetAPIInstance()
+    {
+        return m_webWidgetAPIInstance;
+    }
 
 private:
     struct ChunkData {
@@ -143,6 +183,7 @@ private:
     ChunkDataMap m_chunkDataMap;
     size_t m_chunkID;
     TizenStrings* m_strings;
+    WebWidgetAPIInstance* m_webWidgetAPIInstance;
 #define DECLARE_TIZEN_OBJECT(name) \
     Escargot::ValueRef* VALUE_NAME_STRCAT(m_##name);
     FOR_EACH_EARLY_TIZEN_STRINGS(DECLARE_TIZEN_OBJECT);
