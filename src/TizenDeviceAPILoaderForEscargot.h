@@ -149,10 +149,12 @@ public:
     wrt::xwalk::ExtensionInstance* getExtensionInstanceFromCallingContext(
         Escargot::ContextRef*, Escargot::ValueRef* thisValue);
     Escargot::ObjectRef* initializeExtensionInstance(const char*);
+#if defined(STARFISH_TIZEN_WEARABLE)
     WebWidgetAPIInstance* webWidgetAPIInstance()
     {
         return m_webWidgetAPIInstance;
     }
+#endif
 
 private:
     struct ChunkData {
@@ -183,7 +185,9 @@ private:
     ChunkDataMap m_chunkDataMap;
     size_t m_chunkID;
     TizenStrings* m_strings;
+#if defined(STARFISH_TIZEN_WEARABLE)
     WebWidgetAPIInstance* m_webWidgetAPIInstance;
+#endif
 #define DECLARE_TIZEN_OBJECT(name) \
     Escargot::ValueRef* VALUE_NAME_STRCAT(m_##name);
     FOR_EACH_EARLY_TIZEN_STRINGS(DECLARE_TIZEN_OBJECT);

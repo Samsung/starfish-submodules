@@ -1,4 +1,4 @@
-#ifdef TIZEN_DEVICE_API
+#if defined(TIZEN_DEVICE_API) && defined(STARFISH_TIZEN_WEARABLE)
 
 #include "StarFishConfig.h"
 #include "TizenDeviceAPILoaderForEscargot.h"
