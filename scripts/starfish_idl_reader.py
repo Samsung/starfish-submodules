@@ -276,7 +276,7 @@ class StarfishIDLReader():
         result['name'] = child.GetClass()
       elif 'Type' in child.GetClass():
         # PrimitiveType | StringType | Typeref
-        if child.GetName() in ['ArrayBuffer', 'ArrayBufferView', 'Function']:
+        if child.GetName() in ['ArrayBuffer', 'ArrayBufferView', 'Uint8ClampedArray', 'Function']:
           result['kind'] = 'SpecialType'
         else:
           result['kind'] = child.GetClass()

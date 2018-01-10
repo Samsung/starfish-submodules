@@ -63,6 +63,8 @@
             ({{ aname }}->isObject() && {{ aname }}->asObject()->isArrayBufferObject())
         {% elif type.name == 'ArrayBufferView' %}
             ({{ aname }}->isObject() && {{ aname }}->asObject()->isArrayBufferView())
+        {% elif type.name == 'Uint8ClampedArray' %}
+            ({{ aname }}->isObject() && {{ aname }}->asObject()->isUint8ClampedArrayObject())
         {% elif type.name == 'Function' %}
             {{ aname }}->isFunction()
         {% else %}
@@ -126,6 +128,8 @@ ScriptObject
             {{- '%s->asObject()->asArrayBufferObject()'|format(aname) -}}
         {% elif type.name == 'ArrayBufferView' %}
             {{- '%s->asObject()->asArrayBufferView()'|format(aname) -}}
+        {% elif type.name == 'Uint8ClampedArray' %}
+            {{- '%s->asObject()->asUint8ClampedArrayObject()'|format(aname) -}}
         {% elif type.name == 'Function' %}
             {{- '%s->asFunction()'|format(aname) -}}
         {% endif %}
@@ -180,6 +184,8 @@ for (int i = 0; i < {{ aname }}Size; i++) {
             {% set type_str  = 'ScriptArrayBuffer' %}
         {% elif type.name == 'ArrayBufferView' %}
             {% set type_str  = 'ScriptArrayBufferView' %}
+        {% elif type.name == 'Uint8ClampedArray' %}
+            {% set type_str  = 'ScriptUint8ClampedArray' %}
         {% elif type.name == 'Function' %}
             {% set type_str  = 'ScriptFunction' %}
         {% endif %}
