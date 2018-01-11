@@ -237,6 +237,12 @@ class StarfishIRHandler():
     self._init_using_info(union_ir)
     for idx, subtype_ir in enumerate(union_ir.get('data', [])):
       self._change_types(union_ir['data'], idx, False)
+      if subtype_ir['name'] in self.interfaces:
+        target = self.interfaces[subtype_ir['name']]
+        if target.get('flags'):
+          if not union_ir.get('flags'):
+            union_ir['flags'] = set()
+          union_ir['flags'] |= target['flags']
     self._flush_using_info(union_ir)
 
   def _check_dictionary(self, dictionary):

@@ -124,12 +124,13 @@ def _hd_extattr_flags(target, extattr):
     target['check_tc_coverage'] = True
     return True
   elif 'STARFISH_' in extattr.GetName():
-    # STARFISH_ENABLE_TEST
-    # STARFISH_EXP
-    # STARFISH_ENABLE_WASU
+    # STARFISH_*
+    # if target.get('flags') is None:
+    #   target['flags'] = []
+    # target.get('flags').append(extattr.GetName())
     if target.get('flags') is None:
-      target['flags'] = []
-    target.get('flags').append(extattr.GetName())
+      target['flags'] = set()
+    target.get('flags').add(extattr.GetName())
     return True
   return False
 

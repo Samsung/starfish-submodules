@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 {% import 'util.cpp' as util_macro %}
-
+{%- call util_macro.ifdef(flags) %}
 #include "StarFishConfig.h"
 #include "{{name|to_union_h_path}}"
 #include "binding/ScriptWrappable.h"
@@ -78,3 +78,4 @@ bool is{{ name }}(ExecutionStateRef* state, ValueRef* from)
 }
 }
 
+{% endcall %}

@@ -14,6 +14,7 @@
  *    limitations under the License.
  */
 {% import 'util.cpp' as util_macro %}
+{%- call util_macro.ifdef(flags) %}
 {%- macro gen_item_type_exp(item) -%}
 {{ util_macro.gen_type_str(item, item.kind in non_nullable_type_kinds and item.nullable) }}
 {%- endmacro -%}
@@ -99,4 +100,5 @@ private:
 }
 
 #endif
+{% endcall %}
 
