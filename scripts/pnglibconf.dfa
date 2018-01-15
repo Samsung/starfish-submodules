@@ -300,7 +300,7 @@ option WRITE_INT_FUNCTIONS disabled
 #     because it means that a failure to write an ancilliary chunk can often be
 #     ignored.
 
-option WARNINGS
+option WARNINGS disabled
 option ERROR_TEXT
 option ERROR_NUMBERS disabled
 
