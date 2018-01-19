@@ -168,7 +168,8 @@ void {{ name }}::init(ScriptBindingInstance* instance, void* domObjectPointer)
     m_object = ObjectRef::create(state);
     {% endif %}
     m_object->setExtraData(domObjectPointer);
-    m_object->giveInternalClassProperty("{{ name }}");
+    m_object->defineDataProperty(state, ValueRef::create(context->vmInstance()->toStringTagSymbol()),
+            ValueRef::create(StringRef::fromASCII("{{ name }}")), false, false, true);
 
     scriptObject()->setPrototype(state, instance->fn{{ name }}()->getFunctionPrototype(state));
     ObjectRef* targetObject = scriptObject();

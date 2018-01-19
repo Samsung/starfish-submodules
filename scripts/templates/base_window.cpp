@@ -180,7 +180,8 @@ void Window::init(ScriptBindingInstance* instance, void* domObjectPointer)
 
     m_object = context->globalObject();
     m_object->setExtraData(domObjectPointer);
-    m_object->giveInternalClassProperty("Window");
+    m_object->defineDataProperty(state, ValueRef::create(context->vmInstance()->toStringTagSymbol()),
+            ValueRef::create(StringRef::fromASCII("Window")), false, false, true);
 
     scriptObject()->setPrototype(state, instance->fn{{ name }}()->getFunctionPrototype(state));
     ObjectRef* targetObject = scriptObject();
