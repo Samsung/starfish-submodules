@@ -1164,9 +1164,6 @@ lws_service_fd_tsi(struct lws_context *context, struct lws_pollfd *pollfd, int t
 			break;
 
 read:
-		/* all the union members start with hdr, so even in ws mode
-		 * we can deal with the ah via u.hdr
-		 */
 		if (wsi->u.hdr.ah) {
 			lwsl_info("%s: %p: inherited ah rx\n", __func__, wsi);
 			eff_buf.token_len = wsi->u.hdr.ah->rxlen -
