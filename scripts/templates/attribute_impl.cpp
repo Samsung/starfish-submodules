@@ -29,6 +29,14 @@ static ValueRef* {{ util_macro.gen_getter_function(attribute, name) }}(Execution
     {% else %}
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
     {% endif %}
+    {% if attribute.reflect %}
+    {% if attribute.getter.return.name == 'boolean' %}
+    return ValueRef::create(originalObj->getAttribute(String::fromUTF8("{{ attribute.reflect }}")).hasValue());
+    {% else %}
+    Nullable<String*> result = originalObj->getAttribute(String::fromUTF8("{{ attribute.reflect }}"));
+    return ValueRef::create(toJSString(result.hasValue() ? result.getValue() : String::emptyString));
+    {% endif %}
+    {% else %}
     {% if attribute.getter.return.name == 'EventHandlerNonNull' %}
         {# ignore x it is just a trick to set entry on dict type #}
         {% set x=attribute.getter.return.__setitem__('name', 'EventListener') %}
@@ -49,6 +57,7 @@ static ValueRef* {{ util_macro.gen_getter_function(attribute, name) }}(Execution
     }
     {% endif %}
     {{ util_macro.handle_return(attribute.getter.return)|trim }}
+    {% endif %}
 }
 {% endif %}
 {% endif %}
@@ -67,6 +76,14 @@ static ValueRef* {{ util_macro.gen_setter_function(attribute, name) }}(Execution
     {% else %}
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
     {% endif %}
+    {% if attribute.reflect %}
+    try {
+        originalObj->setAttribute(String::fromUTF8("{{ attribute.reflect }}"), toBrowserString(state, argv[0]));
+    } catch (DOMException* e) {
+        state->throwException(e->scriptValue());
+        STARFISH_RELEASE_ASSERT_NOT_REACHED();
+    }
+    {% else %}
     {% set arg = attribute.setter.arguments[0] %}
     {% if arg.type.name == 'EventHandlerNonNull' %}
         {% set x=arg.type.__setitem__('name', 'EventListener') %}
@@ -95,6 +112,7 @@ static ValueRef* {{ util_macro.gen_setter_function(attribute, name) }}(Execution
         state->throwException(e->scriptValue());
         STARFISH_RELEASE_ASSERT_NOT_REACHED();
     }
+    {% endif %}
     {% endif %}
     return ValueRef::createUndefined();
 }

@@ -118,6 +118,7 @@ _hd_extattr_primary_global = partial(_hd_extattr_bool_t, 'PrimaryGlobal', 'prima
 _hd_extattr_custom_descriptor = partial(_hd_extattr_bool_t, 'CustomDescriptor', '_custom_descriptor', True)
 _hd_extattr_serializable = partial(_hd_extattr_bool_t, 'Serializable', 'serializable', True)
 _hd_extattr_transferable = partial(_hd_extattr_bool_t, 'Transferable', 'transferable', True)
+_hd_extattr_reflect = partial(_hd_extattr_value_t, 'Reflect', 'reflect', True)
 
 def _hd_extattr_flags(target, extattr):
   if extattr.GetName() == 'STARFISH_TC_COVERAGE':
@@ -364,13 +365,16 @@ class StarfishIDLReader():
                           _hd_extattr_unforgeable,
                           _hd_extattr_custom,
                           _hd_extattr_raise_expection,
-                          _hd_extattr_putforward])
+                          _hd_extattr_putforward,
+                          _hd_extattr_reflect])
     excp = result.pop('raises_exception', None)
     getter_excp = True if (excp is True or excp and 'Getter' in excp) else None
     setter_excp = True if (excp is True or excp and 'Setter' in excp) else None
     custom = result.pop('custom', None)
     getter_custom = True if (custom is True or custom and 'Getter' in custom) else None
     setter_custom = True if (custom is True or custom and 'Setter' in custom) else None
+    if result.get('reflect') and type(result['reflect']) is types.BooleanType:
+      result['reflect'] = result['name'];
     # genarate getter ir
     getter = {}
     CHECK_NOT_NONE(type_ir)

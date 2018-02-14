@@ -100,6 +100,7 @@ Extend [Operation Object](#operation-object)
 | put_forwards | [Attribute Object](#attribute_object)<br>*NOTE Can be 'String' when failed to find proper reference*<br>*Ref: Document.idl* |
 | rename | `String`<br>*Ref: HTMLSourceElement.idl* |
 | unimplemented | `Boolean` |
+| reflect | `String`<br>Reflects the content attribute of the specified name<br>(support `boolean`/`String` type attribute only)<br>*Ref: HTMLTextAreaElement.autofocus* |
 | flags | `Set` of [Flags](#flags)<br>STARFISH_* |
 
 ## Operation Object
