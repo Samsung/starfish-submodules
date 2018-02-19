@@ -73,8 +73,22 @@ class StarfishIDLParser(IDLParser):
     if len(p) > 1:
       p[0] = ListFromConcat(p[2], p[3])
 
+  def p_InterfaceMembers(self, p):
+    """InterfaceMembers : ExtendedAttributeList InterfaceMember InterfaceMembers
+                        | ExtendedAttributeList InterfaceMember Comments
+                        |"""
+    if len(p) > 1:
+      p[2].AddChildren(p[1])
+      p[0] = ListFromConcat(p[2], p[3])
+
   def parse_file(self, file_path):
-    return ParseFile(self, file_path)
+    result = ParseFile(self, file_path);
+    if self._parse_errors > 0:
+      print "PARSE ERROR: " + file_path
+      print "> please execute below command to see details"
+      print "> ./binding_generator/scripts/starfish_idl_reader.py " + file_path
+      sys.exit(1)
+    return result
 
   def __init__(self, lexer, debug=False):
     self.lexer = lexer
