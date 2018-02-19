@@ -91,20 +91,19 @@ class StarfishIRHandler():
             if ref_attr.get('setter'):
               self._udpate_has_exception(ref_attr['setter'])
             break;
-    if attr.get('reflect') and attr.get('setter'):
-      self.has_exception = True
     # Validation
-    if attr.get('reflect') and \
-      (attr['getter']['return'].get('nullable') or \
-       not self.processing.get('_inherited_element') or \
-       not (attr['getter']['return']['kind'] == 'StringType' or \
-            attr['getter']['return']['name'] == 'boolean')):
-      print 'Wrong use of "Reflect" on ' + self.processing['name'] + '.' + attr['name']
-      print 'Check below conditions'
-      print '> Interface should inherited Element'
-      print '> Attribute type should be String or Boolean'
-      print '> Attribute type is not nullable'
-      sys.exit(1)
+    if attr.get('reflect'):
+      self.include_paths.add('StaticStrings')
+      if attr['getter']['return'].get('nullable') or \
+        not self.processing.get('_inherited_element') or \
+        not (attr['getter']['return']['kind'] == 'StringType' or \
+             attr['getter']['return']['name'] == 'boolean'):
+        print 'Wrong use of "Reflect" on ' + self.processing['name'] + '.' + attr['name']
+        print 'Check below conditions'
+        print '> Interface should inherited Element'
+        print '> Attribute type should be String or Boolean'
+        print '> Attribute type is not nullable'
+        sys.exit(1)
 
   def _check_operation(self, op):
     if not op:

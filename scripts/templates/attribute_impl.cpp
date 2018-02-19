@@ -31,9 +31,9 @@ static ValueRef* {{ util_macro.gen_getter_function(attribute, name) }}(Execution
     {% endif %}
     {% if attribute.reflect %}
     {% if attribute.getter.return.name == 'boolean' %}
-    return ValueRef::create(originalObj->getAttribute(String::fromUTF8("{{ attribute.reflect }}")).hasValue());
+    return ValueRef::create(originalObj->getAttribute(fetchStaticStrings(state->context())->m_{{ attribute.reflect }}).hasValue());
     {% else %}
-    Nullable<String*> result = originalObj->getAttribute(String::fromUTF8("{{ attribute.reflect }}"));
+    Nullable<String*> result = originalObj->getAttribute(fetchStaticStrings(state->context())->m_{{ attribute.reflect }});
     return ValueRef::create(toJSString(result.hasValue() ? result.getValue() : String::emptyString));
     {% endif %}
     {% else %}
@@ -77,12 +77,7 @@ static ValueRef* {{ util_macro.gen_setter_function(attribute, name) }}(Execution
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
     {% endif %}
     {% if attribute.reflect %}
-    try {
-        originalObj->setAttribute(String::fromUTF8("{{ attribute.reflect }}"), toBrowserString(state, argv[0]));
-    } catch (DOMException* e) {
-        state->throwException(e->scriptValue());
-        STARFISH_RELEASE_ASSERT_NOT_REACHED();
-    }
+    originalObj->setAttribute(fetchStaticStrings(state->context())->m_{{ attribute.reflect }}, toBrowserString(state, argv[0]));
     {% else %}
     {% set arg = attribute.setter.arguments[0] %}
     {% if arg.type.name == 'EventHandlerNonNull' %}
