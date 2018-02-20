@@ -31,9 +31,9 @@ static ValueRef* {{ util_macro.gen_getter_function(attribute, name) }}(Execution
     {% endif %}
     {% if attribute.reflect %}
     {% if attribute.getter.return.name == 'boolean' %}
-    return ValueRef::create(originalObj->getAttribute(fetchStaticStrings(state->context())->m_{{ attribute.reflect|lower }}).hasValue());
+    return ValueRef::create(originalObj->getAttribute(fetchStaticStrings(state->context())->m_{{ attribute.reflect }}).hasValue());
     {% else %}
-    Nullable<String*> result = originalObj->getAttribute(fetchStaticStrings(state->context())->m_{{ attribute.reflect|lower }});
+    Nullable<String*> result = originalObj->getAttribute(fetchStaticStrings(state->context())->m_{{ attribute.reflect }});
     return ValueRef::create(toJSString(result.hasValue() ? result.getValue() : String::emptyString));
     {% endif %}
     {% else %}
@@ -77,7 +77,7 @@ static ValueRef* {{ util_macro.gen_setter_function(attribute, name) }}(Execution
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
     {% endif %}
     {% if attribute.reflect %}
-    originalObj->setAttribute(fetchStaticStrings(state->context())->m_{{ attribute.reflect|lower }}, toBrowserString(state, argv[0]));
+    originalObj->setAttribute(fetchStaticStrings(state->context())->m_{{ attribute.reflect }}, toBrowserString(state, argv[0]));
     {% else %}
     {% set arg = attribute.setter.arguments[0] %}
     {% if arg.type.name == 'EventHandlerNonNull' %}

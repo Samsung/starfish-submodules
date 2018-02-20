@@ -93,9 +93,9 @@ class StarfishIRHandler():
             break;
     # Validation
     if attr.get('reflect'):
-      self.include_paths.add('StaticStrings')
       if attr['getter']['return'].get('nullable') or \
-        not self.processing.get('_inherited_element') or \
+        not (self.processing.get('_inherited_htmlelement') or \
+             self.processing.get('_inherited_svgelement')) or \
         not (attr['getter']['return']['kind'] == 'StringType' or \
              attr['getter']['return']['name'] == 'boolean'):
         print 'Wrong use of "Reflect" on ' + self.processing['name'] + '.' + attr['name']
@@ -104,6 +104,9 @@ class StarfishIRHandler():
         print '> Attribute type should be String or Boolean'
         print '> Attribute type is not nullable'
         sys.exit(1)
+      self.include_paths.add('StaticStrings')
+      if self.processing.get('_inherited_htmlelement'):
+        attr['reflect'] = attr['reflect'].lower()
 
   def _check_operation(self, op):
     if not op:
@@ -191,8 +194,10 @@ class StarfishIRHandler():
         if parent.get('has_unforgeable'):
           interface['has_unforgeable'] = True
         self._inherit_descriptor(interface, parent)
-        if parent['name'] == 'Element' or parent.get('_inherited_element'):
-          interface['_inherited_element'] = True
+        if parent['name'] == 'HTMLElement' or parent.get('_inherited_htmlelement'):
+          interface['_inherited_htmlelement'] = True
+        if parent['name'] == 'SVGElement' or parent.get('_inherited_svgelement'):
+          interface['_inherited_svgelement'] = True
       else:
         print interface.get('name') + ': Wrong parent interface "' + parent + '"'
         sys.exit(1)
