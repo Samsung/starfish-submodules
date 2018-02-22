@@ -17,10 +17,8 @@ PLY can be found at:
 import os.path
 import sys
 
-# SRC_DIR = os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
-# sys.path.insert(0, os.path.join(SRC_DIR, 'third_party'))
-ROOT_DIR = os.path.join(os.path.dirname(__file__), os.pardir)
-sys.path.insert(0, os.path.join(ROOT_DIR, 'third_party'))
+SRC_DIR = os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
+sys.path.insert(0, os.path.join(SRC_DIR, 'third_party'))
 from ply import lex
 
 
@@ -286,14 +284,4 @@ class IDLLexer(object):
 
 # If run by itself, attempt to build the lexer
 if __name__ == '__main__':
-  import argparse
-  parser = argparse.ArgumentParser()
-  parser.add_argument("file_path")
-  args = parser.parse_args()
-  data = open(args.file_path).read()
-
   lexer_object = IDLLexer()
-  lexer_object.Tokenize(data)
-  tokens = lexer_object.GetTokens()
-  for t in tokens:
-    print t
