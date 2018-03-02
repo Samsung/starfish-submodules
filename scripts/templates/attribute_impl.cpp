@@ -77,7 +77,17 @@ static ValueRef* {{ util_macro.gen_setter_function(attribute, name) }}(Execution
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
     {% endif %}
     {% if attribute.reflect %}
+
+    {% if attribute.getter.return.name == 'boolean' %}
+    bool value = argv[0]->toBoolean(state);
+    if (value) {
+        originalObj->setAttribute(fetchStaticStrings(state->context())->m_{{ attribute.reflect }}, String::emptyString);
+    } else {
+        originalObj->removeAttribute(fetchStaticStrings(state->context())->m_{{ attribute.reflect }});
+    }
+    {% else %}
     originalObj->setAttribute(fetchStaticStrings(state->context())->m_{{ attribute.reflect }}, toBrowserString(state, argv[0]));
+    {% endif %}
     {% else %}
     {% set arg = attribute.setter.arguments[0] %}
     {% if arg.type.name == 'EventHandlerNonNull' %}
