@@ -572,7 +572,7 @@ class StarfishIDLReader():
     partial = node.GetProperty('Partial')
     if partial:
       _set_prop_to_dict(result, '_partial_target', node.GetName())
-      result['name'] = os.path.basename(self.file_path)
+      result['name'] = os.path.basename(self.file_path) + '_anonymous' + str(len(self.interfaces))
     _set_prop_to_dict(result, 'partial_interface', partial)
     _set_prop_to_dict(result, 'no_interface', False)
     _set_prop_to_dict(result, 'unimplemented', self.treat_as_unimpl)
