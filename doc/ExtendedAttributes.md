@@ -19,14 +19,15 @@
 |----- | ----- |
 | Unimplemented | Does not generate code for the unimplemented attribute. |
 | Unforgeable | The attribute is owned by the object itself, not prototype.<br>*Ref: Location.idl<br>Location.prototype.hasOwnProperty("protocol") // false<br>window.location.hasOwnProperty("protocol") // true* |
-| Rename=XX | Corresponding native attribute will have name XX<br>*Ref: Document.idl<br>charset -> characterSet* |
+| Rename=X | Corresponding native attribute will have name X<br>*Ref: Document.idl<br>charset -> characterSet* |
 | RaisesException | Native code may raise exception. <ul><li>RaisesException  *(Catch exceptions for both getter, setter)*</li><li>RaisesException=Setter *(Catch exceptions for setter)*</li><li>RaisesException=Getter *(Catch exceptions for getter)*</li></ul> |
 | PutForwards=X | Redirect setter to it's attribute X's setter.<br>*Ref: Document.idl<br>document.location = a ->REDIRECT-> document.location.href = a* |
+| Reflect=X | Reflect the content attribute of the specified name.<br>If X is not specified, use attribute name itself.<br>*Ref: HTMLOptionElement.idl* |
 
 ## Operation
 | Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Descripion&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |
 |----- | ----- |
 | Unimplemented | Does not generate code for the unimplemented operation. |
 | Unforgeable | The operation is owned by the object itself, not prototype.<br>*Ref: Location.idl<br>Location.prototype.hasOwnProperty("assign") // false<br>window.location.hasOwnProperty("assign") // true* |
-| Rename=XX | Corresponding native function will have name XX |
+| Rename=X | Corresponding native function will have name X |
 | RaisesException | Native code may raise exception. Binding code will catch exceptions from native. |

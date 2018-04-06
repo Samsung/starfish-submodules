@@ -9,23 +9,9 @@ ROOT_DIR = os.path.join(os.path.dirname(__file__), os.pardir)
 sys.path.insert(0, os.path.join(ROOT_DIR, 'third_party'))
 from ply import yacc
 
-REMOVED_RULES = [
-  # Add rule name to remove here
-  'Top',
-]
-for rule in REMOVED_RULES:
-  name = 'p_' + rule
-  delattr(IDLParser, name)
+delattr(IDLParser, 'p_Top')
 
 class StarfishIDLParser(IDLParser):
-  def p_Definitions(self, p):
-    """Definitions : ExtendedAttributeList Definition Definitions
-                   | Comments
-                   | """
-    if len(p) > 2:
-        p[2].AddChildren(p[1])
-        p[0] = ListFromConcat(p[2], p[3])
-
   def p_ExtendedAttributes(self, p):
     """ExtendedAttributes : ExtendedAttributeComma ExtendedAttribute ExtendedAttributes
                           | ExtendedAttributeComma
@@ -34,9 +20,7 @@ class StarfishIDLParser(IDLParser):
       p[0] = ListFromConcat(p[2], p[3])
 
   def p_ExtendedAttributeComma(self, p):
-    """ExtendedAttributeComma : ',' Comments
-                              | Comments ','
-                              | ','"""
+    """ExtendedAttributeComma : ','"""
     p[0] = p[1]
 
   def p_ExtendedAttribute(self, p):
@@ -46,12 +30,8 @@ class StarfishIDLParser(IDLParser):
                          | ExtendedAttributeIdentList
                          | ExtendedAttributeNamedArgList
                          | ExtendedAttributeString
-                         | ExtendedAttributeStringList
-                         | Comments ExtendedAttribute"""
-    if len(p) == 2:
-      p[0] = p[1]
-    elif len(p) == 3:
-      p[0] = p[2]
+                         | ExtendedAttributeStringList"""
+    p[0] = p[1]
 
   def p_ExtendedAttributeString(self, p):
     """ExtendedAttributeString : identifier '=' string"""
@@ -73,13 +53,19 @@ class StarfishIDLParser(IDLParser):
     if len(p) > 1:
       p[0] = ListFromConcat(p[2], p[3])
 
-  def p_InterfaceMembers(self, p):
-    """InterfaceMembers : ExtendedAttributeList InterfaceMember InterfaceMembers
-                        | ExtendedAttributeList InterfaceMember Comments
-                        |"""
-    if len(p) > 1:
-      p[2].AddChildren(p[1])
-      p[0] = ListFromConcat(p[2], p[3])
+  def p_ExtendedAttributeList(self, p):
+    """ExtendedAttributeList : '[' ExtendedAttribute ExtendedAttributes ']'
+                               | """
+    if len(p) > 3:
+      items = ListFromConcat(p[2], p[3])
+      p[0] = self.BuildProduction('ExtAttributes', p, 1, items)
+
+  # FIXME when we support 'exception' expression
+  def p_ExceptionMember(self, p):
+    """ExceptionMember : Const
+                       | ReadonlyMember
+                       | Operation"""
+    p[0] = p[1]
 
   def parse_file(self, file_path):
     result = ParseFile(self, file_path);

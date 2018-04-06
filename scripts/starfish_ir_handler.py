@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
 import types
+import starfish_ir_utils as IRUtils
 
 class StarfishIRHandler():
   def _add_used_typeref(self, name):
@@ -92,9 +93,10 @@ class StarfishIRHandler():
               self._udpate_has_exception(ref_attr['setter'])
             break;
     # Validation
-    if attr.get('reflect'):
+    if attr.get('reflect') and self.enable_validation:
       if attr['getter']['return'].get('nullable') or \
-        not (self.processing.get('_inherited_htmlelement') or \
+        not (self.processing['name'] == 'HTMLElement' or \
+             self.processing.get('_inherited_htmlelement') or \
              self.processing.get('_inherited_svgelement')) or \
         not (attr['getter']['return']['kind'] == 'StringType' or \
              attr['getter']['return']['name'] == 'boolean'):
@@ -238,11 +240,11 @@ class StarfishIRHandler():
       if interface.get('_partial_target') in self.interfaces:
         target = self.interfaces[interface.pop('_partial_target')]
         # validate
-        copy_list = ['constants', 'attributes', 'functions', 'used_dictionaries']
+        copy_list = ['constants', 'attributes', 'used_dictionaries']
         for key in copy_list:
           for prop_a in interface[key]:
             for prop_b in target[key]:
-              if prop_a['name'] in prop_b['name']:
+              if prop_a['name'] == prop_b['name']:
                 print 'Duplicate ' + key + ": " + prop_a['name']
                 print '* ' + target['file_path'] + '.idl'
                 print '* ' + interface['file_path'] + '.idl'
@@ -250,6 +252,8 @@ class StarfishIRHandler():
         # append to target
         for key in copy_list:
           target[key] += interface[key]
+        for fn in interface['functions']:
+          IRUtils.append_to_functions(fn, target['functions'])
         target['include_paths'] |= interface['include_paths']
         target['has_unforgeable'] |= interface['has_unforgeable']
 
@@ -330,7 +334,8 @@ class StarfishIRHandler():
         result = result + 'Or' + subtype_ir['name']
     return result[2:]
 
-  def apply_types(self, type_ir, to_ir):
+  def apply_types(self, type_ir, to_ir, enable_validation=True):
+    self.enable_validation = enable_validation
     self.dictionaries = {}
     self.interfaces = {}
     self.callbacks = {}

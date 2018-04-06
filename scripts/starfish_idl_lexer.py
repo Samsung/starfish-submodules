@@ -8,20 +8,13 @@ from ply import lex
 
 from idl_lexer import IDLLexer
 
-REMOVE_TOKENS = [
-  # Add token name to remove here
-]
-
 class StarfishIDLLexer(IDLLexer):
-  # def t_COMMENT(self, t):
-  #   r'(/\*(.|\n)*?\*/)|(//.*(\n[ \t]*//.*)*)'
-  #   t.lexer.lineno += t.value.count("\n")
+  def t_COMMENT(self, t):
+    r'(/\*(.|\n)*?\*/)|(//.*(\n[ \t]*//.*)*)'
+    t.lexer.lineno += t.value.count("\n")
 
   def __init__(self, debug=False):
     IDLLexer.__init__(self)
-    for token in REMOVE_TOKENS:
-      if token in self.tokens:
-         self.tokens.remove(token)
     self._lexobj = lex.lex(object=self,
                            debug=debug,
                            lextab=None,

@@ -21,7 +21,7 @@
 | **attributes** | `List` of [Attribute Object](#attribute-object) |
 | **functions** | `List` of [Operation Object](#operation-object) / [MultiOperation](#multioperation-object) / [Stringifier](#stringifier-object) Object|
 | **include_paths** | `Set` of `String` |
-| **used_dictionary** | `List` of [Dictionary Object](#dictionary-object) |
+| **used_dictionaries** | `List` of [Dictionary Object](#dictionary-object) |
 | **used_unions** | `Set` of `String` |
 | **no_interface** | `Boolean`<br>Prevent binding to global window.<br>*Ref: Geolocation.idl* |
 | **partial_interface** | `Boolean`<br>Only used for partial interface by others.<br>*Ref: ChildNode.idl* |
