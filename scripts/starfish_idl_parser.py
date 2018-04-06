@@ -10,6 +10,8 @@ sys.path.insert(0, os.path.join(ROOT_DIR, 'third_party'))
 from ply import yacc
 
 delattr(IDLParser, 'p_Top')
+delattr(IDLParser, 'p_Comments')
+delattr(IDLParser, 'p_CommentsRest')
 
 class StarfishIDLParser(IDLParser):
   def p_ExtendedAttributes(self, p):
@@ -59,13 +61,6 @@ class StarfishIDLParser(IDLParser):
     if len(p) > 3:
       items = ListFromConcat(p[2], p[3])
       p[0] = self.BuildProduction('ExtAttributes', p, 1, items)
-
-  # FIXME when we support 'exception' expression
-  def p_ExceptionMember(self, p):
-    """ExceptionMember : Const
-                       | ReadonlyMember
-                       | Operation"""
-    p[0] = p[1]
 
   def parse_file(self, file_path):
     result = ParseFile(self, file_path);

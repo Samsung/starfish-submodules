@@ -19,6 +19,7 @@ class StarfishIDLLexer(IDLLexer):
                            debug=debug,
                            lextab=None,
                            optimize=(not debug))
+    self.tokens.remove('COMMENT')
 
 if __name__ == '__main__':
   import types
