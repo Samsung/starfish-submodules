@@ -12,6 +12,9 @@ from ply import yacc
 delattr(IDLParser, 'p_Top')
 delattr(IDLParser, 'p_Comments')
 delattr(IDLParser, 'p_CommentsRest')
+# NOTE Temporarily disable to prevent warnings
+delattr(IDLParser, 'p_ExceptionField')
+delattr(IDLParser, 'p_ExceptionFieldError')
 
 class StarfishIDLParser(IDLParser):
   def p_ExtendedAttributes(self, p):
@@ -61,6 +64,13 @@ class StarfishIDLParser(IDLParser):
     if len(p) > 3:
       items = ListFromConcat(p[2], p[3])
       p[0] = self.BuildProduction('ExtAttributes', p, 1, items)
+
+  # FIXME when we support 'exception' expression
+  def p_ExceptionMember(self, p):
+    """ExceptionMember : Const
+                       | ReadonlyMember
+                       | Operation"""
+    p[0] = p[1]
 
   def parse_file(self, file_path):
     result = ParseFile(self, file_path);
