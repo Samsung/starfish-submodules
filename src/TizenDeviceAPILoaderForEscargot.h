@@ -43,7 +43,7 @@ namespace DeviceAPI {
 
 class ESPostListener;
 
-#if defined(STARFISH_TIZEN_WEARABLE)
+#if defined(STARFISH_TIZEN_WEARABLE_WIDGET)
 #define FOR_EACH_EARLY_TIZEN_STRINGS(F) \
     F(tizen) \
     F(xwalk) \
@@ -105,7 +105,7 @@ class ESPostListener;
 #define SUPPORTED_TIZEN_ENTRYPOINTS(F) \
     F(ApplicationControl)              \
     F(ApplicationControlData)
-#endif // defined(STARFISH_TIZEN_WEARABLE)
+#endif // defined(STARFISH_TIZEN_WEARABLE_WIDGET)
 
 class TizenStrings {
 public:
@@ -149,7 +149,7 @@ public:
     wrt::xwalk::ExtensionInstance* getExtensionInstanceFromCallingContext(
         Escargot::ContextRef*, Escargot::ValueRef* thisValue);
     Escargot::ObjectRef* initializeExtensionInstance(const char*);
-#if defined(STARFISH_TIZEN_WEARABLE)
+#if defined(STARFISH_TIZEN_WEARABLE_WIDGET)
     WebWidgetAPIInstance* webWidgetAPIInstance()
     {
         return m_webWidgetAPIInstance;
@@ -185,7 +185,7 @@ private:
     ChunkDataMap m_chunkDataMap;
     size_t m_chunkID;
     TizenStrings* m_strings;
-#if defined(STARFISH_TIZEN_WEARABLE)
+#if defined(STARFISH_TIZEN_WEARABLE_WIDGET)
     WebWidgetAPIInstance* m_webWidgetAPIInstance;
 #endif
 #define DECLARE_TIZEN_OBJECT(name) \

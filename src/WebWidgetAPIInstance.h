@@ -1,7 +1,7 @@
 #ifndef __WebWidgetAPIInstance__
 #define __WebWidgetAPIInstance__
 
-#if defined(TIZEN_DEVICE_API) && defined(STARFISH_TIZEN_WEARABLE)
+#if defined(TIZEN_DEVICE_API) && defined(STARFISH_TIZEN_WEARABLE_WIDGET)
 #include <EscargotPublic.h>
 #include <bundle.h>
 #include <bundle_internal.h>

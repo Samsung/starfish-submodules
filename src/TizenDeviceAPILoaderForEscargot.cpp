@@ -64,7 +64,7 @@ void* ExtensionManagerInstance::operator new(size_t size)
                    GC_WORD_OFFSET(ExtensionManagerInstance, m_context));
         GC_set_bit(obj_bitmap,
                    GC_WORD_OFFSET(ExtensionManagerInstance, m_strings));
-#if defined(STARFISH_TIZEN_WEARABLE)
+#if defined(STARFISH_TIZEN_WEARABLE_WIDGET)
         GC_set_bit(obj_bitmap,
                    GC_WORD_OFFSET(ExtensionManagerInstance, m_webWidgetAPIInstance));
 #endif
@@ -642,7 +642,7 @@ ExtensionManagerInstance::ExtensionManagerInstance(ContextRef* context)
                 SUPPORTED_TIZEN_ENTRYPOINTS(DEFINE_SUPPORTED_TIZEN_ENTRYPOINTS)
 #undef DEFINE_SUPPORTED_TIZEN_ENTRYPOINTS
 
-#if defined(STARFISH_TIZEN_WEARABLE)
+#if defined(STARFISH_TIZEN_WEARABLE_WIDGET)
                 WebWidgetAPIInstance* ww = new(GC) WebWidgetAPIInstance();
                 extensionManagerInstance->m_webWidgetAPIInstance = ww;
                 ObjectRef* widgetAPIObj = ww->createWebWidgetAPIObject(state->context());
@@ -699,7 +699,7 @@ ExtensionManagerInstance::ExtensionManagerInstance(ContextRef* context)
             xwalkGetter, nullptr,
             ObjectRef::PresentAttribute::EnumerablePresent));
 
-#if defined(STARFISH_TIZEN_WEARABLE)
+#if defined(STARFISH_TIZEN_WEARABLE_WIDGET)
     m_webWidgetAPIInstance = nullptr;
 #endif
     s_extensionManagerInstances[m_context] = this;
