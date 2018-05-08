@@ -39,7 +39,11 @@
 if (validArgCount == {{function.min_passing_count|string}}) {
     {{return_left}}{{calling}}{{fnname}}({{call_with_comma}}{{'value'|to_arg_syntax(0, function.min_passing_count)}});
         {% for count in range(function.min_passing_count + 1, max_arg + 1) %}
+    {% if count == max_arg -%}
+} else {
+    {% else %}
 } else if (validArgCount == {{count|string}}) {
+    {% endif %}
     {{return_left}}{{calling}}{{fnname}}({{call_with_comma}}{{'value'|to_arg_syntax(0, count)}});
         {% endfor %}
 }
