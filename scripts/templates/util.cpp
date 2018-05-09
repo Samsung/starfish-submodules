@@ -279,8 +279,8 @@ if (!std::isfinite({{names.vname}})) {
         {{ assign_exp_with_check|indent(8) }}
     }
         {%- elif arg.default %}
-        {# '(2) Has-DefaultValue' #}
-    if (!{{ names.aname }}->isUndefinedOrNull()) {
+        {# '(2) Optional + Has-DefaultValue' #}
+    if (!{{ names.aname }}->isUndefined()) {
         {{ assign_exp_with_check|indent(8) }}
     }
         {%- elif arg.optional %}
