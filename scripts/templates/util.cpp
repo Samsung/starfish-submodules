@@ -278,13 +278,26 @@ if (!std::isfinite({{names.vname}})) {
     if (!{{ names.aname }}->isNull()) {
         {{ assign_exp_with_check|indent(8) }}
     }
+        {%- elif arg.default and arg.type.nullable %}
+        {# '(2) Optional + Nullable + Has-DefaultValue (RefTypes)' #}
+            {% if arg.default == 'nullptr' %}
+    if (!{{ names.aname }}->isUndefinedOrNull()) {
+        {{ assign_exp_with_check|indent(8) }}
+    }
+            {%- else %}
+    if ({{ names.aname }}->isNull()) {
+        {{ names.vname }} = nullptr;
+    } else if (!{{ names.aname }}->isUndefined()) {
+        {{ assign_exp_with_check|indent(8) }}
+    }
+            {%- endif %}
         {%- elif arg.default %}
-        {# '(2) Optional + Has-DefaultValue' #}
+        {# '(3) Optional + Non-Nullable + Has-DefaultValue' #}
     if (!{{ names.aname }}->isUndefined()) {
         {{ assign_exp_with_check|indent(8) }}
     }
         {%- elif arg.optional %}
-        {# '(3) Optional + No-DefaultValue' #}
+        {# '(4) Optional + No-DefaultValue' #}
             {% if need_counting %}
     if (argCounting && {{ names.aname }}->isUndefined()) {
         validArgCount--;
@@ -300,13 +313,12 @@ if (!std::isfinite({{names.vname}})) {
     }
             {%- endif %}
         {%- elif arg.type.nullable %}
-        {# '(4) Non-optional + Nullable' #}
+        {# '(5) Non-optional + Nullable' #}
     if (!{{ names.aname }}->isUndefinedOrNull()) {
         {{ assign_exp_with_check|indent(8) }}
     }
         {%- else %}
-        {# '(5) Non-optional + Non-Nullable + RefTypes' #}
-        {# '(6) Non-optional + Non-Nullable + Non-RefTypes' #}
+        {# '(6) Non-optional + Non-Nullable (RefTypes)' #}
     {{ assign_exp_with_check|indent(4) }}
         {% endif %}
     {% endif %}
