@@ -97,10 +97,10 @@ static bool {{ name }}DefineOwnPropertyCallback(ExecutionStateRef* state, Object
     {% set exception = true if isetter and isetter.raises_exception else nsetter and nsetter.raises_exception %}
     STARFISH_ASSERT(((ScriptWrappable*)jsSelf->extraData())->is{{name}}());
     {{name}}* self = ({{name}}*)jsSelf->extraData();
-    {{ util_macro.handle_arg(setarg, names)|trim }}
     bool result = false;
     {% call raises_exception(exception, 4) %}
     {% if isetter and nsetter %}
+    {{ util_macro.handle_arg(setarg, names)|trim }}
     uint32_t idx = key->toArrayIndex(state);
     if (idx == ValueRef::InvalidArrayIndexValue) {
         {{ 'result = %s'|format(nassing_exp)|indent(8) }}
@@ -110,9 +110,11 @@ static bool {{ name }}DefineOwnPropertyCallback(ExecutionStateRef* state, Object
     {% elif isetter %}
     uint32_t idx = key->toArrayIndex(state);
     if (idx != ValueRef::InvalidArrayIndexValue) {
+        {{ util_macro.handle_arg(setarg, names)|trim|indent(4) }}
         {{ 'result = %s'|format(iassing_exp)|indent(8) }}
     }
     {% else %}
+    {{ util_macro.handle_arg(setarg, names)|trim }}
     {{ 'result = %s'|format(nassing_exp)|indent(4) }}
     {% endif %}
     {% endcall %}
