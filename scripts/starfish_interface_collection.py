@@ -58,6 +58,25 @@ def gen_interface_collection(interfaces, outpath, mode_strict):
   groups = gen_groups(interfaces)
 
   with open(os.path.join(outpath, 'Interfaces.h'), 'w') as w:
+    w.write(
+      '/*\n'
+      ' * Copyright (c) 2018-present Samsung Electronics Co., Ltd\n'
+      ' *\n'
+      ' *  This library is free software; you can redistribute it and/or\n'
+      ' *  modify it under the terms of the GNU Lesser General Public\n'
+      ' *  License as published by the Free Software Foundation; either\n'
+      ' *  version 2 of the License, or (at your option) any later version.\n'
+      ' *\n'
+      ' *  This library is distributed in the hope that it will be useful,\n'
+      ' *  but WITHOUT ANY WARRANTY; without even the implied warranty of\n'
+      ' *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU\n'
+      ' *  Lesser General Public License for more details.\n'
+      ' *\n'
+      ' *  You should have received a copy of the GNU Lesser General Public\n'
+      ' *  License along with this library; if not, write to the Free Software\n'
+      ' *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301\n'
+      ' *  USA\n'
+      ' */\n\n');
     w.write('#ifndef __StarFishInterfaces__\n')
     w.write('#define __StarFishInterfaces__\n')
 
