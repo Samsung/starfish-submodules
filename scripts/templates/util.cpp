@@ -217,19 +217,19 @@ if (!{{ gen_check_type(type, aname)|trim }}) {
           (not arg.type.unrestricted) %}
 if (!std::isfinite({{names.vname}})) {
             {% if names.attrname %}
-    COMPOSE_MESSAGE(reason, ARG_TYPE_IS_NONFINITE, "{{names.attrname}}", "{{names.name}}");
-    COMPOSE_MESSAGE(msg, FAILED_TO_SET_PROPERTY, reason);
+    COMPOSE_MESSAGE(reason, ARG_TYPE_IS_NONFINITE);
+    COMPOSE_MESSAGE(msg, FAILED_TO_SET_PROPERTY, "{{names.attrname}}", "{{names.name}}", reason);
     THROW_EXCEPTION(msg);
             {% elif names.fname %}
-    COMPOSE_MESSAGE(reason, ARG_TYPE_IS_NONFINITE, "{{names.fname}}", "{{names.name}}");
-    COMPOSE_MESSAGE(msg, FAILED_TO_EXECUTE, reason);
+    COMPOSE_MESSAGE(reason, ARG_TYPE_IS_NONFINITE);
+    COMPOSE_MESSAGE(msg, FAILED_TO_EXECUTE, "{{names.fname}}", "{{names.name}}", reason);
     THROW_EXCEPTION(msg);
             {% elif names.kname %}
     // Not implemented for restricted number for dictionary
     STARFISH_ASSERT_NOT_REACHED();
             {% else %}
-    COMPOSE_MESSAGE(reason, ARG_TYPE_IS_NONFINITE, "{{names.name}}");
-    COMPOSE_MESSAGE(msg, FAILED_TO_CONSTRUCT, reason);
+    COMPOSE_MESSAGE(reason, ARG_TYPE_IS_NONFINITE);
+    COMPOSE_MESSAGE(msg, FAILED_TO_CONSTRUCT, "{{names.name}}", reason);
     THROW_EXCEPTION(msg);
             {% endif %}
 }

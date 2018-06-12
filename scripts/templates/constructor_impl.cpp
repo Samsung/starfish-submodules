@@ -43,7 +43,7 @@ static ValueRef* {{ name|lower }}Constructor(ExecutionStateRef* state, ValueRef*
         char buffer[{{ siz }}];
         snprintf(buffer, {{ siz }}, "%zu", argCount);
         COMPOSE_MESSAGE(reason, ARGS_NOT_ENOUGH, "{{ min_passed_count }}", buffer);
-        COMPOSE_MESSAGE(msg, FAILED_TO_CONSTRUCT, "parseFromString", "{{ name }}", reason);
+        COMPOSE_MESSAGE(msg, FAILED_TO_CONSTRUCT, "{{ name }}", reason);
         THROW_EXCEPTION(msg);
     }
     {% endif %}
