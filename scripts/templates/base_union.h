@@ -31,10 +31,18 @@
 
 namespace StarFish {
 
-class {{ name }} {
-public:
-    STARFISH_MAKE_STACK_ALLOCATED()
+class {{ name }} : public gc {
 
+    // IMPORTANT NOTE !!
+    //
+    // This class is designed for TEMPORARY using,
+    // for passing JS variables in binding code.
+    // It is not recommanded to use it for other than JS binding.
+    //
+    // Since it does not generate a GC descriptor,
+    // having a long lifetime instance can be risky.
+
+public:
     enum ValueKind {
         NoneValueKind,
 {% for item in data %}

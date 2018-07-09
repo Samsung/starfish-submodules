@@ -230,6 +230,7 @@ class StarfishIRHandler():
           interface[key] += refer[key]
         interface['has_unforgeable'] |= refer['has_unforgeable']
         interface['include_paths'] |= refer['include_paths']
+        interface['used_unions'] |= refer['used_unions']
         finished.append(impl_name)
     for impl_name in finished:
       interface.get('implements').remove(impl_name)
