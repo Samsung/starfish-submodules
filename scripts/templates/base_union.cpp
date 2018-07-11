@@ -32,9 +32,24 @@ namespace StarFish {
 
 {{ name }} to{{ name }}FromValueRef(ExecutionStateRef* state, ValueRef* from)
 {
+{% set glob = {} %}
+{% for subtype in data %}
+    {% if subtype.kind == 'StringType' %}
+        {% set _ = glob.update({'use_string':true, 'type':subtype}) %}
+    {% endif %}
+{% endfor %}
+{% if glob.use_string == true %}
+    if (from->isUndefined()) {
+        return {{ name }}::create{{ glob.type.name }}({{ util_macro.gen_esvalue_to_native(glob.type, 'ValueRef::createUndefined()', False) }});
+    }
+    if (from->isNull()) {
+        return {{ name }}::create{{ glob.type.name }}({{ util_macro.gen_esvalue_to_native(glob.type, 'ValueRef::createNull()', False) }});
+    }
+{% else %}
     if (from->isUndefinedOrNull()) {
         return {{name}}();
     }
+{% endif %}
 {% for subtype in data %}
     if ({{ util_macro.gen_check_type(subtype, 'from')|trim }}) {
     {% set use_nullable = subtype.kind in non_nullable_type_kinds and subtype.nullable %}
