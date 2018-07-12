@@ -76,19 +76,20 @@ public:
     }
 
 {% endfor %}
-    bool isNoneValue() {
+    bool isNoneValue() const
+    {
         return m_type == NoneValueKind;
     }
 
 {% for item in data %}
-    bool is{{ item.name }}Value()
+    bool is{{ item.name }}Value() const
     {
         return m_type == {{ item.name }}ValueKind;
     }
 
 {% endfor %}
 {% for item in data %}
-    {{ gen_item_type_exp(item) }} get{{ item.name }}Value()
+    {{ gen_item_type_exp(item) }} get{{ item.name }}Value() const
     {
         STARFISH_ASSERT(is{{ item.name }}Value());
         return m_data.m_{{ item.name }}Data;
