@@ -1,5 +1,5 @@
 %define major   8
-%define minor   0
+%define minor   1
 %define micro   2
 %define srcver  1.4.2
 %define libver  %{major}.%{minor}.%{micro}
@@ -72,13 +72,8 @@ autoreconf -fiv
 %configure --enable-shared --disable-static --with-jpeg8
 make %{?_smp_mflags}
 
-#%check
-#make test libdir=%{_libdir}
-
 %install
 %makeinstall
-# Fix perms
-chmod -x README-turbo.txt
 
 # Remove unwanted files
 rm -f %{buildroot}%{_libdir}/lib{,turbo}jpeg.la
@@ -100,8 +95,8 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %manifest %{name}.manifest
 %defattr(-,root,root)
-%license COPYING
-%license README
+%license README.ijg
+%license LICENSE.md
 
 %files -n libjpeg
 %manifest %{name}.manifest
@@ -109,8 +104,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libturbojpeg.so.*
 %{_libdir}/libjpeg.so.%{libver}
 %{_libdir}/libjpeg.so.%{major}
-%license COPYING
-%license README
+%license README.ijg
+%license LICENSE.md
 
 %files -n libjpeg-devel
 %defattr(-,root,root)
