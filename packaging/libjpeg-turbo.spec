@@ -1,7 +1,7 @@
 %define major   8
 %define minor   1
 %define micro   2
-%define srcver  1.4.2
+%define srcver  1.5.3
 %define libver  %{major}.%{minor}.%{micro}
 # major number of library from jpeg8
 %define cmajor  8
