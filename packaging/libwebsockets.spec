@@ -31,7 +31,7 @@ Development files needed for building websocket clients and servers
 
 %build
 
-%cmake -DLWS_WITH_SSL=On -DLWS_WITHOUT_TESTAPPS=ON
+%cmake -DLWS_WITH_SSL=On -DLWS_WITHOUT_TESTAPPS=ON -DLWS_WITH_SERVER_STATUS=ON
 
 make %{?jobs:-j%jobs}
 
