@@ -276,7 +276,6 @@ void ESPostMessageListener::PostMessageToJS(const std::string& msg)
 
     StarFish::Window* wnd =
         (StarFish::Window*)context_->globalObject()->extraData();
-    StarFish::StarFishEnterer e(wnd->starFish());
 
     Escargot::SandBoxRef* sb = Escargot::SandBoxRef::create(context_);
     auto result =
@@ -307,7 +306,6 @@ void ESPostDataListener::PostDataToJS(const std::string& msg, uint8_t* buffer,
 
     StarFish::Window* wnd =
         (StarFish::Window*)context_->globalObject()->extraData();
-    StarFish::StarFishEnterer e(wnd->starFish());
 
     Escargot::SandBoxRef* sb = Escargot::SandBoxRef::create(context_);
     auto result =
