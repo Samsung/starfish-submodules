@@ -9,14 +9,12 @@
 #include "core/page/BrowsingContext.h"
 #include "core/page/Window.h"
 #include "StarFish.h"
+#include "LWEWebView.h"
 
 using namespace Escargot;
 
 typedef int (*sfwebWidgetAPISetContentInfoOfContext_cb)(const void* ctx, const void* data);
 typedef int (*sfwebWidgetAPIGetContentInfoOfContext_cb)(const void* ctx, void** out);
-
-extern sfwebWidgetAPISetContentInfoOfContext_cb webWidgetAPISetContentInfoOfContext_cb;
-extern sfwebWidgetAPIGetContentInfoOfContext_cb webWidgetAPIGetContentInfoOfContext_cb;
 
 namespace DeviceAPI {
 
@@ -145,8 +143,11 @@ ObjectRef* WebWidgetAPIInstance::createWebWidgetAPIObject(Escargot::ContextRef* 
                             return ValueRef::create(false);
                         }
                         ::StarFish::Window* window = (::StarFish::Window*)state->context()->globalObject()->extraData();
-                        const void* widgetContext  = window->starFish()->widgetContext();
+                        const void* widgetContext = window->starFish()->publicLayerUserDataMap()["TizenWebWidgetContext"];
                         ValueRef* arg = argv[0];
+
+                        sfwebWidgetAPISetContentInfoOfContext_cb webWidgetAPISetContentInfoOfContext_cb;
+                        webWidgetAPISetContentInfoOfContext_cb = (sfwebWidgetAPISetContentInfoOfContext_cb)window->starFish()->publicLayerUserDataMap()["TizenWebWidgetSetContentInfoOfContext"];
 
                         if (!arg->isObject()) {
                             THROW_WEB_API_EXCEPTION(state, "TYPE_MISMATCH_ERR", "First argument should be object" );
@@ -193,7 +194,10 @@ ObjectRef* WebWidgetAPIInstance::createWebWidgetAPIObject(Escargot::ContextRef* 
                         WIDGET_APP_API_LOG_INFO("Call getContentInfoOfContext\n");
 
                         ::StarFish::Window* window = (::StarFish::Window*)state->context()->globalObject()->extraData();
-                        const void* widgetContext  = window->starFish()->widgetContext();
+                        const void* widgetContext = window->starFish()->publicLayerUserDataMap()["TizenWebWidgetContext"];
+
+                        sfwebWidgetAPIGetContentInfoOfContext_cb webWidgetAPIGetContentInfoOfContext_cb;
+                        webWidgetAPIGetContentInfoOfContext_cb = (sfwebWidgetAPIGetContentInfoOfContext_cb)window->starFish()->publicLayerUserDataMap()["TizenWebWidgetGetContentInfoOfContext"];
 
                         if (widgetContext && webWidgetAPIGetContentInfoOfContext_cb != nullptr) {
                             bundle* b;
@@ -280,6 +284,28 @@ ObjectRef* WebWidgetAPIInstance::createWebWidgetAPIObject(Escargot::ContextRef* 
 
     state->destroy();
     return webWidgetAPIObject;
+}
+
+extern "C" __attribute__((visibility("default"))) void starfishWebWidgetAPINotifyReceiveContent(
+    LWE::WebView* instance, const void* data)
+{
+    ::StarFish::StarFish* sf = (::StarFish::StarFish*)instance->GetUserData("__internalWebContainerImplementLayerVariable");
+    DeviceAPI::ExtensionManagerInstance* em = sf
+                                                  ->platformWindow()
+                                                  ->webView()
+                                                  ->mainBrowsingContext()
+                                                  ->scriptBindingInstance()
+                                                  ->deviceAPI();
+    DeviceAPI::WebWidgetAPIInstance* ww = em->webWidgetAPIInstance();
+    if (ww) {
+        ww->invokeReceiveContentListener(sf
+                                             ->platformWindow()
+                                             ->webView()
+                                             ->mainBrowsingContext()
+                                             ->scriptBindingInstance()
+                                             ->scriptContext(),
+                                         data);
+    }
 }
 
 }
