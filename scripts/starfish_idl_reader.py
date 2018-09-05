@@ -114,6 +114,7 @@ _hd_extattr_custom_descriptor = partial(_hd_extattr_bool_t, 'CustomDescriptor', 
 _hd_extattr_serializable = partial(_hd_extattr_bool_t, 'Serializable', 'serializable', True)
 _hd_extattr_transferable = partial(_hd_extattr_bool_t, 'Transferable', 'transferable', True)
 _hd_extattr_reflect = partial(_hd_extattr_value_t, 'Reflect', 'reflect', True)
+_hd_extattr_unscopable = partial(_hd_extattr_bool_t, 'Unscopable', 'unscopable', True)
 
 def _hd_extattr_flags(target, extattr):
   if extattr.GetName() == 'STARFISH_TC_COVERAGE':
@@ -361,7 +362,8 @@ class StarfishIDLReader():
                           _hd_extattr_custom,
                           _hd_extattr_raise_expection,
                           _hd_extattr_putforward,
-                          _hd_extattr_reflect])
+                          _hd_extattr_reflect,
+                          _hd_extattr_unscopable])
     excp = result.pop('raises_exception', None)
     getter_excp = True if (excp is True or excp and 'Getter' in excp) else None
     setter_excp = True if (excp is True or excp and 'Setter' in excp) else None
@@ -425,7 +427,8 @@ class StarfishIDLReader():
                           _hd_extattr_custom,
                           _hd_extattr_raise_expection,
                           _hd_extattr_force_deny_strict,
-                          _hd_extattr_callwith])
+                          _hd_extattr_callwith,
+                          _hd_extattr_unscopable])
     if return_ir is not None:
       IRUtils.set_prop_to_dict(return_ir, 'object_option', result.pop('object_option', None))
       result['return'] = return_ir
@@ -546,6 +549,7 @@ class StarfishIDLReader():
     functions = []
     descriptor = {}
     has_unforgeable = False
+    has_unscopable = False
     static_interface = True
     for child in node.GetChildren():
       if _is_class(child, 'Const'):
@@ -555,6 +559,8 @@ class StarfishIDLReader():
         static_interface = False
         if not has_unforgeable and attr_ir.get('unforgeable'):
           has_unforgeable = True;
+        if not has_unscopable and attr_ir.get('unscopable'):
+          has_unscopable = True;
         attributes.append(attr_ir)
       elif _is_class(child, 'Operation'):
         op_ir = self._gen_ir_node(child)
@@ -562,6 +568,8 @@ class StarfishIDLReader():
         IRUtils.append_to_functions(op_ir, functions)
         if not has_unforgeable and op_ir.get('unforgeable'):
           has_unforgeable = True;
+        if not has_unscopable and op_ir.get('unscopable'):
+          has_unscopable = True;
         if not op_ir.get('static'):
           static_interface = False
       elif _is_class(child, 'Stringifier'):
@@ -608,6 +616,7 @@ class StarfishIDLReader():
     IRUtils.set_prop_to_dict(result, 'attributes', attributes)
     IRUtils.set_prop_to_dict(result, 'functions', functions)
     IRUtils.set_prop_to_dict(result, 'has_unforgeable', has_unforgeable)
+    IRUtils.set_prop_to_dict(result, 'has_unscopable', has_unscopable)
     IRUtils.set_prop_to_dict(result, 'static_interface', static_interface)
     if result.pop('_custom_descriptor', False):
       descriptor['custom'] = True

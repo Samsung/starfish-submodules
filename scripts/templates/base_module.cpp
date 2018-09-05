@@ -139,6 +139,30 @@ void attachUnforgeables{{ name }}(ScriptBindingInstance* instance, ObjectRef* ta
 }
 {% endif %}
 
+{% if has_unscopable %}
+void bindUnscopables{{ name }}(ScriptBindingInstance* instance, ObjectRef* targetObject)
+{
+    ContextRef* context = instance->scriptContext();
+    ExecutionStateRef* state = ExecutionStateRef::create(context);
+
+    ObjectRef* unscopableObject = ObjectRef::create(state);
+    {% for attribute in attributes %}
+        {% if attribute.unscopable %}
+    unscopableObject->defineDataProperty(state, ValueRef::create(StringRef::fromASCII("{{ attribute.name }}")),
+            ValueRef::create(true), true, true, true);
+        {% endif %}
+    {% endfor %}
+    {% for function in functions %}
+        {% if function.unscopable %}
+    unscopableObject->defineDataProperty(state, ValueRef::create(StringRef::fromASCII("{{ function.name }}")),
+            ValueRef::create(true), true, true, true);
+        {% endif %}
+    {% endfor %}
+    targetObject->defineDataProperty(state, ValueRef::create(context->vmInstance()->unscopablesSymbol()),
+            ValueRef::create(unscopableObject), false, false, true);
+}
+{% endif %}
+
 FunctionObjectRef* binding{{ name }}(
     ScriptBindingInstance* scriptBindingInstance)
 {
@@ -148,6 +172,9 @@ FunctionObjectRef* binding{{ name }}(
 {% include 'constructor_bind.cpp' ignore missing %}
 
     ObjectRef* targetObject = {{ name }}PrototypeObj;
+    {% if has_unscopable %}
+    bindUnscopables{{ name }}(scriptBindingInstance, targetObject);
+    {% endif %}
     {{ bind_common(condition_binding_fn) }}
     state->destroy();
     return {{ name }}Function;

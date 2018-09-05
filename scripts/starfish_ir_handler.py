@@ -195,6 +195,8 @@ class StarfishIRHandler():
         self._handle_interface_parent(parent)
         if parent.get('has_unforgeable'):
           interface['has_unforgeable'] = True
+        if parent.get('has_unscopable'):
+          interface['has_unscopable'] = True
         self._inherit_descriptor(interface, parent)
         if parent['name'] == 'HTMLElement' or parent.get('_inherited_htmlelement'):
           interface['_inherited_htmlelement'] = True
@@ -229,6 +231,7 @@ class StarfishIRHandler():
         for key in copy_list:
           interface[key] += refer[key]
         interface['has_unforgeable'] |= refer['has_unforgeable']
+        interface['has_unscopable'] |= refer['has_unscopable']
         interface['include_paths'] |= refer['include_paths']
         interface['used_unions'] |= refer['used_unions']
         finished.append(impl_name)
@@ -257,6 +260,7 @@ class StarfishIRHandler():
           IRUtils.append_to_functions(fn, target['functions'])
         target['include_paths'] |= interface['include_paths']
         target['has_unforgeable'] |= interface['has_unforgeable']
+        target['has_unscopable'] |= interface['has_unscopable']
 
   def _check_union(self, union_ir):
     self._init_using_info(union_ir)
