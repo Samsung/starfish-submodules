@@ -586,7 +586,11 @@ class StarfishIDLReader():
       elif _is_class(child, 'Serializer'):
         IRUtils.set_prop_to_dict(result, 'serializer', self._gen_ir_node(child))
       elif _is_class(child, 'Iterable'):
-        IRUtils.set_prop_to_dict(result, 'iterable', self._gen_ir_node(child.GetChildren()[0]))
+        types = []
+        for node in child.GetChildren():
+          types.append(self._gen_ir_node(node))
+
+        IRUtils.set_prop_to_dict(result, 'iterable', types)
         static_interface = False
       elif _is_class(child, 'Inherit'):
         IRUtils.set_prop_to_dict(result, 'parent', child.GetName())

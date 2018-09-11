@@ -163,6 +163,317 @@ void bindUnscopables{{ name }}(ScriptBindingInstance* instance, ObjectRef* targe
 }
 {% endif %}
 
+{% if iterable %}
+{% if iterable|length == 1 %}
+static ValueRef* entriesFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
+    GENERATE_THIS_AND_CHECK_TYPE({{name}});
+    ObjectRef* result = ((ArrayObjectRef*)thisValue->toObject(state))->entries(state);
+    if (result == nullptr) {
+        return ValueRef::createNull();
+    }
+    return ValueRef::create(result);
+}
+
+static ValueRef* keysFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
+    GENERATE_THIS_AND_CHECK_TYPE({{name}});
+    ObjectRef* result = ((ArrayObjectRef*)thisValue->toObject(state))->keys(state);
+    if (result == nullptr) {
+        return ValueRef::createNull();
+    }
+    return ValueRef::create(result);
+}
+
+static ValueRef* valuesFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
+    GENERATE_THIS_AND_CHECK_TYPE({{name}});
+    ObjectRef* result = ((ArrayObjectRef*)thisValue->toObject(state))->values(state);
+    if (result == nullptr) {
+        return ValueRef::createNull();
+    }
+    return ValueRef::create(result);
+}
+
+static ValueRef* forEachFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
+    GENERATE_THIS_AND_CHECK_TYPE({{name}});
+
+    ValueRef* receiver = thisValue;
+    if (argc == 0) {
+        return ValueRef::createUndefined();
+    }
+
+    ValueRef* arg = argv[0];
+    if (!arg->isFunction()) {
+        return ValueRef::createUndefined();
+    }
+    if (argc == 2) {
+        receiver = argv[1];
+    }
+
+    IteratorObjectRef* obj = ((ArrayObjectRef*)thisValue->toObject(state))->entries(state);
+    FunctionObjectRef* fn = (FunctionObjectRef*)arg;
+
+    ObjectRef* next = obj->next(state)->asObject();
+    ValueRef* doneString = ValueRef::create(StringRef::fromASCII("done"));
+    ValueRef* valueString = ValueRef::create(StringRef::fromASCII("value"));
+    ValueRef* keyIndex = ValueRef::create(0);
+    ValueRef* valIndex = ValueRef::create(1);
+    while (!next->get(state, doneString)->toBoolean(state)) {
+        ValueRef** funcArgv = (ValueRef**)alloca(sizeof(ValueRef*) * 3);
+        ObjectRef* valRef = next->get(state, valueString)->asObject();
+        funcArgv[0] = valRef->get(state, valIndex);
+        funcArgv[1] = valRef->get(state, keyIndex);
+        funcArgv[2] = originalObj->scriptValue();
+        fn->call(state, receiver, 3, funcArgv);
+        next = obj->next(state)->asObject();
+    }
+    return ValueRef::createUndefined();
+}
+
+{% else %}
+{% set isStringTypeKey = (iterable[0].name == 'DOMString' or iterable[0].name == 'ByteString') %}
+{% set isStringTypeValue = (iterable[1].name == 'DOMString' or iterable[1].name == 'ByteString') %}
+{% set keyType = 'Nullable<String*>' if isStringTypeValue else 'Nullable<' + iterable[0].name + '*>' %}
+{% set valueType = 'Nullable<String*>' if isStringTypeValue else 'Nullable<' + iterable[1].name + '*>' %}
+static ValueRef* nextEntries(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
+    IterationSource<{{ keyType }}, {{ valueType }}>* obj = (IterationSource<{{ keyType }}, {{ valueType }}>*)((ObjectRef*)thisValue)->extraData();
+    STARFISH_ASSERT(obj);
+    {{ keyType }} k;
+    {{ valueType }} v;
+    bool hasValue = obj->next(state, k, v);
+    ObjectRef* ret = ObjectRef::create(state);
+    ValueRef* value;
+    if (hasValue) {
+        ArrayObjectRef* arrayObj = ArrayObjectRef::create(state);
+        if (!k.hasValue()) {
+            arrayObj->set(state, ValueRef::create(0), ValueRef::createNull());
+        } else {
+        {% if isStringTypeKey %}
+            arrayObj->set(state, ValueRef::create(0), ValueRef::create(createScriptString(k.getValue())));
+        {% else %}
+            arrayObj->set(state, ValueRef::create(0), k.getValue()->scriptValue());
+        {% endif %}
+        }
+        if (!v.hasValue()) {
+            arrayObj->set(state, ValueRef::create(1), ValueRef::createNull());
+        } else {
+        {% if isStringTypeValue %}
+            arrayObj->set(state, ValueRef::create(1), ValueRef::create(createScriptString(v.getValue())));
+        {% else %}
+            arrayObj->set(state, ValueRef::create(1), v.getValue()->scriptValue());
+        {% endif %}
+        }
+        value = ValueRef::create(arrayObj);
+    } else {
+        value = ValueRef::createUndefined();
+    }
+
+    ret->defineDataProperty(state,
+        ValueRef::create(StringRef::fromASCII("value")),
+        value,
+        true, true, true);
+    ret->defineDataProperty(state,
+        ValueRef::create(StringRef::fromASCII("done")),
+        ValueRef::create(!hasValue),
+        true, true, true);
+    return ValueRef::create(ret);
+}
+
+static ValueRef* entriesFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
+    GENERATE_THIS_AND_CHECK_TYPE({{name}});
+    ContextRef* context = state->context();
+    IteratorObjectRef* ret = IteratorObjectRef::create(state);
+    ret->setExtraData(originalObj->startIteration(state));
+
+    FunctionObjectRef* nextFn = FunctionObjectRef::create(state,
+        FunctionObjectRef::NativeFunctionInfo(AtomicStringRef::create(context, "next"), nextEntries, 0, nullptr, true, false));
+    ret->defineDataProperty(state,
+            ValueRef::create(StringRef::fromASCII("next")),
+            ValueRef::create(nextFn),
+            true, true, true);
+    return ValueRef::create(ret);
+}
+
+static ValueRef* nextKeys(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
+    IterationSource<{{ keyType }}, {{ valueType }}>* obj = (IterationSource<{{ keyType }}, {{ valueType }}>*)((ObjectRef*)thisValue)->extraData();
+    STARFISH_ASSERT(obj);
+    {{ keyType }} k;
+    {{ valueType }} v;
+    bool hasValue = obj->next(state, k, v);
+    ObjectRef* ret = ObjectRef::create(state);
+    ValueRef* value;
+    if (hasValue) {
+        if (!k.hasValue()) {
+            value = ValueRef::createNull();
+        } else {
+        {% if isStringTypeKey %}
+            value = ValueRef::create(createScriptString(k.getValue()));
+        {% else %}
+            value = k.getValue()->scriptValue();
+        {% endif %}
+        }
+    } else {
+        value = ValueRef::createUndefined();
+    }
+
+    ret->defineDataProperty(state,
+        ValueRef::create(StringRef::fromASCII("value")),
+        value,
+        true, true, true);
+    ret->defineDataProperty(state,
+        ValueRef::create(StringRef::fromASCII("done")),
+        ValueRef::create(!hasValue),
+        true, true, true);
+    return ValueRef::create(ret);
+}
+
+static ValueRef* keysFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
+    GENERATE_THIS_AND_CHECK_TYPE({{name}});
+    ContextRef* context = state->context();
+    IteratorObjectRef* ret = IteratorObjectRef::create(state);
+    ret->setExtraData(originalObj->startIteration(state));
+
+    FunctionObjectRef* nextFn = FunctionObjectRef::create(state,
+        FunctionObjectRef::NativeFunctionInfo(AtomicStringRef::create(context, "next"), nextKeys, 0, nullptr, true, false));
+
+    ret->defineDataProperty(state,
+            ValueRef::create(StringRef::fromASCII("next")),
+            ValueRef::create(nextFn),
+            true, true, true);
+    return ValueRef::create(ret);
+}
+
+static ValueRef* nextValues(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
+    IterationSource<{{ keyType }}, {{ valueType }}>* obj = (IterationSource<{{ keyType }}, {{ valueType }}>*)((ObjectRef*)thisValue)->extraData();
+    STARFISH_ASSERT(obj);
+    {{ keyType }} k;
+    {{ valueType }} v;
+    bool hasValue = obj->next(state, k, v);
+    ObjectRef* ret = ObjectRef::create(state);
+    ValueRef* value;
+    if (hasValue) {
+        if (!v.hasValue()) {
+            value = ValueRef::createNull();
+        } else {
+        {% if isStringTypeKey %}
+            value = ValueRef::create(createScriptString(v.getValue()));
+        {% else %}
+            value = v.getValue()->scriptValue();
+        {% endif %}
+        }
+    } else {
+        value = ValueRef::createUndefined();
+    }
+
+    ret->defineDataProperty(state,
+        ValueRef::create(StringRef::fromASCII("value")),
+        value,
+        true, true, true);
+    ret->defineDataProperty(state,
+        ValueRef::create(StringRef::fromASCII("done")),
+        ValueRef::create(!hasValue),
+        true, true, true);
+    return ValueRef::create(ret);
+}
+
+static ValueRef* valuesFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
+    GENERATE_THIS_AND_CHECK_TYPE({{name}});
+    ContextRef* context = state->context();
+    IteratorObjectRef* ret = IteratorObjectRef::create(state);
+    ret->setExtraData(originalObj->startIteration(state));
+
+    FunctionObjectRef* nextFn = FunctionObjectRef::create(state,
+        FunctionObjectRef::NativeFunctionInfo(AtomicStringRef::create(context, "next"), nextValues, 0, nullptr, true, false));
+
+    ret->defineDataProperty(state,
+            ValueRef::create(StringRef::fromASCII("next")),
+            ValueRef::create(nextFn),
+            true, true, true);
+    return ValueRef::create(ret);
+}
+
+static ValueRef* forEachFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
+    GENERATE_THIS_AND_CHECK_TYPE({{name}});
+    ValueRef* receiver = thisValue;
+    if (argc == 0) {
+        return ValueRef::createUndefined();
+    }
+
+    ValueRef* arg = argv[0];
+    if (!arg->isFunction()) {
+        return ValueRef::createUndefined();
+    }
+    if (argc == 2) {
+        receiver = argv[1];
+    }
+
+    FunctionObjectRef* fn = (FunctionObjectRef*)arg;
+    {{ keyType }} k;
+    {{ valueType }} v;
+    IterationSource<{{ keyType }}, {{ valueType }}>* obj = (IterationSource<{{ keyType }}, {{ valueType }}>*)((ObjectRef*)thisValue)->extraData();
+    while (obj->next(state, k, v)) {
+        ValueRef** funcArgv = (ValueRef**)alloca(sizeof(ValueRef*) * 3);
+        if (!k.hasValue()) {
+            funcArgv[0] = ValueRef::createNull();
+        } else {
+        {% if isStringTypeKey %}
+            funcArgv[0] = ValueRef::create(createScriptString(k.getValue()));
+        {% else %}
+            funcArgv[0] = k.getValue()->scriptValue();
+        {% endif %}
+        }
+        if (!v.hasValue()) {
+            funcArgv[1] = ValueRef::createNull();
+        } else {
+        {% if isStringTypeValue %}
+            funcArgv[1] = ValueRef::create(createScriptString(v.getValue()));
+        {% else %}
+            funcArgv[1] = v.getValue()->scriptValue();
+        {% endif %}
+        }
+
+        funcArgv[2] = originalObj->scriptValue();
+        fn->call(state, receiver, 3, funcArgv);
+    }
+    return ValueRef::createUndefined();
+}
+{% endif %}
+
+void bindIterable{{ name }}(ScriptBindingInstance* instance, ObjectRef* targetObject)
+{
+    ContextRef* context = instance->scriptContext();
+    ExecutionStateRef* state = ExecutionStateRef::create(context);
+
+    FunctionObjectRef* entriesFn = FunctionObjectRef::create(state,
+        FunctionObjectRef::NativeFunctionInfo(AtomicStringRef::create(context, "entries"), entriesFunction, 0, nullptr, true, false));
+    FunctionObjectRef* keysFn = FunctionObjectRef::create(state,
+        FunctionObjectRef::NativeFunctionInfo(AtomicStringRef::create(context, "keys"), keysFunction, 0, nullptr, true, false));
+    FunctionObjectRef* valuesFn = FunctionObjectRef::create(state,
+        FunctionObjectRef::NativeFunctionInfo(AtomicStringRef::create(context, "values"), valuesFunction, 0, nullptr, true, false));
+    FunctionObjectRef* forEachFn = FunctionObjectRef::create(state,
+        FunctionObjectRef::NativeFunctionInfo(AtomicStringRef::create(context, "forEach"), forEachFunction, 1, nullptr, true, false));
+
+    targetObject->defineDataProperty(state,
+            ValueRef::create(StringRef::fromASCII("entries")),
+            ValueRef::create(entriesFn),
+            true, true, true);
+    targetObject->defineDataProperty(state,
+            ValueRef::create(StringRef::fromASCII("keys")),
+            ValueRef::create(keysFn),
+            true, true, true);
+    targetObject->defineDataProperty(state,
+            ValueRef::create(StringRef::fromASCII("values")),
+            ValueRef::create(valuesFn),
+            true, true, true);
+    targetObject->defineDataProperty(state,
+            ValueRef::create(StringRef::fromASCII("forEach")),
+            ValueRef::create(forEachFn),
+            true, true, true);
+    targetObject->defineDataProperty(state,
+            ValueRef::create(context->vmInstance()->iteratorSymbol()),
+            ValueRef::create(valuesFn),
+            true, true, true);
+}
+{% endif %}
+
 FunctionObjectRef* binding{{ name }}(
     ScriptBindingInstance* scriptBindingInstance)
 {
@@ -174,6 +485,9 @@ FunctionObjectRef* binding{{ name }}(
     ObjectRef* targetObject = {{ name }}PrototypeObj;
     {% if has_unscopable %}
     bindUnscopables{{ name }}(scriptBindingInstance, targetObject);
+    {% endif %}
+    {% if iterable %}
+    bindIterable{{ name }}(scriptBindingInstance, targetObject);
     {% endif %}
     {{ bind_common(condition_binding_fn) }}
     state->destroy();
