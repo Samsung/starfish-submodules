@@ -231,9 +231,9 @@ static ValueRef* forEachFunction(ExecutionStateRef* state, ValueRef* thisValue, 
 }
 
 {% else %}
-{% set isStringTypeKey = (iterable[0].name == 'DOMString' or iterable[0].name == 'ByteString') %}
-{% set isStringTypeValue = (iterable[1].name == 'DOMString' or iterable[1].name == 'ByteString') %}
-{% set keyType = 'Nullable<String*>' if isStringTypeValue else 'Nullable<' + iterable[0].name + '*>' %}
+{% set isStringTypeKey = (iterable[0].name == 'DOMString' or iterable[0].name == 'ByteString' or iterable[0].name == 'USVString') %}
+{% set isStringTypeValue = (iterable[1].name == 'DOMString' or iterable[1].name == 'ByteString' or iterable[1].name == 'USVString') %}
+{% set keyType = 'Nullable<String*>' if isStringTypeKey else 'Nullable<' + iterable[0].name + '*>' %}
 {% set valueType = 'Nullable<String*>' if isStringTypeValue else 'Nullable<' + iterable[1].name + '*>' %}
 
 static ObjectRef* createPrototype(ExecutionStateRef* state)
