@@ -100,6 +100,10 @@ wrt::xwalk::Extension* ExtensionManagerInstance::getExtension(
         else if (!strcmp(apiName, "sensorservice"))
             snprintf(library_path, 512,
                      "/usr/lib/tizen-extensions-crosswalk/libtizen_sensor.so");
+        else if (!strcmp(apiName, "sa")) {
+            snprintf(library_path, 512,
+                     "/usr/lib/tizen-extensions-crosswalk/libwebapis_sa.so");
+        }
         else
             snprintf(library_path, 512,
                      "/usr/lib/tizen-extensions-crosswalk/libtizen_%s.so",
