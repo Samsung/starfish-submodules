@@ -82,7 +82,7 @@
     {% endif %}
 {%- endmacro -%}
 
-#include "StarFishConfig.h"
+#include "StarfishConfig.h"
 {% for item in include_paths %}
 #include "{{item|to_h_path}}"
 {% endfor %}
@@ -94,7 +94,7 @@
 #include <EscargotPublic.h>
 using namespace Escargot;
 
-namespace StarFish {
+namespace Starfish {
 
 {% if used_dictionaries %}
   {%- for dictionary in used_dictionaries %}

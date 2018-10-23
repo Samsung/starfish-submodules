@@ -71,7 +71,7 @@ static ValueRef* {{ name|lower }}Constructor(ExecutionStateRef* state, ValueRef*
     {% if constructor.call_with  == 'Document' %}
     Document* callWith = fetchDocument(state->context());
     {% elif constructor.call_with  == 'Starfish' %}
-    StarFish* callWith = fetchStarFish(state->context());
+    Starfish* callWith = fetchStarfish(state->context());
     {% elif constructor.call_with  == 'Window' %}
     Window* callWith = fetchWindow(state->context());
     {% endif %}

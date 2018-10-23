@@ -4,7 +4,7 @@
 * Find idl on the web, if there're duplicated spec, then put much priority `whatwg` to `w3c`.
 * Locate idl where you want to implement `interface`, and modify idl conforming to our style, and mark attributes if needs.
 * Add module in macro `STARFISH_ENUM_LAZY_BINDING_NAMES`. Currently you can find this `ScriptBindingInstance.h`, but it is now under development, so maybe it can be located in different file.
-* Generate class according to idl. please refer to [Type Conversion](#type-conversion), [Header Hierarchy](#header-hierarchy) and [Document and StarFish Hodable](#document-and-starfish-holdable)
+* Generate class according to idl. please refer to [Type Conversion](#type-conversion), [Header Hierarchy](#header-hierarchy) and [Document and Starfish Hodable](#document-and-starfish-holdable)
 * Declare `virtual void init(ScriptBindingInstance* instance) override` and `virtual bool is###() const override` functions.
 
 ### Type Conversion
@@ -41,14 +41,14 @@ interface HTMLCollection {
 ```
 Then from native side, the interface should be like below.
 ```
-#ifndef __StarFishHTMLCollection__
-#define __StarFishHTMLCollection__
+#ifndef __StarfishHTMLCollection__
+#define __StarfishHTMLCollection__
 
 #include "binding/ScriptWrappable.h" // (1) This is the `interface` without `parent`, so it has to inheirt `ScriptWrappable`.
 #include "dom/NodeList.h" // (2) Due to internal implmentation
 #include "dom/NodeListImpl.h" // same with (2)
 
-namespace StarFish {
+namespace Starfish {
 
 class Node; // (4) same with (2)
 class Element; // (5) We forward delcared `TypeRef` type `Element`.
@@ -59,8 +59,8 @@ class HTMLCollection : public ScriptWrappable { // (6) same with (1)
   Element* namedItem(String* name);
 }
 ```
-### Document and StarFish Holdable
-With 2 reasons, 1. to remove duplicative long expression to call `window` or `starfish` through `document` such as `document()->window()->starFish()`, 2. to remove abuse of holding member `document` or `starFish`, we implemented simple common pattern to hold `Document` or `StarFish`. So if any class uses either of ones, please inherit this holdable class. For example, `EventTarget` needs to hold `document` inside so instead we implement getter/setter of `document`, we just inherit `DocumentHoldable`, then it's done!
+### Document and Starfish Holdable
+With 2 reasons, 1. to remove duplicative long expression to call `window` or `starfish` through `document` such as `document()->window()->starfish()`, 2. to remove abuse of holding member `document` or `starfish`, we implemented simple common pattern to hold `Document` or `Starfish`. So if any class uses either of ones, please inherit this holdable class. For example, `EventTarget` needs to hold `document` inside so instead we implement getter/setter of `document`, we just inherit `DocumentHoldable`, then it's done!
 
 ```c++
 class EventTarget : public ScriptWrappable, public DocumentHoldable {

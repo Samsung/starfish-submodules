@@ -15,14 +15,14 @@
  */
 {% import 'util.cpp' as util_macro %}
 {%- call util_macro.ifdef(flags) %}
-#include "StarFishConfig.h"
+#include "StarfishConfig.h"
 #include "{{name|to_union_h_path}}"
 #include "binding/ScriptWrappable.h"
 
 #include <EscargotPublic.h>
 using namespace Escargot;
 
-namespace StarFish {
+namespace Starfish {
 
 {% if used_unions %}
   {%- for union_item in used_unions %}

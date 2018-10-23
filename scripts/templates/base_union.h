@@ -18,8 +18,8 @@
 {%- macro gen_item_type_exp(item) -%}
 {{ util_macro.gen_type_str(item, item.kind in non_nullable_type_kinds and item.nullable) }}
 {%- endmacro -%}
-#ifndef __StarFish{{ name }}__
-#define __StarFish{{ name }}__
+#ifndef __Starfish{{ name }}__
+#define __Starfish{{ name }}__
 
 #include "binding/ScriptWrappable.h"
 {% for item in include_paths %}
@@ -29,7 +29,7 @@
 #include "{{item|to_union_h_path}}"
 {% endfor %}
 
-namespace StarFish {
+namespace Starfish {
 
 class {{ name }} : public gc {
 

@@ -77,8 +77,8 @@ def gen_interface_collection(interfaces, outpath, mode_strict):
       ' *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301\n'
       ' *  USA\n'
       ' */\n\n');
-    w.write('#ifndef __StarFishInterfaces__\n')
-    w.write('#define __StarFishInterfaces__\n')
+    w.write('#ifndef __StarfishInterfaces__\n')
+    w.write('#define __StarfishInterfaces__\n')
 
     for groupkey in groups:
       flags = groups[groupkey]['flags']
@@ -135,7 +135,7 @@ def gen_interface_collection(interfaces, outpath, mode_strict):
     # GLOBAL_BINDING_NAMES = default + nickname
     # BINDING_NAMES = default + nointerface + nickname
     # BINDING_CLASSES = default + nointerface
-    w.write('\n// Combination macros for direct use in StarFish')
+    w.write('\n// Combination macros for direct use in Starfish')
     w.write('\n// - GLOBAL_BINDING_NAMES = DEFAULT + NICKNAME')
     w.write('\n// - BINDING_NAMES = DEFAULT + NICKNAME + NOINTERFACE')
     w.write('\n// - BINDING_CLASSES = DEFAULT + NOINTERFACE')
