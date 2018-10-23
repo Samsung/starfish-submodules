@@ -219,7 +219,7 @@ static ValueRef* forEachFunction(ExecutionStateRef* state, ValueRef* thisValue, 
     ValueRef* keyIndex = ValueRef::create(0);
     ValueRef* valIndex = ValueRef::create(1);
     while (!next->get(state, doneString)->toBoolean(state)) {
-        ValueRef** funcArgv = (ValueRef**)alloca(sizeof(ValueRef*) * 3);
+        ValueRef** funcArgv = ALLOCA(sizeof(ValueRef*) * 3, ValueRef*);
         ObjectRef* valRef = next->get(state, valueString)->asObject();
         funcArgv[0] = valRef->get(state, valIndex);
         funcArgv[1] = valRef->get(state, keyIndex);
@@ -435,7 +435,7 @@ static ValueRef* forEachFunction(ExecutionStateRef* state, ValueRef* thisValue, 
     {{ valueType }} v;
     IterationSource<{{ keyType }}, {{ valueType }}>* obj = originalObj->startIteration(state);
     while (obj->next(state, k, v)) {
-        ValueRef** funcArgv = (ValueRef**)alloca(sizeof(ValueRef*) * 3);
+        ValueRef** funcArgv = ALLOCA(sizeof(ValueRef*) * 3, ValueRef*);
         if (!k.hasValue()) {
             funcArgv[1] = ValueRef::createNull();
         } else {
