@@ -7,7 +7,7 @@
 #include "ExtensionAdapter.h"
 #include "ExtensionManager.h"
 
-#include "StarFishConfig.h"
+#include "StarfishConfig.h"
 
 using namespace Escargot;
 

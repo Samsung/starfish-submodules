@@ -1,6 +1,6 @@
 #if defined(TIZEN_DEVICE_API) && defined(STARFISH_TIZEN_WEARABLE_WIDGET)
 
-#include "StarFishConfig.h"
+#include "StarfishConfig.h"
 #include "TizenDeviceAPILoaderForEscargot.h"
 #include "WebWidgetAPIInstance.h"
 #include "binding/ScriptWrappable.h"
@@ -8,7 +8,7 @@
 #include "core/page/WebView.h"
 #include "core/page/BrowsingContext.h"
 #include "core/page/Window.h"
-#include "StarFish.h"
+#include "Starfish.h"
 #include "LWEWebView.h"
 
 using namespace Escargot;
@@ -119,7 +119,7 @@ ObjectRef* WebWidgetAPIInstance::createWebWidgetAPIObject(Escargot::ContextRef* 
 
     StringRef* fnString = StringRef::fromASCII("WebWidgetContentManager");
     FunctionObjectRef::NativeFunctionInfo ctorInfo(
-        AtomicStringRef::create(context, "WebWidgetContentManager"), ::StarFish::errorOnConstructorFunction, 0,
+        AtomicStringRef::create(context, "WebWidgetContentManager"), ::Starfish::errorOnConstructorFunction, 0,
         nullptr, true, true);
     FunctionObjectRef* webWidgetAPIFunctionObj =
         FunctionObjectRef::createBuiltinFunction(state, ctorInfo);
@@ -142,7 +142,7 @@ ObjectRef* WebWidgetAPIInstance::createWebWidgetAPIObject(Escargot::ContextRef* 
                         if (argc != 1) {
                             return ValueRef::create(false);
                         }
-                        ::StarFish::Window* window = (::StarFish::Window*)state->context()->globalObject()->extraData();
+                        ::Starfish::Window* window = (::Starfish::Window*)state->context()->globalObject()->extraData();
                         const void* widgetContext = window->webView()->publicLayerUserDataMap()["TizenWebWidgetContext"];
                         ValueRef* arg = argv[0];
 
@@ -193,7 +193,7 @@ ObjectRef* WebWidgetAPIInstance::createWebWidgetAPIObject(Escargot::ContextRef* 
                     {
                         WIDGET_APP_API_LOG_INFO("Call getContentInfoOfContext\n");
 
-                        ::StarFish::Window* window = (::StarFish::Window*)state->context()->globalObject()->extraData();
+                        ::Starfish::Window* window = (::Starfish::Window*)state->context()->globalObject()->extraData();
                         const void* widgetContext = window->webView()->publicLayerUserDataMap()["TizenWebWidgetContext"];
 
                         sfwebWidgetAPIGetContentInfoOfContext_cb webWidgetAPIGetContentInfoOfContext_cb;
@@ -241,7 +241,7 @@ ObjectRef* WebWidgetAPIInstance::createWebWidgetAPIObject(Escargot::ContextRef* 
                             return ValueRef::createUndefined();
                         }
                         ValueRef* listenerValue = argv[0];
-                        ::StarFish::Window* window = (::StarFish::Window*)state->context()->globalObject()->extraData();
+                        ::Starfish::Window* window = (::Starfish::Window*)state->context()->globalObject()->extraData();
                         WebWidgetAPIInstance* ww = window->webView()->mainBrowsingContext()->scriptBindingInstance()->deviceAPI()->webWidgetAPIInstance();
 
                         if (!listenerValue->isFunction()) {
@@ -268,7 +268,7 @@ ObjectRef* WebWidgetAPIInstance::createWebWidgetAPIObject(Escargot::ContextRef* 
                            ValueRef* thisValue, size_t argc,
                            ValueRef** argv, bool isNewExpression) -> ValueRef*
                     {
-                        ::StarFish::Window* window = (::StarFish::Window*)state->context()->globalObject()->extraData();
+                        ::Starfish::Window* window = (::Starfish::Window*)state->context()->globalObject()->extraData();
                         WebWidgetAPIInstance* ww = window->webView()->mainBrowsingContext()->scriptBindingInstance()->deviceAPI()->webWidgetAPIInstance();
                         ww->setReceiveContentListener(nullptr);
                         return ValueRef::createUndefined();
@@ -289,7 +289,7 @@ ObjectRef* WebWidgetAPIInstance::createWebWidgetAPIObject(Escargot::ContextRef* 
 extern "C" __attribute__((visibility("default"))) void starfishWebWidgetAPINotifyReceiveContent(
     LWE::WebView* instance, const void* data)
 {
-    ::StarFish::WebView* w = (::StarFish::WebView*)instance->GetUserData("__internalWebContainerImplementLayerVariable");
+    ::Starfish::WebView* w = (::Starfish::WebView*)instance->GetUserData("__internalWebContainerImplementLayerVariable");
     DeviceAPI::ExtensionManagerInstance* em = w
                                                   ->mainBrowsingContext()
                                                   ->scriptBindingInstance()

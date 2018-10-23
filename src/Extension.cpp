@@ -8,11 +8,11 @@
 #include <dlog.h>
 
 #include "ExtensionAdapter.h"
-#include "StarFishConfig.h"
+#include "StarfishConfig.h"
 #include "EscargotPublic.h"
 #include "TizenDeviceAPILoaderForEscargot.h"
 #include "core/page/Window.h"
-#include "StarFish.h"
+#include "Starfish.h"
 
 namespace wrt {
 namespace xwalk {
@@ -274,8 +274,8 @@ void ESPostMessageListener::PostMessageToJS(const std::string& msg)
         return;
     }
 
-    StarFish::Window* wnd =
-        (StarFish::Window*)context_->globalObject()->extraData();
+    Starfish::Window* wnd =
+        (Starfish::Window*)context_->globalObject()->extraData();
 
     Escargot::SandBoxRef* sb = Escargot::SandBoxRef::create(context_);
     auto result =
@@ -304,8 +304,8 @@ void ESPostDataListener::PostDataToJS(const std::string& msg, uint8_t* buffer,
         return;
     }
 
-    StarFish::Window* wnd =
-        (StarFish::Window*)context_->globalObject()->extraData();
+    Starfish::Window* wnd =
+        (Starfish::Window*)context_->globalObject()->extraData();
 
     Escargot::SandBoxRef* sb = Escargot::SandBoxRef::create(context_);
     auto result =

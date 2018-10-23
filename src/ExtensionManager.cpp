@@ -13,7 +13,7 @@
 
 // #include "runtime_variable_provider.h"
 // #include "picojson.h"
-#include "StarFishConfig.h"
+#include "StarfishConfig.h"
 #include "TizenDeviceAPILoaderForEscargot.h"
 
 namespace wrt {

@@ -3,7 +3,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 #if defined(TIZEN_DEVICE_API)
-#include "StarFishConfig.h"
+#include "StarfishConfig.h"
 #include "TizenDeviceAPILoaderForEscargot.h"
 
 #include "ExtensionAdapter.h"

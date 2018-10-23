@@ -3,12 +3,12 @@
 
 #ifdef TIZEN_DEVICE_API
 
-#include "StarFishConfig.h"
+#include "StarfishConfig.h"
 #include "EscargotPublic.h"
 #include "WebWidgetAPIInstance.h"
 
 #undef LOGGER_TAG
-#define LOGGER_TAG "StarFishDeviceAPI"
+#define LOGGER_TAG "StarfishDeviceAPI"
 
 #ifndef __MODULE__
 #define __MODULE__ \
