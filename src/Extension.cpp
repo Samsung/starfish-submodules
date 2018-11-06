@@ -11,7 +11,11 @@
 #include "StarfishConfig.h"
 #include "EscargotPublic.h"
 #include "TizenDeviceAPILoaderForEscargot.h"
+#include "core/page/BrowsingContext.h"
+#include "core/page/WebView.h"
 #include "core/page/Window.h"
+#include "core/modules/message_loop/MessageLoop.h"
+
 #include "Starfish.h"
 
 namespace wrt {
@@ -276,20 +280,44 @@ void ESPostMessageListener::PostMessageToJS(const std::string& msg)
 
     Starfish::Window* wnd =
         (Starfish::Window*)context_->globalObject()->extraData();
+    Starfish::WebView* webview = wnd->browsingContext()->webView();
 
-    Escargot::SandBoxRef* sb = Escargot::SandBoxRef::create(context_);
-    auto result =
-        sb->run([&](Escargot::ExecutionStateRef* state) -> Escargot::ValueRef* {
-            Escargot::ValueRef* arguments[] = { Escargot::ValueRef::create(
-                Escargot::StringRef::fromASCII(msg.c_str())) };
-            return listener_->call(state, Escargot::ValueRef::createNull(), 1,
-                                   arguments);
-        });
-    sb->destroy();
-    if (!result.error->isEmpty()) {
-        DEVICEAPI_LOG_ERROR("Uncaught %s\n",
-                            result.msgStr->toStdUTF8String().c_str());
-    }
+    struct Params {
+        Escargot::ContextRef* context;
+        Escargot::FunctionObjectRef* listener;
+        std::string msg;
+    };
+
+    Params* params = new Params();
+    params->context = context_;
+    params->listener = listener_;
+    params->msg = msg;
+
+    webview->messageLoop()->addIdlerWithNoGCRootingInOtherThread(
+        wnd->browsingContext(),
+        [](size_t, void* data) {
+            Params* params = (Params*)data;
+            Escargot::ContextRef* context = params->context;
+            Escargot::FunctionObjectRef* listener = params->listener;
+            std::string msg = params->msg;
+
+            Escargot::SandBoxRef* sb = Escargot::SandBoxRef::create(context);
+            auto result = sb->run([&](Escargot::ExecutionStateRef* state)
+                                      -> Escargot::ValueRef* {
+                Escargot::ValueRef* arguments[] = { Escargot::ValueRef::create(
+                    Escargot::StringRef::fromASCII(msg.c_str())) };
+                return listener->call(state, Escargot::ValueRef::createNull(),
+                                      1, arguments);
+            });
+            sb->destroy();
+            if (!result.error->isEmpty()) {
+                DEVICEAPI_LOG_ERROR("Uncaught %s\n",
+                                    result.msgStr->toStdUTF8String().c_str());
+            }
+
+            delete params;
+        },
+        params);
 }
 
 void ESPostDataListener::PostDataToJS(const std::string& msg, uint8_t* buffer,

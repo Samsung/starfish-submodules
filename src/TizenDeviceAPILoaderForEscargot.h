@@ -3,6 +3,8 @@
 
 #ifdef TIZEN_DEVICE_API
 
+#include <mutex>
+
 #include "StarfishConfig.h"
 #include "EscargotPublic.h"
 #include "WebWidgetAPIInstance.h"
@@ -201,6 +203,7 @@ private:
         ExtensionManagerInstanceMap;
     static wrt::xwalk::Extension* getExtension(const char* apiName);
     static ExtensionManagerInstanceMap s_extensionManagerInstances;
+    static std::mutex s_mutex;
 };
 
 inline ExtensionManagerInstance* ExtensionManagerInstanceGet(

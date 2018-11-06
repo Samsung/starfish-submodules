@@ -532,6 +532,8 @@ ExtensionManagerInstance::ChunkData ExtensionManagerInstance::getChunk(
 ExtensionManagerInstance::ExtensionManagerInstanceMap
     ExtensionManagerInstance::s_extensionManagerInstances;
 
+std::mutex ExtensionManagerInstance::s_mutex;
+
 ExtensionManagerInstance::ExtensionManagerInstance(ContextRef* context)
     : m_context(context)
     , m_chunkID(0)
@@ -706,6 +708,7 @@ ExtensionManagerInstance::ExtensionManagerInstance(ContextRef* context)
 #if defined(STARFISH_TIZEN_WEARABLE_WIDGET)
     m_webWidgetAPIInstance = nullptr;
 #endif
+    std::lock_guard<std::mutex> guard(s_mutex);
     s_extensionManagerInstances[m_context] = this;
     DEVICEAPI_LOG_INFO("ExtensionManagerInstance %zu => %zu",
                        s_extensionManagerInstances.size() - 1,
@@ -714,6 +717,7 @@ ExtensionManagerInstance::ExtensionManagerInstance(ContextRef* context)
 
 ExtensionManagerInstance::~ExtensionManagerInstance()
 {
+    std::lock_guard<std::mutex> guard(s_mutex);
     DEVICEAPI_LOG_INFO(
         "ExtensionManagerInstance delete ExtensionManagerInstance %p", this);
     for (auto it : m_extensionInstances)
@@ -729,11 +733,15 @@ ExtensionManagerInstance::~ExtensionManagerInstance()
 
 ExtensionManagerInstance* ExtensionManagerInstance::get(ContextRef* context)
 {
+    std::lock_guard<std::mutex> guard(s_mutex);
+    ExtensionManagerInstance* instance = nullptr;
+
     auto it = s_extensionManagerInstances.find(context);
-    if (it == s_extensionManagerInstances.end())
-        return nullptr;
-    else
-        return it->second;
+    if (it != s_extensionManagerInstances.end()) {
+        instance = it->second;
+    }
+
+    return instance;
 }
 
 ExtensionManagerInstance* initialize(ContextRef* context)
