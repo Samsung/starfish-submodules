@@ -68,8 +68,20 @@ if (validArgCount == {{function.min_passing_count|string}}) {
 {%- macro function_code_normal() %}
     {% if name == 'Window' %}
     GENERATE_WINDOW();
+    {% if function.cross_origin %}
+    if (!ScriptBindingSecurity::shouldAllowCrossOriginScriptAPIAccessToWindow(state, window)) {
+        return ValueRef::createUndefined();
+    }
+    {% endif %}
     {% elif not function.static %}
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
+    {% if name == 'Location' %}
+    {% if function.cross_origin %}
+    if (!ScriptBindingSecurity::shouldAllowCrossOriginScriptAPIAccessToLocation(state, originalObj)) {
+        return ValueRef::createUndefined();
+    }
+    {% endif %}
+    {% endif %}
     {% endif %}
     {% set min_passed_count = function.min_passed_count|default(0) %}
     {% set max_arg = function.arguments|length %}

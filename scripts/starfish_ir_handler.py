@@ -73,13 +73,20 @@ class StarfishIRHandler():
        self.has_exception = True
     return
 
+  def _udpate_has_cross_origin(self, op):
+    if op.get('cross_origin'):
+       self.has_cross_origin = True
+    return
+
   def _check_attr(self, attr):
     unimpl = attr.get('unimplemented', False)
     self._change_types(attr.get('getter'), 'return', unimpl)
     self._udpate_has_exception(attr['getter'])
+    self._udpate_has_cross_origin(attr['getter'])
     if attr.get('setter'):
       self._change_types(attr.get('setter').get('arguments')[0], 'type', unimpl)
       self._udpate_has_exception(attr['setter'])
+      self._udpate_has_cross_origin(attr['setter'])
     if attr.get('put_forwards', False) and \
        type(attr['put_forwards']) is types.StringType:
       ref_name = attr['getter']['return']['name']
@@ -91,6 +98,7 @@ class StarfishIRHandler():
             attr['put_forwards'] = ref_attr
             if ref_attr.get('setter'):
               self._udpate_has_exception(ref_attr['setter'])
+              self._udpate_has_cross_origin(ref_attr['setter'])
             break;
     # Validation
     if attr.get('reflect') and self.enable_validation:
@@ -115,6 +123,7 @@ class StarfishIRHandler():
       return
     unimpl = op.get('unimplemented', False)
     self._udpate_has_exception(op)
+    self._udpate_has_cross_origin(op)
     for arg in op.get('arguments', []):
       self._change_types(arg, 'type', unimpl)
     self._change_types(op, 'return', unimpl)
@@ -318,6 +327,8 @@ class StarfishIRHandler():
   def _flush_using_info(self, to_obj):
     if to_obj == None:
       return
+    if self.has_cross_origin:
+      self.include_paths.add('binding/ScriptBindingSecurity')
     if self.has_exception:
       self.include_paths.add('core/dom/DOMException')
     if self.processing.get('file_path'):
@@ -381,6 +392,7 @@ class StarfishIRHandler():
     self.used_unions = set()
     self.include_paths = set()
     self.has_exception = False
+    self.has_cross_origin = False
     self.unions = {}
 
 

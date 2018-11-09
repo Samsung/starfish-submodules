@@ -26,8 +26,20 @@ static ValueRef* {{ util_macro.gen_getter_function(attribute, name) }}(Execution
 {
     {% if name == 'Window' %}
     GENERATE_WINDOW();
+    {% if attribute.getter.cross_origin %}
+    if (!ScriptBindingSecurity::shouldAllowCrossOriginScriptAPIAccessToWindow(state, window)) {
+        return ValueRef::createUndefined();
+    }
+    {% endif %}
     {% else %}
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
+    {% if name == 'Location' %}
+    {% if attribute.getter.cross_origin %}
+    if (!ScriptBindingSecurity::shouldAllowCrossOriginScriptAPIAccessToLocation(state, originalObj)) {
+        return ValueRef::createUndefined();
+    }
+    {% endif %}
+    {% endif %}
     {% endif %}
     {% if attribute.reflect %}
     {% if attribute.getter.return.name == 'boolean' %}
@@ -73,8 +85,20 @@ static ValueRef* {{ util_macro.gen_setter_function(attribute, name) }}(Execution
 {
     {% if name == 'Window' %}
     GENERATE_WINDOW();
+    {% if attribute.setter.cross_origin %}
+    if (!ScriptBindingSecurity::shouldAllowCrossOriginScriptAPIAccessToWindow(state, window)) {
+        return ValueRef::createUndefined();
+    }
+    {% endif %}
     {% else %}
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
+    {% if name == 'Location' %}
+    {% if attribute.getter.cross_origin %}
+    if (!ScriptBindingSecurity::shouldAllowCrossOriginScriptAPIAccessToLocation(state, originalObj)) {
+        return ValueRef::createUndefined();
+    }
+    {% endif %}
+    {% endif %}
     {% endif %}
     {% if attribute.reflect %}
 

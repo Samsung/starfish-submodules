@@ -107,6 +107,7 @@ _hd_extattr_partial_interface = partial(_hd_extattr_bool_t, 'PartialInterface', 
 _hd_extattr_custom = partial(_hd_extattr_value_t, 'Custom', 'custom', True)
 _hd_extattr_putforward = partial(_hd_extattr_value_t, 'PutForwards', 'put_forwards', None)
 _hd_extattr_raise_expection = partial(_hd_extattr_value_t, 'RaisesException', 'raises_exception', True)
+_hd_extattr_cross_origin = partial(_hd_extattr_value_t, 'CrossOrigin', 'cross_origin', True)
 _hd_extattr_force_deny_strict = partial(_hd_extattr_bool_t, 'ForceDenyStrictMode', 'force_deny_strict', True)
 _hd_extattr_callwith = partial(_hd_extattr_value_t, 'CallWith', 'call_with', None)
 _hd_extattr_primary_global = partial(_hd_extattr_bool_t, 'PrimaryGlobal', 'primary_global', True)
@@ -363,13 +364,20 @@ class StarfishIDLReader():
                           _hd_extattr_raise_expection,
                           _hd_extattr_putforward,
                           _hd_extattr_reflect,
+                          _hd_extattr_cross_origin,
                           _hd_extattr_unscopable])
     excp = result.pop('raises_exception', None)
     getter_excp = True if (excp is True or excp and 'Getter' in excp) else None
     setter_excp = True if (excp is True or excp and 'Setter' in excp) else None
+
+    cross = result.pop('cross_origin', None)
+    getter_cross = True if (cross is True or cross and 'Getter' in cross) else None
+    setter_cross = True if (cross is True or cross and 'Setter' in cross) else None
+
     custom = result.pop('custom', None)
     getter_custom = True if (custom is True or custom and 'Getter' in custom) else None
     setter_custom = True if (custom is True or custom and 'Setter' in custom) else None
+
     if result.get('reflect') and type(result['reflect']) is types.BooleanType:
       result['reflect'] = result['name'];
     # genarate getter ir
@@ -379,6 +387,7 @@ class StarfishIDLReader():
     IRUtils.set_prop_to_dict(getter, 'name', '')
     IRUtils.set_prop_to_dict(getter, 'arguments', [])
     IRUtils.set_prop_to_dict(getter, 'raises_exception', getter_excp)
+    IRUtils.set_prop_to_dict(getter, 'cross_origin', getter_cross)
     IRUtils.set_prop_to_dict(getter, 'custom', getter_custom)
     IRUtils.set_prop_to_dict(type_ir, 'object_option', result.pop('object_option', None))
     IRUtils.set_prop_to_dict(getter, 'return', type_ir)
@@ -396,6 +405,7 @@ class StarfishIDLReader():
       IRUtils.set_prop_to_dict(setter, 'return', {'kind': 'PrimitiveType', 'name': 'void'})
       IRUtils.set_prop_to_dict(setter, 'arguments', [arg_ir])
       IRUtils.set_prop_to_dict(setter, 'raises_exception', setter_excp)
+      IRUtils.set_prop_to_dict(setter, 'cross_origin', setter_cross)
       IRUtils.set_prop_to_dict(setter, 'custom', setter_custom)
       IRUtils.set_prop_to_dict(result, 'setter', setter)
     return result
@@ -428,6 +438,7 @@ class StarfishIDLReader():
                           _hd_extattr_raise_expection,
                           _hd_extattr_force_deny_strict,
                           _hd_extattr_callwith,
+                          _hd_extattr_cross_origin,
                           _hd_extattr_unscopable])
     if return_ir is not None:
       IRUtils.set_prop_to_dict(return_ir, 'object_option', result.pop('object_option', None))
