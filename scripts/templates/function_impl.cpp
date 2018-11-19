@@ -69,16 +69,26 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {% if name == 'Window' %}
     GENERATE_WINDOW();
     {% if function.cross_origin %}
-    if (!ScriptBindingSecurity::shouldAllowCrossOriginScriptAPIAccessToWindow(state, window)) {
-        return ValueRef::createUndefined();
+    try {
+        if (!ScriptBindingSecurity::shouldAllowCrossOriginScriptAPIAccessToWindow(state, window)) {
+            return ValueRef::createUndefined();
+        }
+    } catch (DOMException* e) {
+        state->throwException(e->scriptValue());
+        STARFISH_RELEASE_ASSERT_NOT_REACHED();
     }
     {% endif %}
     {% elif not function.static %}
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
     {% if name == 'Location' %}
     {% if function.cross_origin %}
-    if (!ScriptBindingSecurity::shouldAllowCrossOriginScriptAPIAccessToLocation(state, originalObj)) {
-        return ValueRef::createUndefined();
+    try {
+        if (!ScriptBindingSecurity::shouldAllowCrossOriginScriptAPIAccessToLocation(state, originalObj)) {
+            return ValueRef::createUndefined();
+        }
+    } catch (DOMException* e) {
+        state->throwException(e->scriptValue());
+        STARFISH_RELEASE_ASSERT_NOT_REACHED();
     }
     {% endif %}
     {% endif %}

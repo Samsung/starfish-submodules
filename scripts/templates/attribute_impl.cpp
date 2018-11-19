@@ -27,16 +27,25 @@ static ValueRef* {{ util_macro.gen_getter_function(attribute, name) }}(Execution
     {% if name == 'Window' %}
     GENERATE_WINDOW();
     {% if attribute.getter.cross_origin %}
-    if (!ScriptBindingSecurity::shouldAllowCrossOriginScriptAPIAccessToWindow(state, window)) {
-        return ValueRef::createUndefined();
+    try {
+        if (!ScriptBindingSecurity::shouldAllowCrossOriginScriptAPIAccessToWindow(state, window)) {
+            return ValueRef::createUndefined();
+    } catch (DOMException* e) {
+        state->throwException(e->scriptValue());
+        STARFISH_RELEASE_ASSERT_NOT_REACHED();
     }
     {% endif %}
     {% else %}
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
     {% if name == 'Location' %}
     {% if attribute.getter.cross_origin %}
-    if (!ScriptBindingSecurity::shouldAllowCrossOriginScriptAPIAccessToLocation(state, originalObj)) {
-        return ValueRef::createUndefined();
+    try {
+        if (!ScriptBindingSecurity::shouldAllowCrossOriginScriptAPIAccessToLocation(state, originalObj)) {
+            return ValueRef::createUndefined();
+        }
+    } catch (DOMException* e) {
+        state->throwException(e->scriptValue());
+        STARFISH_RELEASE_ASSERT_NOT_REACHED();
     }
     {% endif %}
     {% endif %}
@@ -86,16 +95,26 @@ static ValueRef* {{ util_macro.gen_setter_function(attribute, name) }}(Execution
     {% if name == 'Window' %}
     GENERATE_WINDOW();
     {% if attribute.setter.cross_origin %}
-    if (!ScriptBindingSecurity::shouldAllowCrossOriginScriptAPIAccessToWindow(state, window)) {
-        return ValueRef::createUndefined();
+    try {
+        if (!ScriptBindingSecurity::shouldAllowCrossOriginScriptAPIAccessToWindow(state, window)) {
+            return ValueRef::createUndefined();
+        }
+    } catch (DOMException* e) {
+        state->throwException(e->scriptValue());
+        STARFISH_RELEASE_ASSERT_NOT_REACHED();
     }
     {% endif %}
     {% else %}
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
     {% if name == 'Location' %}
-    {% if attribute.getter.cross_origin %}
-    if (!ScriptBindingSecurity::shouldAllowCrossOriginScriptAPIAccessToLocation(state, originalObj)) {
-        return ValueRef::createUndefined();
+    {% if attribute.setter.cross_origin %}
+    try {
+        if (!ScriptBindingSecurity::shouldAllowCrossOriginScriptAPIAccessToLocation(state, originalObj)) {
+            return ValueRef::createUndefined();
+        }
+    } catch (DOMException* e) {
+        state->throwException(e->scriptValue());
+        STARFISH_RELEASE_ASSERT_NOT_REACHED();
     }
     {% endif %}
     {% endif %}

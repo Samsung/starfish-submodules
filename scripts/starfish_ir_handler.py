@@ -329,7 +329,7 @@ class StarfishIRHandler():
       return
     if self.has_cross_origin:
       self.include_paths.add('binding/ScriptBindingSecurity')
-    if self.has_exception:
+    if self.has_exception or self.has_cross_origin:
       self.include_paths.add('core/dom/DOMException')
     if self.processing.get('file_path'):
       self.include_paths.discard(self.processing['file_path'])
