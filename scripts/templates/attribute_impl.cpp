@@ -30,6 +30,7 @@ static ValueRef* {{ util_macro.gen_getter_function(attribute, name) }}(Execution
     try {
         if (!ScriptBindingSecurity::shouldAllowCrossOriginScriptAPIAccessToWindow(state, window)) {
             return ValueRef::createUndefined();
+        }
     } catch (DOMException* e) {
         state->throwException(e->scriptValue());
         STARFISH_RELEASE_ASSERT_NOT_REACHED();
