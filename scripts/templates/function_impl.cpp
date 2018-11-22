@@ -140,6 +140,8 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     Document* callWith = fetchDocument(state->context());
     {% elif function.call_with  == 'Starfish' %}
     Starfish* callWith = fetchStarfish(state->context());
+    {% elif function.call_with  == 'ResponsibleDocument' %}
+    Document* callWith = fetchResponsibleDocument(state);
     {% endif %}
     {{ gen_native_call(function.return, uniformed_call) }}
     {{ util_macro.handle_return(function.return)|trim }}
