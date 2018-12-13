@@ -191,7 +191,7 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject()
                ValueRef** argv, bool isNewExpression) -> ValueRef* {
                 DEVICEAPI_LOG_ERROR("extension.postMessage UNIMPLEMENTED");
                 printArguments(state->context(), argc, argv);
-                STARFISH_RELEASE_ASSERT_NOT_REACHED();
+                STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
                 return ValueRef::createEmpty();
             },
             0, nullptr, true, true));
@@ -338,7 +338,7 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject()
                 DEVICEAPI_LOG_ERROR(
                     "extension.sendRuntimeMessage UNIMPLEMENTED");
                 printArguments(state->context(), argc, argv);
-                STARFISH_RELEASE_ASSERT_NOT_REACHED();
+                STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
                 return ValueRef::createEmpty();
             },
             0, nullptr, true, true));
@@ -356,7 +356,7 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject()
                 DEVICEAPI_LOG_ERROR(
                     "extension.sendRuntimeAsyncMessage UNIMPLEMENTED");
                 printArguments(state->context(), argc, argv);
-                STARFISH_RELEASE_ASSERT_NOT_REACHED();
+                STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
                 return ValueRef::createEmpty();
             },
             0, nullptr, true, true));
@@ -374,7 +374,7 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject()
                 DEVICEAPI_LOG_ERROR(
                     "extension.sendRuntimeSyncMessage UNIMPLEMENTED");
                 printArguments(state->context(), argc, argv);
-                STARFISH_RELEASE_ASSERT_NOT_REACHED();
+                STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
                 return ValueRef::createEmpty();
             },
             0, nullptr, true, true));
