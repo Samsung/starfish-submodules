@@ -33,7 +33,7 @@ static ValueRef* {{ util_macro.gen_getter_function(attribute, name) }}(Execution
         }
     } catch (DOMException* e) {
         state->throwException(e->scriptValue());
-        STARFISH_RELEASE_ASSERT_NOT_REACHED();
+        STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
     }
     {% endif %}
     {% else %}
@@ -46,7 +46,7 @@ static ValueRef* {{ util_macro.gen_getter_function(attribute, name) }}(Execution
         }
     } catch (DOMException* e) {
         state->throwException(e->scriptValue());
-        STARFISH_RELEASE_ASSERT_NOT_REACHED();
+        STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
     }
     {% endif %}
     {% endif %}
@@ -75,7 +75,7 @@ static ValueRef* {{ util_macro.gen_getter_function(attribute, name) }}(Execution
     {% if need_catch %}
     } catch (DOMException* e) {
         state->throwException(e->scriptValue());
-        STARFISH_RELEASE_ASSERT_NOT_REACHED();
+        STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
     }
     {% endif %}
     {{ util_macro.handle_return(attribute.getter.return)|trim }}
@@ -102,7 +102,7 @@ static ValueRef* {{ util_macro.gen_setter_function(attribute, name) }}(Execution
         }
     } catch (DOMException* e) {
         state->throwException(e->scriptValue());
-        STARFISH_RELEASE_ASSERT_NOT_REACHED();
+        STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
     }
     {% endif %}
     {% else %}
@@ -115,7 +115,7 @@ static ValueRef* {{ util_macro.gen_setter_function(attribute, name) }}(Execution
         }
     } catch (DOMException* e) {
         state->throwException(e->scriptValue());
-        STARFISH_RELEASE_ASSERT_NOT_REACHED();
+        STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
     }
     {% endif %}
     {% endif %}
@@ -159,7 +159,7 @@ static ValueRef* {{ util_macro.gen_setter_function(attribute, name) }}(Execution
     {% if need_catch %}
     } catch (DOMException* e) {
         state->throwException(e->scriptValue());
-        STARFISH_RELEASE_ASSERT_NOT_REACHED();
+        STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
     }
     {% endif %}
     {% endif %}

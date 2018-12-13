@@ -81,7 +81,7 @@ static ValueRef* {{ name|lower }}Constructor(ExecutionStateRef* state, ValueRef*
         {{ test_macro_a()|trim()|indent(4) }}
     } catch (DOMException* e) {
         state->throwException(e->scriptValue());
-        STARFISH_RELEASE_ASSERT_NOT_REACHED();
+        STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
     }
     {% else %}
     {{ test_macro_a()|trim() }}

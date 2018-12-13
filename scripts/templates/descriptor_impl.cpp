@@ -11,7 +11,7 @@
 {{ 'try {
 %s} catch (DOMException* e) {
     state->throwException(e->scriptValue());
-    STARFISH_RELEASE_ASSERT_NOT_REACHED();
+    STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
 }'|format(caller())|indent(indent, true) }}
 {% else %}
 {{ caller() }}

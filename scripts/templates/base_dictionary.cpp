@@ -44,7 +44,7 @@ namespace Starfish {
     if (!from->isObject()) {
         auto msg = StringRef::fromASCII("Failed to generate {{name}} from non-object");
         state->throwException(ValueRef::create(TypeErrorObjectRef::create(state, msg)));
-        STARFISH_RELEASE_ASSERT_NOT_REACHED();
+        STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
     }
 {% for key in members %}
     {% if not key.unimplemented %}

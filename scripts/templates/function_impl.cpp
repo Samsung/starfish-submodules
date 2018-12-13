@@ -60,7 +60,7 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {% if function.raises_exception %}
     } catch (DOMException* e) {
         state->throwException(e->scriptValue());
-        STARFISH_RELEASE_ASSERT_NOT_REACHED();
+        STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
     }
     {%- endif %}
 {%- endmacro -%}
@@ -75,7 +75,7 @@ if (validArgCount == {{function.min_passing_count|string}}) {
         }
     } catch (DOMException* e) {
         state->throwException(e->scriptValue());
-        STARFISH_RELEASE_ASSERT_NOT_REACHED();
+        STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
     }
     {% endif %}
     {% elif not function.static %}
@@ -88,7 +88,7 @@ if (validArgCount == {{function.min_passing_count|string}}) {
         }
     } catch (DOMException* e) {
         state->throwException(e->scriptValue());
-        STARFISH_RELEASE_ASSERT_NOT_REACHED();
+        STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
     }
     {% endif %}
     {% endif %}
