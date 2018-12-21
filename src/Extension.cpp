@@ -323,7 +323,7 @@ void ESPostMessageListener::PostMessageToJS(const std::string& msg)
 void ESPostDataListener::PostDataToJS(const std::string& msg, uint8_t* buffer,
                                       size_t len)
 {
-    DEVICEAPI_LOG_INFO("ESPostDataListener::PostDataToJS (%s, %u)", msg.c_str(),
+    DEVICEAPI_LOG_INFO("ESPostDataListener::PostDataToJS (%s, %lu)", msg.c_str(),
                        len);
 
     ExtensionManagerInstance* extensionManagerInstance =
