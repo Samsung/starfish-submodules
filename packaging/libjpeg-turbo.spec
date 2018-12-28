@@ -1,20 +1,13 @@
-%define major   8
-%define minor   1
-%define micro   2
-%define srcver  1.5.3
-%define libver  %{major}.%{minor}.%{micro}
-# major number of library from jpeg8
-%define cmajor  8
+%define libver  8.1.2
 
 Name:           libjpeg-turbo
-Version:        %{srcver}
+Version:        1.5.3
 Release:        1
 Summary:        A MMX/SSE2 accelerated library for manipulating JPEG image files
 License:        BSD License (BSD 3-clause, Historic Permission Notice and Disclaimer, libjpeg License)
 Group:          Graphics & UI Framework/Libraries
 Url:            http://sourceforge.net/projects/libjpeg-turbo
-Source0:        http://downloads.sourceforge.net/project/%{name}/%{version}/%{name}-%{version}.tar.gz
-Source1:        baselibs.conf
+Source0:        %{name}-%{version}.tar.gz
 Source1001: 	libjpeg-turbo.manifest
 BuildRequires:  gcc-c++
 BuildRequires:  libtool
@@ -48,11 +41,7 @@ Group:          Graphics & UI Framework/Development
 Provides:       libjpeg-turbo-devel
 Requires:       libjpeg = %{version}
 Provides:       libjpeg-devel = %{version}
-Provides:       libjpeg8-devel
 Obsoletes:      libjpeg-devel < %{version}
-%if "%{major}" != "%{cmajor}"
-Conflicts:      libjpeg-devel
-%endif
 
 %description -n libjpeg-devel
 The libjpeg-devel package includes the header files and libraries
@@ -60,7 +49,7 @@ necessary for compiling and linking programs which will manipulate JPEG
 files using the libjpeg library.
 
 %prep
-%setup -q
+%setup -q -n %{name}
 cp %{SOURCE1001} .
 
 %build
@@ -102,8 +91,7 @@ rm -rf $RPM_BUILD_ROOT
 %manifest %{name}.manifest
 %defattr(-,root,root)
 %{_libdir}/libturbojpeg.so.*
-%{_libdir}/libjpeg.so.%{libver}
-%{_libdir}/libjpeg.so.%{major}
+%{_libdir}/libjpeg.so.*
 %license README.ijg
 %license LICENSE.md
 
