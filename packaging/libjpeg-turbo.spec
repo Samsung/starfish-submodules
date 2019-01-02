@@ -1,7 +1,7 @@
 %define libver  8.1.2
 
 Name:           libjpeg-turbo
-Version:        1.5.3
+Version:        2.0.1
 Release:        1
 Summary:        A MMX/SSE2 accelerated library for manipulating JPEG image files
 License:        BSD License (BSD 3-clause, Historic Permission Notice and Disclaimer, libjpeg License)
@@ -9,6 +9,7 @@ Group:          Graphics & UI Framework/Libraries
 Url:            http://sourceforge.net/projects/libjpeg-turbo
 Source0:        %{name}-%{version}.tar.gz
 Source1001: 	libjpeg-turbo.manifest
+BuildRequires:  cmake
 BuildRequires:  gcc-c++
 BuildRequires:  libtool
 BuildRequires:  yasm
@@ -49,31 +50,27 @@ necessary for compiling and linking programs which will manipulate JPEG
 files using the libjpeg library.
 
 %prep
-%setup -q -n %{name}
+%setup -q
 cp %{SOURCE1001} .
 
 %build
 %if "%{tizen_profile_name}" == "tv"
 echo "tizen_product_tv"
-export CFLAGS="$CFLAGS -D_TIZEN_PRODUCT_TV -D_USE_PRODUCT_TV"
+export CFLAGS="$CFLAGS -D_TIZEN_PRODUCT_TV -D_USE_PRODUCT_TV -DCOLOR_PICKER_ENABLE"
 %endif
-autoreconf -fiv
-%configure --enable-shared --disable-static --with-jpeg8
-make %{?_smp_mflags}
+%cmake . -DCMAKE_BUILD_TYPE=Release -DENABLE_SHARED=TRUE -DENABLE_STATIC=FALSE -DWITH_JPEG8=TRUE
+%__make %{?jobs:-j%jobs}
 
 %install
-%makeinstall
+rm -rf %{buildroot}
+
+%make_install
 
 # Remove unwanted files
-rm -f %{buildroot}%{_libdir}/lib{,turbo}jpeg.la
-
-rm %{buildroot}%{_bindir}/tjbench
+rm %{buildroot}%{_bindir}/*
 
 # Remove docs, we'll select docs manually
 rm -rf %{buildroot}%{_datadir}/doc/
-
-%clean
-rm -rf $RPM_BUILD_ROOT
 
 %post -n libjpeg -p /sbin/ldconfig
 
@@ -85,7 +82,7 @@ rm -rf $RPM_BUILD_ROOT
 %manifest %{name}.manifest
 %defattr(-,root,root)
 %license README.ijg
-%license LICENSE.md
+%license COPYING
 
 %files -n libjpeg
 %manifest %{name}.manifest
@@ -93,14 +90,15 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libturbojpeg.so.*
 %{_libdir}/libjpeg.so.*
 %license README.ijg
-%license LICENSE.md
+%license COPYING
 
 %files -n libjpeg-devel
 %defattr(-,root,root)
 %{_includedir}/*.h
-%{_libdir}/pkgconfig/turbojpeg.pc
+%{_libdir}/pkgconfig/libturbojpeg.pc
+%{_libdir}/pkgconfig/libjpeg.pc
 %{_libdir}/libturbojpeg.so
 %{_libdir}/libjpeg.so
-%doc coderules.txt jconfig.txt libjpeg.txt structure.txt example.c
+%doc coderules.txt jconfig.txt libjpeg.txt structure.txt example.txt
 
 %changelog
