@@ -1,9 +1,9 @@
 Name:           libpng
-Version:        1.6.21
+Version:        1.6.36
 Release:        1
 License:        Libpng
 Summary:        A library of functions for manipulating PNG image format files
-Url:            http://www.libpng.org/pub/png/
+Url:            http://www.libpng.org/pub/png/libpng.html
 Group:          System/Libraries
 Source:         %{name}-%{version}.tar.bz2
 Source1001:     libpng.manifest

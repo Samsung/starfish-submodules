@@ -1,60 +1,77 @@
-Libpng 1.6.21 - January 15, 2016
+libpng 1.6.36 - December 1, 2018
+================================
 
-This is a public release of libpng, intended for use in production codes.
+This is a public release of libpng, intended for use in production code.
 
-Files available for download:
 
-Source files with LF line endings (for Unix/Linux) and with a
-"configure" script
+Files available for download
+----------------------------
 
-   libpng-1.6.21.tar.xz (LZMA-compressed, recommended)
-   libpng-1.6.21.tar.gz
+Source files with LF line endings (for Unix/Linux):
 
-Source files with CRLF line endings (for Windows), without the
-"configure" script
+ * libpng-1.6.36.tar.xz (LZMA-compressed, recommended)
+ * libpng-1.6.36.tar.gz
 
-   /scratch/glennrp/Libpng16/lpng1621.7z  (LZMA-compressed, recommended)
-   /scratch/glennrp/Libpng16/lpng1621.zip
+Source files with CRLF line endings (for Windows):
+
+ * lp1636.7z (LZMA-compressed, recommended)
+ * lp1636.zip
 
 Other information:
 
-   libpng-1.6.21-README.txt
-   libpng-1.6.21-LICENSE.txt
-   libpng-1.6.21-*.asc (armored detached GPG signatures)
+ * README.md
+ * LICENSE.md
+ * AUTHORS.md
+ * TRADEMARK.md
 
-Changes since the last public release (1.6.20):
 
-  Fixed syntax "$(command)" in tests/pngstest that some shells other than
-    bash could not parse (Bug report by Nelson Beebe). Use `command` instead.
-  Moved png_check_keyword() from pngwutil.c to pngset.c
-  Removed LE/BE dependencies in pngvalid, to 'fix' the current problem
-    in the BigEndian tests by not testing it, making the BE code the same 
-    as the LE version.
-  Fixes to pngvalid for various reduced build configurations (eliminate unused
-    statics) and a fix for the case in rgb_to_gray when the digitize option
-    reduces graylo to 0, producing a large error.
-  Widened the 'limit' check on the internally calculated error limits in
-    the 'DIGITIZE' case (the code used prior to 1.7 for rgb_to_gray error
-    checks) and changed the check to only operate in non-release builds
-   (base build type not RC or RELEASE.)
-  Fixed undefined behavior in pngvalid.c, undefined because
-    (png_byte) << shift is undefined if it changes the signed bit
-    (because png_byte is promoted to int). The libpng exported functions
-    png_get_uint_32 and png_get_uint_16 handle this. (Bug reported by
-    David Drysdale as a result of reports from UBSAN in clang 3.8).
-  This changes pngvalid to use BE random numbers; this used to produce
-    errors but these should not be fixed as a result of the previous changes.
-  In projects/vstudio, combined readme.txt and WARNING into README.txt
-  Relocated assert() in contrib/tools/pngfix.c, bug found by American
-    Fuzzy Lop, reported by Brian Carpenter.
-  Marked 'limit' UNUSED in transform_range_check().  This only affects
-    release builds.
-  Worked around a false-positive Coverity issue in pngvalid.c.
+IMPORTANT licensing update: libpng license v2
+---------------------------------------------
 
-Send comments/corrections/commendations to png-mng-implement at lists.sf.net
-(subscription required; visit
+The new libpng license comprises the terms and conditions from the zlib
+license, and the disclaimer from the Boost license.
+
+The legacy libpng license, used until libpng-1.6.35, is appended to the
+new license, following the precedent established in the Python Software
+Foundation License version 2.
+
+From now on, the list of contributing authors shall be maintained in a
+separate AUTHORS file.  The lists of previous contributing authors,
+mentioned in the legacy libpng license and considered to be an integral
+part of that license, are kept intact, with no further updates.
+
+
+Changes since the previous public release (version 1.6.35)
+----------------------------------------------------------
+
+ * Optimized png_do_expand_palette for ARM processors.
+   Improved performance by around 10-22% on a recent ARM Chromebook.
+   (Contributed by Richard Townsend, ARM Holdings)
+ * Fixed manipulation of machine-specific optimization options.
+   (Contributed by Vicki Pfau)
+ * Used memcpy instead of manual pointer arithmetic on Intel SSE2.
+   (Contributed by Samuel Williams)
+ * Fixed build errors with MSVC on ARM64.
+   (Contributed by Zhijie Liang)
+ * Fixed detection of libm in CMakeLists.
+   (Contributed by Cameron Cawley)
+ * Fixed incorrect creation of pkg-config file in CMakeLists.
+   (Contributed by Kyle Bentley)
+ * Fixed the CMake build on Windows MSYS by avoiding symlinks.
+ * Fixed a build warning on OpenBSD.
+   (Contributed by Theo Buehler)
+ * Fixed various typos in comments.
+   (Contributed by "luz.paz")
+ * Raised the minimum required CMake version from 3.0.2 to 3.1.
+ * Removed yet more of the vestigial support for pre-ANSI C compilers.
+ * Removed ancient makefiles for ancient systems that have been broken
+   across all previous libpng-1.6.x versions.
+ * Removed the Y2K compliance statement and the export control
+   information.
+ * Applied various code style and documentation fixes.
+
+
+Send comments/corrections/commendations to png-mng-implement at lists.sf.net.
+Subscription is required; visit
 https://lists.sourceforge.net/lists/listinfo/png-mng-implement
-to subscribe)
-or to glennrp at users.sourceforge.net
-
-Glenn R-P
+to subscribe.
