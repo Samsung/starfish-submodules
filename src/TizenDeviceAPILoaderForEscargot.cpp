@@ -46,7 +46,7 @@ void TizenStrings::initializeLazyStrings()
 
 void printArguments(ContextRef* context, size_t argc, ValueRef** argv)
 {
-    DEVICEAPI_LOG_INFO("printing %u arguments", argc);
+    DEVICEAPI_LOG_INFO("printing %zu arguments", argc);
     ExecutionStateRef* state = ExecutionStateRef::create(context);
     for (size_t i = 0; i < argc; i++) {
         DEVICEAPI_LOG_INFO("argument %zu : %s", i,

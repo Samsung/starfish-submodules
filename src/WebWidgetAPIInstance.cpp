@@ -52,7 +52,7 @@ void iterateToConvertBundleToESObject(const char* key, const int type, const bun
         bundle_keyval_get_basic_val((bundle_keyval_t *)kv, &ptr, &size);
         std::unique_ptr<char> buff(new char[size + 1]);
         snprintf(buff.get(), size + 1, "%s", ((char *)ptr));
-        WIDGET_APP_API_LOG_INFO("Found STR (key: %s, val: %s, size: %d)", key, buff.get(), size);
+        WIDGET_APP_API_LOG_INFO("Found STR (key: %s, val: %s, size: %zu)", key, buff.get(), size);
         obj->set(state, ValueRef::create(StringRef::fromUTF8(key, strlen(key))), ValueRef::create(StringRef::fromUTF8(buff.get(), size)));
         break;
     }
