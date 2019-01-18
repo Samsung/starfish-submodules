@@ -37,7 +37,6 @@ extern "C" {
 #endif
 #endif
 
-
 /* Various constants determining the sizes of things.
  * All of these are specified by the JPEG standard, so don't change them
  * if you want to be compatible.
@@ -504,7 +503,7 @@ struct jpeg_decompress_struct {
 
   unsigned int scale_num, scale_denom; /* fraction by which to scale image */
 
-#ifdef COLOR_PICKER_ENABLE
+#if COLOR_PICKER_ENABLE == 1
   unsigned int region_x, region_y, region_w, region_h; /* if region_w && region_h > 0, then use this region to decode. scale above is done prior to region select */
 #endif
 
@@ -721,7 +720,7 @@ struct jpeg_decompress_struct {
   struct jpeg_color_deconverter *cconvert;
   struct jpeg_color_quantizer *cquantize;
 
-#ifdef COLOR_PICKER_ENABLE
+#if COLOR_PICKER_ENABLE == 1
   struct _Pick_Color_ *pick_color_data;
 #endif
 };

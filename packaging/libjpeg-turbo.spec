@@ -56,9 +56,13 @@ cp %{SOURCE1001} .
 %build
 %if "%{tizen_profile_name}" == "tv"
 echo "tizen_product_tv"
-export CFLAGS="$CFLAGS -D_TIZEN_PRODUCT_TV -D_USE_PRODUCT_TV -DCOLOR_PICKER_ENABLE"
+export CFLAGS="$CFLAGS -D_TIZEN_PRODUCT_TV -D_USE_PRODUCT_TV"
 %endif
-%cmake . -DCMAKE_BUILD_TYPE=Release -DENABLE_SHARED=TRUE -DENABLE_STATIC=FALSE -DWITH_JPEG8=TRUE
+%cmake . -DCMAKE_BUILD_TYPE=Release -DENABLE_SHARED=TRUE -DENABLE_STATIC=FALSE \
+%if "%{tizen_profile_name}" == "tv"
+	 -DENABLE_COLOR_PICKER=TRUE \
+%endif
+	-DWITH_JPEG8=TRUE
 %__make %{?jobs:-j%jobs}
 
 %install

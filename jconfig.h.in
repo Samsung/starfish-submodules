@@ -9,6 +9,9 @@
 /* libjpeg-turbo version in integer form */
 #define LIBJPEG_TURBO_VERSION_NUMBER  @LIBJPEG_TURBO_VERSION_NUMBER@
 
+/* for product VD */
+#define COLOR_PICKER_ENABLE @COLOR_PICKER_ENABLE@
+
 /* Support arithmetic encoding */
 #cmakedefine C_ARITH_CODING_SUPPORTED 1
 
