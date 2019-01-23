@@ -138,6 +138,17 @@ def _hd_extattr_object_opt(target, extattr):
     return True
   return False
 
+def _hd_extattr_exposed(target, extattr):
+  if extattr.GetName() == 'Exposed':
+    value = extattr.GetProperty('VALUE')
+    if type(value) == types.StringType:
+      value = [value]
+    elif type(value) != types.ListType:
+      raise TypeError("Type of the `Exposed` should be String or List")
+    target['exposed'] = value
+    return True
+  return False
+
 def _gen_basic_named(node):
   return {
     'name': node.GetName(),
@@ -618,7 +629,8 @@ class StarfishIDLReader():
                           _hd_extattr_custom_descriptor,
                           _hd_extattr_serializable,
                           _hd_extattr_transferable,
-                          _hd_extattr_raise_expection])
+                          _hd_extattr_raise_expection, 
+                          _hd_extattr_exposed])
     rs_except = result.pop('raises_exception', None)
     call_with = result.pop('_call_with', None)
     constructor = result.get('constructor')
