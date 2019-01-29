@@ -74,6 +74,8 @@ static ValueRef* {{ name|lower }}Constructor(ExecutionStateRef* state, ValueRef*
     Starfish* callWith = fetchStarfish(state->context());
     {% elif constructor.call_with  == 'Window' %}
     Window* callWith = fetchWindow(state->context());
+    {% elif function.call_with  == 'ScriptContext' %}
+    ScriptContext* callWith = fetchScriptContext(state->context());
     {% endif %}
     // Call native function (nargs: {{max_arg if uniformed_call else '%s-%s'|format(min_passing_count, max_arg)}})
     {% if constructor.raises_exception %}
