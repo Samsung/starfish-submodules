@@ -142,8 +142,10 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     Starfish* callWith = fetchStarfish(state->context());
     {% elif function.call_with  == 'ResponsibleDocument' %}
     Document* callWith = fetchResponsibleDocument(state);
-    {% elif function.call_with  == 'ScriptContext' %}
-    ScriptContext* callWith = fetchScriptContext(state->context());
+    {% elif function.call_with  == 'GlobalScope' %}
+    GlobalScope* callWith = fetchGlobalScope(state->context());
+    {% elif function.call_with  == 'ScriptBindingInstance' %}
+    ScriptBindingInstance* callWith = fetchScriptBindingInstance(state->context());
     {% endif %}
     {{ gen_native_call(function.return, uniformed_call) }}
     {{ util_macro.handle_return(function.return)|trim }}
