@@ -74,8 +74,8 @@ static ValueRef* {{ name|lower }}Constructor(ExecutionStateRef* state, ValueRef*
     Starfish* callWith = fetchStarfish(state->context());
     {% elif constructor.call_with  == 'Window' %}
     Window* callWith = fetchWindow(state->context());
-    {% elif constructor.call_with  == 'GlobalScope' %}
-    GlobalScope* callWith = fetchGlobalScope(state->context());
+    {% elif constructor.call_with  == 'ExecutionContext' %}
+    ExecutionContext* callWith = fetchExecutionContext(state->context());
     {% elif constructor.call_with  == 'ScriptBindingInstance' %}
     ScriptBindingInstance* callWith = fetchScriptBindingInstance(state->context());
     {% endif %}
