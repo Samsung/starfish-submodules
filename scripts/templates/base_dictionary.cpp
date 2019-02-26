@@ -111,7 +111,4 @@ ValueRef* toValueRefFrom{{name}}(ExecutionStateRef* state, {{name}}& from)
     return ValueRef::create(result);
 }
 }
-{% if flags and flags|length > 0 %}
-#endif
-{% endif %}
 {%- endcall %}
