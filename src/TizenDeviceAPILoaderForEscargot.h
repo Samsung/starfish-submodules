@@ -73,7 +73,9 @@ class ESPostListener;
     F(systeminfo) \
     F(sensorservice) \
     F(preference) \
-    F(widgetservice)
+    F(widgetservice) \
+    F(power) \
+    F(time)
 
 #define SUPPORTED_TIZEN_ENTRYPOINTS(F) \
     F(ApplicationControl) \
