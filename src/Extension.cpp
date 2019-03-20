@@ -310,7 +310,7 @@ void ESPostMessageListener::PostMessageToJS(const std::string& msg)
                                       1, arguments);
             });
             sb->destroy();
-            if (!result.error->isEmpty()) {
+            if (result.error.hasValue()) {
                 DEVICEAPI_LOG_ERROR("Uncaught %s\n",
                                     result.msgStr->toStdUTF8String().c_str());
             }
@@ -348,7 +348,7 @@ void ESPostDataListener::PostDataToJS(const std::string& msg, uint8_t* buffer,
 #endif
         });
     sb->destroy();
-    if (!result.error->isEmpty()) {
+    if (result.error.hasValue()) {
         DEVICEAPI_LOG_ERROR("Uncaught %s\n",
                             result.msgStr->toStdUTF8String().c_str());
     }

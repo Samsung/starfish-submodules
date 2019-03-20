@@ -100,7 +100,7 @@ void WebWidgetAPIInstance::invokeReceiveContentListener(Escargot::ContextRef* ct
 
     sb->destroy();
 
-    if (!sbresult.error->isEmpty()) {
+    if (sbresult.error.hasValue()) {
         STARFISH_LOG_ERROR("Uncaught %s\n", sbresult.msgStr->toStdUTF8String().data());
         for (size_t i = 0; i < sbresult.stackTraceData.size(); i++) {
             STARFISH_LOG_ERROR(
