@@ -294,7 +294,7 @@ void ESPostMessageListener::PostMessageToJS(const std::string& msg)
     params->msg = msg;
 
     webview->messageLoop()->addIdlerWithNoGCRootingInOtherThread(
-        wnd->executionContext(),
+        wnd,
         [](size_t, void* data) {
             Params* params = (Params*)data;
             Escargot::ContextRef* context = params->context;
