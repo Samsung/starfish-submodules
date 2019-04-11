@@ -83,6 +83,8 @@
 {%- endmacro -%}
 
 #include "StarfishConfig.h"
+#include "binding/ScriptBindingInstance.h"
+#include "binding/ScriptWrappable.h"
 {% for item in include_paths %}
 #include "{{item|to_h_path}}"
 {% endfor %}

@@ -62,9 +62,8 @@ def write_enum_macro(title, list, handle):
   for name in list:
     handle.write(' \\\n    F(' + name + ')')
 
-def gen_interface_collection(interfaces, outpath, mode_strict):
+def gen_interface_collection(interfaces, outpath, mode_strict, exposed_module):
   groups = gen_groups(interfaces)
-
   with open(os.path.join(outpath, 'Interfaces.h'), 'w') as w:
     w.write(
       '/*\n'
@@ -166,38 +165,36 @@ def gen_interface_collection(interfaces, outpath, mode_strict):
     # BINDING_NAMES = (default) + exposed + nointerface + nickname
     # BINDING_CLASSES = (default) + exposed + nointerface
 
-    # Only the list below creates macro function.
-    enable_exposed_list = ['WINDOW', 'WORKER']
-    for exposed_key in enable_exposed_list:
-      if exposed_key in exposed_list:
-        w.write('\n#define STARFISH_ENUM_GLOBAL_BINDING_%s_NAMES(F)' % exposed_key)
-        if exposed_key == 'WINDOW':
-          w.write(' \\\n    STARFISH_BINDING_GROUPS_DEFAULT(F)')
-        w.write(' \\\n    STARFISH_BINDING_GROUPS_%s(F)' % exposed_key)
-        w.write(' \\\n    STARFISH_BINDING_GROUPS_NICKNAME(F)')
-        w.write('\n#define STARFISH_ENUM_BINDING_%s_NAMES(F)' % exposed_key)
-        if exposed_key == 'WINDOW':
-          w.write(' \\\n    STARFISH_BINDING_GROUPS_DEFAULT(F)')
-        w.write(' \\\n    STARFISH_BINDING_GROUPS_%s(F)' % exposed_key)
-        w.write(' \\\n    STARFISH_BINDING_GROUPS_NOINTERFACE(F)')
-        w.write(' \\\n    STARFISH_BINDING_GROUPS_NICKNAME(F)')
-        w.write('\n#define STARFISH_ENUM_BINDING_%s_CLASSES(F)' % exposed_key)
-        if exposed_key == 'WINDOW':
-          w.write(' \\\n    STARFISH_BINDING_GROUPS_DEFAULT(F)')
-        w.write(' \\\n    STARFISH_BINDING_GROUPS_%s(F)' % exposed_key)
-        w.write(' \\\n    STARFISH_BINDING_GROUPS_NOINTERFACE(F)')
-        w.write('\n')
+    exposed_module = exposed_module.upper()
+
+    w.write('\n#define STARFISH_ENUM_GLOBAL_BINDING_%s_NAMES(F)' % exposed_module)
+    if exposed_module == 'WINDOW':
+      w.write(' \\\n    STARFISH_BINDING_GROUPS_DEFAULT(F)')
+    w.write(' \\\n    STARFISH_BINDING_GROUPS_%s(F)' % exposed_module)
+    w.write(' \\\n    STARFISH_BINDING_GROUPS_NICKNAME(F)')
+    w.write('\n#define STARFISH_ENUM_BINDING_%s_NAMES(F)' % exposed_module)
+    if exposed_module == 'WINDOW':
+      w.write(' \\\n    STARFISH_BINDING_GROUPS_DEFAULT(F)')
+    w.write(' \\\n    STARFISH_BINDING_GROUPS_%s(F)' % exposed_module)
+    w.write(' \\\n    STARFISH_BINDING_GROUPS_NOINTERFACE(F)')
+    w.write(' \\\n    STARFISH_BINDING_GROUPS_NICKNAME(F)')
+    w.write('\n#define STARFISH_ENUM_BINDING_%s_CLASSES(F)' % exposed_module)
+    if exposed_module == 'WINDOW':
+      w.write(' \\\n    STARFISH_BINDING_GROUPS_DEFAULT(F)')
+    w.write(' \\\n    STARFISH_BINDING_GROUPS_%s(F)' % exposed_module)
+    w.write(' \\\n    STARFISH_BINDING_GROUPS_NOINTERFACE(F)')
+    w.write('\n')
 
     w.write('\n// Combination macros for direct use in Starfish')
-    w.write('\n// - GLOBAL_BINDING_NAMES = EXPOSED(WINDOW) + DEFAULT + NICKNAME')
-    w.write('\n// - BINDING_NAMES = EXPOSED(WINDOW) + DEFAULT + NICKNAME + NOINTERFACE')
-    w.write('\n// - BINDING_CLASSES = EXPOSED(WINDOW) + DEFAULT + NOINTERFACE')
+    w.write('\n// - GLOBAL_BINDING_NAMES = EXPOSED(%s) + DEFAULT + NICKNAME' % exposed_module)
+    w.write('\n// - BINDING_NAMES = EXPOSED(%s) + DEFAULT + NICKNAME + NOINTERFACE' % exposed_module)
+    w.write('\n// - BINDING_CLASSES = EXPOSED(%s) + DEFAULT + NOINTERFACE' % exposed_module)
     w.write('\n#define STARFISH_ENUM_GLOBAL_BINDING_NAMES(F)')
-    w.write(' \\\n    STARFISH_ENUM_GLOBAL_BINDING_WINDOW_NAMES(F)')
+    w.write(' \\\n    STARFISH_ENUM_GLOBAL_BINDING_%s_NAMES(F)' % exposed_module)
     w.write('\n#define STARFISH_ENUM_BINDING_NAMES(F)')
-    w.write(' \\\n    STARFISH_ENUM_BINDING_WINDOW_NAMES(F)')
+    w.write(' \\\n    STARFISH_ENUM_BINDING_%s_NAMES(F)' % exposed_module)
     w.write('\n#define STARFISH_ENUM_BINDING_CLASSES(F)')
-    w.write(' \\\n    STARFISH_ENUM_BINDING_WINDOW_CLASSES(F)')
+    w.write(' \\\n    STARFISH_ENUM_BINDING_%s_CLASSES(F)' % exposed_module)
     w.write('\n')
 
     # Unimpl (only strict mode)

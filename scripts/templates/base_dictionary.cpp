@@ -17,6 +17,7 @@
 {%- call util_macro.ifdef(flags) %}
 
 #include "StarfishConfig.h"
+#include "binding/ScriptWrappable.h"
 {% for item in include_paths %}
 #include "{{item|to_h_path}}"
 {% endfor %}

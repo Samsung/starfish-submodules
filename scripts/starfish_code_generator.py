@@ -40,7 +40,7 @@ def generate_code(ir, args):
   print "Generating binding code..."
   interfaces = ir['interfaces']
 
-  gen_interface_collection(interfaces, os.path.join(STARFISH_PATH, args.out_path), STRICT_MODE)
+  gen_interface_collection(interfaces, os.path.join(STARFISH_PATH, args.out_path), STRICT_MODE, args.exposed)
 
   for key in interfaces:
     interface = interfaces[key]
@@ -152,6 +152,9 @@ if __name__ == "__main__":
   argparser.add_argument("-f", "--file", help="specify an idl file")
   argparser.add_argument("-l", "--log-idl", action='store_true',
                          dest="log_idl", help="flag to log idl")
+  argparser.add_argument("--exposed", default="window", choices=["window", "worker"],
+                         help="collect interfaces of the exposed module(window or worker)")
+
   args = argparser.parse_args()
   # Argument validation
   if not os.path.isdir(args.root_path):
