@@ -3,6 +3,7 @@
 #include "StarfishConfig.h"
 #include "TizenDeviceAPILoaderForEscargot.h"
 #include "WebWidgetAPIInstance.h"
+#include "binding/ScriptBindingInstance.h"
 #include "binding/ScriptWrappable.h"
 #include "platform/window/PlatformWindow.h"
 #include "core/page/WebView.h"
