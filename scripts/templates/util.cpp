@@ -178,7 +178,11 @@ for (int i = 0; i < {{ aname }}Size; i++) {
     {% elif type.kind == 'PrimitiveType' %}
         {% set type_str  = gen_primitive_type_str(type)|trim %}
     {% elif type.kind == 'Sequence' %}
-        {% set type_str  = 'GCVector<%s>'|format(gen_type_str(type.data, type.data.kind in non_nullable_type_kinds and type.data.nullable)) %}
+        {% if type.data.kind == 'PrimitiveType' %}
+            {% set type_str  = 'GCAtomicVector<%s>'|format(gen_type_str(type.data, type.data.kind in non_nullable_type_kinds and type.data.nullable)) %}
+        {% else %}
+            {% set type_str  = 'GCVector<%s>'|format(gen_type_str(type.data, type.data.kind in non_nullable_type_kinds and type.data.nullable)) %}
+        {% endif %}
     {% elif type.kind == 'SpecialType' %}
         {% if type.name == 'ArrayBuffer' %}
             {% set type_str  = 'ScriptArrayBuffer' %}
