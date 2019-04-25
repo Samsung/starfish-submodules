@@ -54,8 +54,15 @@ public:
 {% for item in data %}
         {{ gen_item_type_exp(item) }} m_{{ item.name }}Data;
 {% endfor %}
+        ~ValueData()
+        {
+        }
         ValueData()
         {
+#ifndef NDEBUG
+            // This initialization is added for debugging purposes.(memory corruption)
+            memset(this,0xFF,sizeof(ValueData));
+#endif
         }
 {% for item in data %}
         ValueData({{ gen_item_type_exp(item) }} value)
@@ -67,6 +74,45 @@ public:
 
     {{ name }}()
         : m_type(NoneValueKind) {
+    }
+
+    {{ name }}(const {{ name }}& src)
+    {
+        m_type = src.m_type;
+{% for item in data %}
+    {% if loop.first %}
+        if(src.m_type=={{ item.name }}ValueKind){
+            m_data.m_{{ item.name }}Data = src.m_data.m_{{ item.name }}Data;
+        }
+    {% else %}
+        else if(src.m_type=={{ item.name }}ValueKind){
+            m_data.m_{{ item.name }}Data = src.m_data.m_{{ item.name }}Data;
+        }
+    {% endif %}
+{% endfor %}
+        else {
+            STARFISH_ASSERT_NOT_REACHED();
+        }
+    }
+
+    {{ name }}& operator=(const {{ name }}& other)
+    {
+        m_type = other.m_type;
+{% for item in data %}
+    {% if loop.first %}
+        if(other.m_type=={{ item.name }}ValueKind){
+            m_data.m_{{ item.name }}Data = other.m_data.m_{{ item.name }}Data;
+        }
+    {% else %}
+        else if(other.m_type=={{ item.name }}ValueKind){
+            m_data.m_{{ item.name }}Data = other.m_data.m_{{ item.name }}Data;
+        }
+    {% endif %}
+{% endfor %}
+        else {
+            STARFISH_ASSERT_NOT_REACHED();
+        }
+        return *this;
     }
 
 {% for item in data %}
@@ -97,11 +143,17 @@ public:
 
 {% endfor %}
 private:
-    {{ name }}(ValueKind kind, ValueData value)
+{% for item in data %}
+    {% if gen_item_type_exp(item).endswith('*') %}
+    {{ name }}(ValueKind kind, {{ gen_item_type_exp(item) }} value)
+    {% else %}
+    {{ name }}(ValueKind kind, const {{ gen_item_type_exp(item) }}& value)
+    {% endif %}
         : m_type(kind),
           m_data(value)
     {
     }
+{% endfor %}
 
     ValueKind m_type;
     ValueData m_data;
