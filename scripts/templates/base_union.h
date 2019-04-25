@@ -91,7 +91,7 @@ public:
     {% endif %}
 {% endfor %}
         else {
-            STARFISH_ASSERT_NOT_REACHED();
+            STARFISH_ASSERT(src.m_type==NoneValueKind);
         }
     }
 
@@ -110,7 +110,7 @@ public:
     {% endif %}
 {% endfor %}
         else {
-            STARFISH_ASSERT_NOT_REACHED();
+            STARFISH_ASSERT(other.m_type==NoneValueKind);
         }
         return *this;
     }
