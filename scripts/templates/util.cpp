@@ -13,6 +13,22 @@
 {% endif %}
 {%- endmacro %}
 
+{% macro ifdef_and_exposed(flags, exposed_list, exposed) -%}
+{% if not exposed_list or exposed in exposed_list %}
+    {% if flags %}
+        {% for flag in flags %}
+#ifdef {{ flag }}
+        {% endfor %}
+{{ caller() }}
+        {% for flag in flags %}
+#endif
+        {% endfor %}
+    {% else %}
+{{ caller() }}
+    {% endif %}
+{% endif %}
+{%- endmacro %}
+
 {% macro gen_attr_name(attribute) -%}
   {{- attribute.rename|default(attribute.name) -}}
 {%- endmacro %}

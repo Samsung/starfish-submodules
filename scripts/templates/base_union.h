@@ -46,13 +46,17 @@ public:
     enum ValueKind {
         NoneValueKind,
 {% for item in data %}
+    {%- call util_macro.ifdef_and_exposed(item.flags, item.exposed, args.exposed) %}
         {{ item.name }}ValueKind,
+    {%- endcall -%}
 {% endfor %}
     };
 
     union ValueData {
 {% for item in data %}
+    {%- call util_macro.ifdef_and_exposed(item.flags, item.exposed, args.exposed) %}
         {{ gen_item_type_exp(item) }} m_{{ item.name }}Data;
+    {%- endcall -%}
 {% endfor %}
         ~ValueData()
         {
@@ -65,10 +69,12 @@ public:
 #endif
         }
 {% for item in data %}
+    {%- call util_macro.ifdef_and_exposed(item.flags, item.exposed, args.exposed) %}
         ValueData({{ gen_item_type_exp(item) }} value)
             : m_{{ item.name }}Data(value)
         {
         }
+    {%- endcall -%}
 {% endfor %}
     };
 
@@ -79,48 +85,46 @@ public:
     {{ name }}(const {{ name }}& src)
     {
         m_type = src.m_type;
+        switch (m_type) {
 {% for item in data %}
-    {% if loop.first %}
-        if(src.m_type=={{ item.name }}ValueKind){
+    {%- call util_macro.ifdef_and_exposed(item.flags, item.exposed, args.exposed) %}
+        case {{ item.name }}ValueKind:
             m_data.m_{{ item.name }}Data = src.m_data.m_{{ item.name }}Data;
-        }
-    {% else %}
-        else if(src.m_type=={{ item.name }}ValueKind){
-            m_data.m_{{ item.name }}Data = src.m_data.m_{{ item.name }}Data;
-        }
-    {% endif %}
+            break;
+    {%- endcall -%}
 {% endfor %}
-        else {
+        default:
             STARFISH_ASSERT(src.m_type==NoneValueKind);
+            break;
         }
     }
 
     {{ name }}& operator=(const {{ name }}& other)
     {
         m_type = other.m_type;
+        switch (m_type) {
 {% for item in data %}
-    {% if loop.first %}
-        if(other.m_type=={{ item.name }}ValueKind){
+    {%- call util_macro.ifdef_and_exposed(item.flags, item.exposed, args.exposed) %}
+        case {{ item.name }}ValueKind:
             m_data.m_{{ item.name }}Data = other.m_data.m_{{ item.name }}Data;
-        }
-    {% else %}
-        else if(other.m_type=={{ item.name }}ValueKind){
-            m_data.m_{{ item.name }}Data = other.m_data.m_{{ item.name }}Data;
-        }
-    {% endif %}
+            break;
+    {%- endcall -%}
 {% endfor %}
-        else {
+        default:
             STARFISH_ASSERT(other.m_type==NoneValueKind);
+            break;
         }
         return *this;
     }
 
 {% for item in data %}
+    {%- call util_macro.ifdef_and_exposed(item.flags, item.exposed, args.exposed) %}
     static {{ name }} create{{ item.name }}({{ gen_item_type_exp(item) }} value)
     {
         return {{ name }}({{ item.name }}ValueKind, value);
     }
 
+    {%- endcall -%}
 {% endfor %}
     bool isNoneValue() const
     {
@@ -128,31 +132,37 @@ public:
     }
 
 {% for item in data %}
+    {%- call util_macro.ifdef_and_exposed(item.flags, item.exposed, args.exposed) %}
     bool is{{ item.name }}Value() const
     {
         return m_type == {{ item.name }}ValueKind;
     }
 
+    {%- endcall -%}
 {% endfor %}
 {% for item in data %}
+    {%- call util_macro.ifdef_and_exposed(item.flags, item.exposed, args.exposed) %}
     {{ gen_item_type_exp(item) }} get{{ item.name }}Value() const
     {
         STARFISH_ASSERT(is{{ item.name }}Value());
         return m_data.m_{{ item.name }}Data;
     }
 
+    {%- endcall -%}
 {% endfor %}
 private:
 {% for item in data %}
-    {% if gen_item_type_exp(item).endswith('*') %}
+    {%- call util_macro.ifdef_and_exposed(item.flags, item.exposed, args.exposed) %}
+        {% if gen_item_type_exp(item).endswith('*') %}
     {{ name }}(ValueKind kind, {{ gen_item_type_exp(item) }} value)
-    {% else %}
+        {% else %}
     {{ name }}(ValueKind kind, const {{ gen_item_type_exp(item) }}& value)
-    {% endif %}
+        {% endif %}
         : m_type(kind),
           m_data(value)
     {
     }
+    {%- endcall -%}
 {% endfor %}
 
     ValueKind m_type;

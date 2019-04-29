@@ -28,7 +28,7 @@ class StarfishIRHandler():
       if name in self.typedefs:
         typedef = self.typedefs[name]
         self._change_types(typedef, 'from', unimpl)
-        from_ir = typedef['from'];
+        from_ir = typedef['from']
         # To preserve nullability,
         # do not connect reference directly here
         # e.g. parent[type_key] = from_ir
@@ -278,9 +278,14 @@ class StarfishIRHandler():
       if subtype_ir['name'] in self.interfaces:
         target = self.interfaces[subtype_ir['name']]
         if target.get('flags'):
-          if not union_ir.get('flags'):
-            union_ir['flags'] = set()
-          union_ir['flags'] |= target['flags']
+          if not subtype_ir.get('flags'):
+            subtype_ir['flags'] = set()
+          subtype_ir['flags'] |= target['flags']
+          # Flag covered as a whole are not partially applied
+          if union_ir.get('flags'):
+            subtype_ir['flags'] -= union_ir['flags']
+        if target.get('exposed'):
+          subtype_ir['exposed'] = target['exposed']
     self._flush_using_info(union_ir)
 
   def _check_dictionary(self, dictionary):

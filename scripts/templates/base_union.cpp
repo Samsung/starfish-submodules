@@ -51,19 +51,21 @@ namespace Starfish {
     }
 {% endif %}
 {% for subtype in data %}
+    {%- call util_macro.ifdef_and_exposed(subtype.flags, subtype.exposed, args.exposed) %}
     if ({{ util_macro.gen_check_type(subtype, 'from')|trim }}) {
-    {% set use_nullable = subtype.kind in non_nullable_type_kinds and subtype.nullable %}
-    {% set type_exp = util_macro.gen_type_str(subtype, use_nullable)|trim %}
-    {% if subtype.kind == 'Sequence' %}
-        {{ type_exp }} resultValue;
-        {{ util_macro.get_arrayobject_to_native(subtype, 'from', 'resultValue')|indent(8) }}
+        {% set use_nullable = subtype.kind in non_nullable_type_kinds and subtype.nullable %}
+        {% set type_exp = util_macro.gen_type_str(subtype, use_nullable)|trim %}
+        {% if subtype.kind == 'Sequence' %}
+            {{ type_exp }} resultValue;
+            {{ util_macro.get_arrayobject_to_native(subtype, 'from', 'resultValue')|indent(8) }}
         return {{ name }}::create{{ subtype.name }}(resultValue);
-    {% elif use_nullable %}
+        {% elif use_nullable %}
         return {{ name }}::create{{ subtype.name }}(Nullable<{{ type_exp }}>({{ util_macro.gen_esvalue_to_native(subtype, 'from', False) }}));
-    {% else %}
+        {% else %}
         return {{ name }}::create{{ subtype.name }}({{ util_macro.gen_esvalue_to_native(subtype, 'from', False) }});
-    {% endif %}
+        {% endif %}
     }
+    {%- endcall -%}
 {% endfor %}
 
     THROW_EXCEPTION(ILLEGAL_INVOKE);
@@ -73,11 +75,13 @@ namespace Starfish {
 ValueRef* toValueRefFrom{{ name }}(ExecutionStateRef* state, {{ name }}& from)
 {
 {% for subtype in data %}
-    {% set use_nullable = subtype.kind in non_nullable_type_kinds and subtype.nullable %}
+    {%- call util_macro.ifdef_and_exposed(subtype.flags, subtype.exposed, args.exposed) %}
+        {% set use_nullable = subtype.kind in non_nullable_type_kinds and subtype.nullable %}
     if (from.is{{ subtype.name }}Value()) {
         {{ util_macro.gen_type_str(subtype, use_nullable) }} resultValue = from.get{{ subtype.name }}Value();
         {{ util_macro.gen_return_code(subtype, 'resultValue')|indent(8) }}
     }
+    {%- endcall -%}
 {% endfor %}
     return ValueRef::createUndefined();
 }
@@ -85,9 +89,11 @@ ValueRef* toValueRefFrom{{ name }}(ExecutionStateRef* state, {{ name }}& from)
 bool is{{ name }}(ExecutionStateRef* state, ValueRef* from)
 {
 {% for subtype in data %}
+    {%- call util_macro.ifdef_and_exposed(subtype.flags, subtype.exposed, args.exposed) %}
     if ({{ util_macro.gen_check_type(subtype, 'from')|trim }}) {
         return true;
     }
+    {%- endcall -%}
 {% endfor %}
     return false;
 }

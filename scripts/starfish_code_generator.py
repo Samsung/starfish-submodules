@@ -67,6 +67,8 @@ def generate_code(ir, args):
     generate_code_with_template(union, union['name'] + 'Binding.cpp', 'base_union.cpp', args)
 
 def generate_code_with_template(ir, out_name, template, args):
+  ir['args'] = args
+
   template = env.get_template(template)
 
   binding_path = os.path.join(STARFISH_PATH, args.out_path)
@@ -152,8 +154,8 @@ if __name__ == "__main__":
   argparser.add_argument("-f", "--file", help="specify an idl file")
   argparser.add_argument("-l", "--log-idl", action='store_true',
                          dest="log_idl", help="flag to log idl")
-  argparser.add_argument("--exposed", default="window", choices=["window", "worker"],
-                         help="collect interfaces of the exposed module(window or worker)")
+  argparser.add_argument("--exposed", default="Window", choices=["Window", "Worker"],
+                         help="collect interfaces of the exposed module(Window or Worker)")
 
   args = argparser.parse_args()
   # Argument validation

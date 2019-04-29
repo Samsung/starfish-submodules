@@ -235,7 +235,7 @@ class StarfishIDLReader():
       if _is_class(child, 'Type'):
         result['from'] = self._gen_ir_type(child)
       elif _is_class(child, 'ExtAttributes'):
-        _handle_extattrs(result,
+        _handle_extattrs(result['from'],
                          child.GetChildren(),
                          [_hd_extattr_flags])
     IRUtils.set_prop_to_dict(result, 'file_path', self.file_path)
