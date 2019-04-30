@@ -36,6 +36,8 @@ static ValueRef* {{ util_macro.gen_getter_function(attribute, name) }}(Execution
         STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
     }
     {% endif %}
+    {% elif name == 'WorkerGlobalScope' %}
+    GENERATE_WORKERGLOBALSCOPE();
     {% else %}
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
     {% if name == 'Location' %}
@@ -105,6 +107,8 @@ static ValueRef* {{ util_macro.gen_setter_function(attribute, name) }}(Execution
         STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
     }
     {% endif %}
+    {% elif name == 'WorkerGlobalScope' %}
+    GENERATE_WORKERGLOBALSCOPE();
     {% else %}
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
     {% if name == 'Location' %}

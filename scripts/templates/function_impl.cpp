@@ -78,6 +78,8 @@ if (validArgCount == {{function.min_passing_count|string}}) {
         STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
     }
     {% endif %}
+    {% elif name == 'WorkerGlobalScope' %}
+    GENERATE_WORKERGLOBALSCOPE();
     {% elif not function.static %}
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
     {% if name == 'Location' %}
@@ -168,6 +170,8 @@ if (validArgCount == {{function.min_passing_count|string}}) {
 {%- macro function_code_getter_index() %}
     {% if name == 'Window' %}
     GENERATE_WINDOW();
+    {% elif name == 'WorkerGlobalScope' %}
+    GENERATE_WORKERGLOBALSCOPE();
     {% elif not function.static %}
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
     {% endif %}
