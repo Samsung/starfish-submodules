@@ -72,7 +72,7 @@ namespace Starfish {
     return {{name}}();
 }
 
-ValueRef* toValueRefFrom{{ name }}(ExecutionStateRef* state, {{ name }}& from)
+ValueRef* toValueRefFrom{{ name }}(ExecutionStateRef* state, const {{ name }}& from)
 {
 {% for subtype in data %}
     {%- call util_macro.ifdef_and_exposed(subtype.flags, subtype.exposed, args.exposed) %}
