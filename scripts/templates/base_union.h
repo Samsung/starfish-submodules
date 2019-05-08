@@ -29,6 +29,21 @@
 #include "{{item|to_union_h_path}}"
 {% endfor %}
 
+{%- macro initialize_first_member(data_list, exposed) -%}
+{% for item in data_list if not item.exposed or exposed in item.exposed %}
+    {% if loop.first %}
+        {% if item.kind in pointer_type_kinds %}
+    {{- "   : m_%sData(nullptr)"|format(item.name) -}}
+        {% elif item.kind == "PrimitiveType" %}
+    {{- "   : m_%sData(0)"|format(item.name) -}}
+        {% elif item.kind == 'StringType' %}
+    {{- "   : m_%sData(String::emptyString)"|format(item.name) -}}
+        {% else %}
+    {{- "   : m_%sData()"|format(item.name) -}}
+        {% endif %}
+    {% endif %}
+{% endfor %}
+{%- endmacro -%}
 namespace Starfish {
 
 class {{ name }} : public gc {
@@ -62,6 +77,7 @@ public:
         {
         }
         ValueData()
+        {{ initialize_first_member(data, args.exposed) }}
         {
 #ifndef NDEBUG
             // This initialization is added for debugging purposes.(memory corruption)
