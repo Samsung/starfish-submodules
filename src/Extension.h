@@ -82,6 +82,7 @@ namespace xwalk {
         int RegisterPermissions(const char* perm_table);
 
         bool initialized_;
+        void* handle_;
         std::string library_path_;
 
         XW_Extension xw_extension_;

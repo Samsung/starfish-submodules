@@ -40,6 +40,7 @@ namespace xwalk {
                          const std::vector<std::string>& entry_points,
                          RuntimeVariableProvider* provider)
         : initialized_(false)
+        , handle_(NULL)
         , library_path_(path)
         , xw_extension_(0)
         , name_(name)
@@ -59,6 +60,9 @@ namespace xwalk {
         if (!initialized_)
             return;
 
+        if (handle_)
+            dlclose(handle_);
+
         if (shutdown_callback_)
             shutdown_callback_(xw_extension_);
         ExtensionAdapter::GetInstance()->UnregisterExtension(this);
@@ -73,8 +77,9 @@ namespace xwalk {
         DEVICEAPI_SLOG_INFO("Extension Module library : [%s]",
                             library_path_.c_str());
 
-        void* handle = dlopen(library_path_.c_str(), RTLD_LAZY);
-        if (!handle) {
+        STARFISH_ASSERT(handle_==NULL);
+        handle_ = dlopen(library_path_.c_str(), RTLD_LAZY);
+        if (!handle_) {
             const char* error = (const char*)dlerror();
             DEVICEAPI_LOG_ERROR("Error loading extension '%s'. Reason: %s",
                                 library_path_.c_str(),
@@ -83,12 +88,13 @@ namespace xwalk {
         }
 
         XW_Initialize_Func initialize = reinterpret_cast<XW_Initialize_Func>(
-            dlsym(handle, "XW_Initialize"));
+            dlsym(handle_, "XW_Initialize"));
         if (!initialize) {
             DEVICEAPI_LOG_ERROR("Error loading extension");
             DEVICEAPI_SLOG_ERROR("[%s] couldn't get XW_Initialize function",
                                  library_path_.c_str());
-            dlclose(handle);
+            dlclose(handle_);
+            handle_ = NULL;
             return false;
         }
 
@@ -102,7 +108,8 @@ namespace xwalk {
             DEVICEAPI_SLOG_ERROR(
                 "[%s] XW_Initialize function returned error value.",
                 library_path_.c_str());
-            dlclose(handle);
+            dlclose(handle_);
+            handle_ = NULL;
             return false;
         }
 
