@@ -53,7 +53,7 @@
     {% if type.kind == 'Typeref' %}
         _CHECK_TYPEOF({{ aname }}, {{ type.name }})
     {% elif type.kind == 'Sequence' %}
-        ({{ aname }}->isObject() && {{ aname }}->asObject()->isArrayObject())
+        ({{ aname }}->isObject())
     {% elif type.kind == 'Promise' %}
         ({{ aname }}->isObject() && {{ aname }}->asObject()->isPromiseObject())
     {% elif type.kind == 'Dictionary' %}
