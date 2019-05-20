@@ -63,7 +63,13 @@ namespace Starfish {
     {% set names = {'name': name, 'kname': key.name,
                     'aname': 'arg%d'|format(loop.index - 1), 'vname': 'value%d'|format(loop.index - 1)} %}
     {{ util_macro.handle_arg(key, names)|trim }}
+       {% if not key.default %}
+    if (!{{ names.aname }}->isUndefined()) {
+        result.set{{key.name|first_word_capitalize}}({{'value%d'|format(loop.index - 1)}});
+    }
+        {% else %}
     result.set{{key.name|first_word_capitalize}}({{'value%d'|format(loop.index - 1)}});
+        {% endif %}
     {% endif %}
 {% endfor %}
     return result;
