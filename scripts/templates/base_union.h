@@ -105,7 +105,11 @@ public:
 {% for item in data %}
     {%- call util_macro.ifdef_and_exposed(item.flags, item.exposed, args.exposed) %}
         case {{ item.name }}ValueKind:
+            {% if item.name == 'Sequence' %}
+            new(&m_data.m_{{ item.name }}Data) {{ gen_item_type_exp(item) }}(src.m_data.m_{{ item.name }}Data);
+            {% else %}
             m_data.m_{{ item.name }}Data = src.m_data.m_{{ item.name }}Data;
+            {% endif %}
             break;
     {%- endcall -%}
 {% endfor %}
@@ -122,7 +126,11 @@ public:
 {% for item in data %}
     {%- call util_macro.ifdef_and_exposed(item.flags, item.exposed, args.exposed) %}
         case {{ item.name }}ValueKind:
+            {% if item.name == 'Sequence' %}
+            new(&m_data.m_{{ item.name }}Data) {{ gen_item_type_exp(item) }}(other.m_data.m_{{ item.name }}Data);
+            {% else %}
             m_data.m_{{ item.name }}Data = other.m_data.m_{{ item.name }}Data;
+            {% endif %}
             break;
     {%- endcall -%}
 {% endfor %}

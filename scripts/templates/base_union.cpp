@@ -56,9 +56,13 @@ namespace Starfish {
         {% set use_nullable = subtype.kind in non_nullable_type_kinds and subtype.nullable %}
         {% set type_exp = util_macro.gen_type_str(subtype, use_nullable)|trim %}
         {% if subtype.kind == 'Sequence' %}
-            {{ type_exp }} resultValue;
-            {{ util_macro.get_arrayobject_to_native(subtype, 'from', 'resultValue')|indent(8) }}
-        return {{ name }}::create{{ subtype.name }}(resultValue);
+            if (from->asObject()->getPrototype(state)->isObject() && ((from->asObject()->getPrototype(state)->asObject()->isArrayPrototypeObject())||from->asObject()->getPrototype(state)->asObject()->isTypedArrayPrototypeObject())) {
+                {{ type_exp }} resultValue;
+                {{ util_macro.get_arrayobject_to_native(subtype, 'from', 'resultValue')|indent(16) }}
+                return {{ name }}::create{{ subtype.name }}(resultValue);
+            }else{
+                return {{ name }}::createDOMString({{ util_macro.gen_esvalue_to_native({'kind': 'StringType', 'name': 'DOMString'}, 'from', False) }});
+            }
         {% elif use_nullable %}
         return {{ name }}::create{{ subtype.name }}(Nullable<{{ type_exp }}>({{ util_macro.gen_esvalue_to_native(subtype, 'from', False) }}));
         {% else %}
