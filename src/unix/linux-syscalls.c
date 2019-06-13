@@ -333,7 +333,7 @@ int uv__epoll_wait(int epfd,
                    int timeout) {
 #if defined(__NR_epoll_wait)
   int result;
-  result = syscall(__NR_epoll_wait, epfd, events, nevents, timeout);
+  result = syscall(__NR_epoll_pwait, epfd, events, nevents, timeout, NULL);
 #if MSAN_ACTIVE
   if (result > 0)
     __msan_unpoison(events, sizeof(events[0]) * result);
