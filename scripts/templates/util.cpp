@@ -81,6 +81,22 @@
             ({{ aname }}->isObject() && {{ aname }}->asObject()->isArrayBufferView())
         {% elif type.name == 'Uint8ClampedArray' %}
             ({{ aname }}->isObject() && {{ aname }}->asObject()->isUint8ClampedArrayObject())
+        {% elif type.name == 'Int8Array' %}
+            ({{ aname }}->isObject() && {{ aname }}->asObject()->isInt8ArrayObject())
+        {% elif type.name == 'Uint8Array' %}
+            ({{ aname }}->isObject() && {{ aname }}->asObject()->isUint8ArrayObject())
+        {% elif type.name == 'Int16Array' %}
+            ({{ aname }}->isObject() && {{ aname }}->asObject()->isInt16ArrayObject())
+        {% elif type.name == 'Uint16Array' %}
+            ({{ aname }}->isObject() && {{ aname }}->asObject()->isUint16ArrayObject())
+        {% elif type.name == 'Uint32Array' %}
+            ({{ aname }}->isObject() && {{ aname }}->asObject()->isUint32ArrayObject())
+        {% elif type.name == 'Int32Array' %}
+            ({{ aname }}->isObject() && {{ aname }}->asObject()->isInt32ArrayObject())
+        {% elif type.name == 'Float32Array' %}
+            ({{ aname }}->isObject() && {{ aname }}->asObject()->isFloat32ArrayObject())
+        {% elif type.name == 'Float64Array' %}
+            ({{ aname }}->isObject() && {{ aname }}->asObject()->isFloat64ArrayObject())
         {% elif type.name == 'Function' %}
             {{ aname }}->isFunction()
         {% else %}
@@ -144,6 +160,22 @@ ScriptObject
             {{- '%s->asObject()->asArrayBufferObject()'|format(aname) -}}
         {% elif type.name == 'ArrayBufferView' %}
             {{- '%s->asObject()->asArrayBufferView()'|format(aname) -}}
+        {% elif type.name == 'Int8Array' %}
+            {{- '%s->asObject()->asInt8ArrayObject()'|format(aname) -}}
+        {% elif type.name == 'Uint8Array' %}
+            {{- '%s->asObject()->asUint8ArrayObject()'|format(aname) -}}
+        {% elif type.name == 'Int16Array' %}
+            {{- '%s->asObject()->asInt16ArrayObject()'|format(aname) -}}
+        {% elif type.name == 'Uint16Array' %}
+            {{- '%s->asObject()->asUint16ArrayObject()'|format(aname) -}}
+        {% elif type.name == 'Uint32Array' %}
+            {{- '%s->asObject()->asUint32ArrayObject()'|format(aname) -}}
+        {% elif type.name == 'Int32Array' %}
+            {{- '%s->asObject()->asInt32ArrayObject()'|format(aname) -}}
+        {% elif type.name == 'Float32Array' %}
+            {{- '%s->asObject()->asFloat32ArrayObject()'|format(aname) -}}
+        {% elif type.name == 'Float64Array' %}
+            {{- '%s->asObject()->asFloat64ArrayObject()'|format(aname) -}}
         {% elif type.name == 'Uint8ClampedArray' %}
             {{- '%s->asObject()->asUint8ClampedArrayObject()'|format(aname) -}}
         {% elif type.name == 'Function' %}
@@ -204,8 +236,24 @@ for (int i = 0; i < {{ aname }}Size; i++) {
             {% set type_str  = 'ScriptArrayBuffer' %}
         {% elif type.name == 'ArrayBufferView' %}
             {% set type_str  = 'ScriptArrayBufferView' %}
+        {% elif type.name == 'Int8Array' %}
+            {% set type_str  = 'ScriptInt8Array' %}
+        {% elif type.name == 'Uint8Array' %}
+            {% set type_str  = 'ScriptUint8Array' %}
+        {% elif type.name == 'Int16Array' %}
+            {% set type_str  = 'ScriptInt16Array' %}
+        {% elif type.name == 'Uint16Array' %}
+            {% set type_str  = 'ScriptUint16Array' %}
         {% elif type.name == 'Uint8ClampedArray' %}
             {% set type_str  = 'ScriptUint8ClampedArray' %}
+        {% elif type.name == 'Uint32Array' %}
+            {% set type_str  = 'ScriptUint32Array' %}
+        {% elif type.name == 'Int32Array' %}
+            {% set type_str  = 'ScriptInt32Array' %}
+        {% elif type.name == 'Float32Array' %}
+            {% set type_str  = 'ScriptFloat32Array' %}
+        {% elif type.name == 'Float64Array' %}
+            {% set type_str  = 'ScriptFloat64Array' %}
         {% elif type.name == 'Function' %}
             {% set type_str  = 'ScriptFunction' %}
         {% endif %}

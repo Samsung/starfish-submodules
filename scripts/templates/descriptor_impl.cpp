@@ -27,12 +27,12 @@
     // {{type}}
     {% if type == 'NamedGetter' %}
     // Search matched property through prototype chain
-    ObjectRef* ref = scriptObject->getPrototypeObject(state);
+    NullablePtr<ObjectRef> ref = scriptObject->getPrototypeObject(state);
     while (ref) {
-        if (ref->hasOwnProperty(state, key)) {
+        if (ref.getValue()->hasOwnProperty(state, key)) {
             return ExposableObjectGetOwnPropertyCallbackResult();
         }
-        ref = ref->getPrototypeObject(state);
+        ref = ref.getValue()->getPrototypeObject(state);
     }
     {% endif %}
     {{ util_macro.gen_declare_return_value(getter.return, is_descriptor=True)|trim }}
