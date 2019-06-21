@@ -204,7 +204,7 @@ static ValueRef* forEachFunction(ExecutionStateRef* state, ValueRef* thisValue, 
     }
 
     ValueRef* arg = argv[0];
-    if (!arg->isFunction()) {
+    if (!arg->isCallable()) {
         auto msg = StringRef::fromASCII("Failed to execute 'forEach' on '{{name}}'");
         state->throwException(ValueRef::create(TypeErrorObjectRef::create(state, msg)));
     }
@@ -213,7 +213,7 @@ static ValueRef* forEachFunction(ExecutionStateRef* state, ValueRef* thisValue, 
     }
 
     IteratorObjectRef* obj = ((ArrayObjectRef*)thisValue->toObject(state))->entries(state);
-    FunctionObjectRef* fn = (FunctionObjectRef*)arg;
+    ObjectRef* fn = (ObjectRef*)arg;
 
     ObjectRef* next = obj->next(state)->asObject();
     ValueRef* doneString = ValueRef::create(StringRef::fromASCII("done"));
@@ -424,7 +424,7 @@ static ValueRef* forEachFunction(ExecutionStateRef* state, ValueRef* thisValue, 
     }
 
     ValueRef* arg = argv[0];
-    if (!arg->isFunction()) {
+    if (!arg->isCallable()) {
         auto msg = StringRef::fromASCII("Failed to execute 'forEach' on '{{name}}'");
         state->throwException(ValueRef::create(TypeErrorObjectRef::create(state, msg)));
     }
@@ -432,7 +432,7 @@ static ValueRef* forEachFunction(ExecutionStateRef* state, ValueRef* thisValue, 
         receiver = argv[1];
     }
 
-    FunctionObjectRef* fn = (FunctionObjectRef*)arg;
+    ObjectRef* fn = (ObjectRef*)arg;
     {{ keyType }} k;
     {{ valueType }} v;
     IterationSource<{{ keyType }}, {{ valueType }}>* obj = originalObj->startIteration(state);

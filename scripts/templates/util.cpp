@@ -98,7 +98,7 @@
         {% elif type.name == 'Float64Array' %}
             ({{ aname }}->isObject() && {{ aname }}->asObject()->isFloat64ArrayObject())
         {% elif type.name == 'Function' %}
-            {{ aname }}->isFunction()
+            {{ aname }}->isCallable()
         {% else %}
             TYPE {{ type.name }} IS NOT SUPPORTED
         {% endif %}
@@ -179,7 +179,7 @@ ScriptObject
         {% elif type.name == 'Uint8ClampedArray' %}
             {{- '%s->asObject()->asUint8ClampedArrayObject()'|format(aname) -}}
         {% elif type.name == 'Function' %}
-            {{- '%s->asFunction()'|format(aname) -}}
+            {{- '%s->asObject()'|format(aname) -}}
         {% endif %}
     {% endif %}
 {%- endmacro -%}
@@ -255,7 +255,7 @@ for (int i = 0; i < {{ aname }}Size; i++) {
         {% elif type.name == 'Float64Array' %}
             {% set type_str  = 'ScriptFloat64Array' %}
         {% elif type.name == 'Function' %}
-            {% set type_str  = 'ScriptFunction' %}
+            {% set type_str  = 'ScriptObject' %}
         {% endif %}
     {% elif type.kind in pointer_type_kinds %}
         {% set type_str = '%s*'|format(type.name) %}
