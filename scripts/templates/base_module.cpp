@@ -85,7 +85,9 @@ namespace Starfish {
 {% endif %}
 {% if used_unions %}
   {%- for union_item in used_unions %}
+{%- call util_macro.ifdef(used_unions_flags[union_item]) %}
 {% include 'union_impl.cpp' ignore missing %}
+{% endcall %}
   {% endfor %}
 {% endif %}
 {% if constructor %}

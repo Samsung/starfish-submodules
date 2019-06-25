@@ -156,6 +156,13 @@ class StarfishIRHandler():
     # Sort operations by max 'min_passed_count' order
     op['operations'] = sorted(operations, key=sort_op, reverse=True)
 
+  def _check_used_unions_flags(self, interface):
+    if interface.get('used_unions', None) is not None:
+      interface['used_unions_flags'] = dict()
+      for name in interface['used_unions']:
+        if self.unions[name].get('flags', None) is not None:
+          interface['used_unions_flags'][name] = self.unions[name]['flags']
+
   def _check_constructor(self, constructor):
     self._udpate_has_exception(constructor)
     unimpl = constructor.get('unimplemented', False)
@@ -390,6 +397,9 @@ class StarfishIRHandler():
     for key in self.unions:
       self._check_union(self.unions[key])
     to_ir['unions'] = self.unions
+
+    for key, value in to_ir.get('interfaces', {}).iteritems():
+      self._check_used_unions_flags(value)
 
   def __init__(self):
     self.processing = None
