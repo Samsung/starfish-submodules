@@ -32,7 +32,7 @@ namespace DeviceAPI {
             } \
             ValueRef* typeValue = exceptionValue->toObject(state)->get(state, ValueRef::create(StringRef::fromASCII(type))); \
             ValueRef* arguments[] = { typeValue, ValueRef::create(StringRef::fromASCII(message)) }; \
-            state->throwException(ValueRef::create(exceptionValue->asFunction()->newInstance(state, 2, arguments))); \
+            state->throwException(ValueRef::create(exceptionValue->asObject()->construct(state, 2, arguments))); \
         }
 
 struct IterateToConvertBundleToESObjectData {
