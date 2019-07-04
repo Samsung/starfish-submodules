@@ -9,7 +9,8 @@ Source0:    %{name}-%{version}.tar.bz2
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 BuildRequires: zlib-devel
-BuildRequires: openssl-devel
+BuildRequires: pkgconfig(openssl1.1)
+BuildRequires: openssl1.1
 BuildRequires: cmake
 BuildRequires: pkgconfig(libsystemd-daemon)
 
