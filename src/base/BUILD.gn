@@ -1594,7 +1594,8 @@ jumbo_component("base") {
       "hash/md5_boringssl.cc",
       "hash/md5_boringssl.h",
     ]
-    public_deps += [ "//third_party/boringssl" ]
+    # NOTE: We use openssl
+    # public_deps += [ "//third_party/boringssl" ]
   }
 
   # NaCl.

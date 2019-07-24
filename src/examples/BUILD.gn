@@ -680,7 +680,7 @@ if (is_linux || is_win) {
         "Xext",
         "Xrender",
       ]
-      deps += [ "//build/config/linux/gtk" ]
+      # deps += [ "//build/config/linux/gtk" ]
     }
 
     deps += [

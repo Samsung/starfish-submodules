@@ -2,12 +2,15 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("../../webrtc.gni")
 import("//build/toolchain/toolchain.gni")
+
 
 config("usrsctp_config") {
   include_dirs = [
     "usrsctplib/usrsctplib",
     "usrsctplib/usrsctplib/netinet",
+    rtc_ssl_root,
   ]
 }
 
@@ -141,6 +144,6 @@ static_library("usrsctp") {
     defines += [ "__Userspace_os_Fuchsia" ]
   }
   deps = [
-    "//third_party/boringssl",
+    # "//third_party/boringssl",
   ]
 }

@@ -1,7 +1,7 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
+import("../../webrtc.gni")
 import("//testing/test.gni")
 
 declare_args() {
@@ -52,6 +52,7 @@ config("libsrtp_config") {
     "config",
     "include",
     "crypto/include",
+    rtc_ssl_root,
   ]
 }
 
@@ -115,7 +116,7 @@ static_library("libsrtp") {
     "srtp/srtp.c",
   ]
   public_deps = [
-    "//third_party/boringssl:boringssl",
+    # "//third_party/boringssl:boringssl",
   ]
 }
 
