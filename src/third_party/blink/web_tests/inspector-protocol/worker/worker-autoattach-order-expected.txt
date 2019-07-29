@@ -1,6 +1,0 @@
-Target.setAutoAttach should report all workers before returning.
-worker
-worker
-Before await. Resolved: false
-After await. Resolved: true
-
