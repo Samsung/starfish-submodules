@@ -18,7 +18,7 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  *  MA  02110-1301  USA
  *
- *  Included from lib/core/private.h if LWS_WITH_ESP32
+ * Included from lib/private-lib-core.h if LWS_WITH_ESP32
  */
 
 #define MSG_NOSIGNAL 0

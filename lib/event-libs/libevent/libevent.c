@@ -19,7 +19,7 @@
  *  MA  02110-1301  USA
  */
 
-#include "core/private.h"
+#include "private-lib-core.h"
 
 static void
 lws_event_hrtimer_cb(int fd, short event, void *p)

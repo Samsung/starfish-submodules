@@ -19,7 +19,7 @@
  *  MA  02110-1301  USA
  */
 
-#include "core/private.h"
+#include "private-lib-core.h"
 
 #ifdef LWS_HAVE_SYS_TYPES_H
 #include <sys/types.h>

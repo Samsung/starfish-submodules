@@ -19,9 +19,8 @@
  *  MA  02110-1301  USA
  */
 
-#include "core/private.h"
-
-#include "tls/openssl/private.h"
+#include "private-lib-core.h"
+#include "private-lib-tls-openssl.h"
 
 /*
  * Care: many openssl apis return 1 for success.  These are translated to the

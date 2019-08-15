@@ -19,8 +19,8 @@
  *  MA  02110-1301  USA
  */
 
-#include "core/private.h"
-#include "tls/mbedtls/private.h"
+#include "private-lib-core.h"
+#include "private-lib-tls-mbedtls.h"
 
 void
 lws_tls_err_describe_clear(void)

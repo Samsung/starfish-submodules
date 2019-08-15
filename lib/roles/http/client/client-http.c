@@ -19,7 +19,7 @@
  *  MA  02110-1301  USA
  */
 
-#include "core/private.h"
+#include "private-lib-core.h"
 
 LWS_VISIBLE LWS_EXTERN void
 lws_client_http_body_pending(struct lws *wsi, int something_left_to_send)

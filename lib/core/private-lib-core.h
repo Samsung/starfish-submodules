@@ -108,15 +108,15 @@
   */
 
 #if defined(LWS_WITH_ESP32)
- #include "plat/esp32/private.h"
+ #include "private-lib-plat-esp32.h"
 #else
  #if defined(WIN32) || defined(_WIN32)
-  #include "plat/windows/private.h"
+  #include "private-lib-plat-windows.h"
  #else
   #if defined(LWS_PLAT_OPTEE)
-   #include "plat/optee/private.h"
+   #include "private-lib-plat.h"
   #else
-   #include "plat/unix/private.h"
+   #include "private-lib-plat-unix.h"
   #endif
  #endif
 #endif
@@ -129,7 +129,7 @@
 
 #include "libwebsockets.h"
 
-#include "tls/private.h"
+#include "private-lib-tls.h"
 
 #if defined(WIN32) || defined(_WIN32)
 	 // Visual studio older than 2015 and WIN_CE has only _stricmp
@@ -175,7 +175,7 @@ struct lws_protocols;
 struct lws;
 
 #if defined(LWS_WITH_NETWORK)
-#include "event-libs/private.h"
+#include "private-lib-event-libs.h"
 
 
 struct lws_io_watcher {
@@ -238,7 +238,7 @@ lws_mutex_refcount_unlock(struct lws_mutex_refcount *mr);
 #endif
 
 #if defined(LWS_WITH_NETWORK)
-#include "core-net/private.h"
+#include "private-lib-core-net.h"
 #endif
 
 struct lws_deferred_free

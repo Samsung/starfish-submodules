@@ -19,7 +19,7 @@
  *  MA  02110-1301  USA
  */
 
-#include "core/private.h"
+#include "private-lib-core.h"
 
 #ifndef _WIN32
 /* this is needed for Travis CI */

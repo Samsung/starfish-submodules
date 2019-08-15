@@ -19,7 +19,7 @@
  *  MA  02110-1301  USA
  */
 
-#include "core/private.h"
+#include "private-lib-core.h"
 
 void
 lws_plat_insert_socket_into_fds(struct lws_context *context, struct lws *wsi)

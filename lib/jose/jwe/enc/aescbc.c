@@ -22,8 +22,9 @@
  * JWE code for payload encrypt / decrypt using aescbc
  *
  */
-#include "core/private.h"
-#include "jose/jwe/private.h"
+
+#include "private-lib-core.h"
+#include "private-lib-jose-jwe.h"
 
 int
 lws_jwe_encrypt_cbc_hs(struct lws_jwe *jwe, uint8_t *cek,

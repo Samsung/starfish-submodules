@@ -19,7 +19,7 @@
  *  MA  02110-1301  USA
  */
 
-#include <core/private.h>
+#include <private-lib-core.h>
 
 #ifndef min
 #define min(a, b) ((a) < (b) ? (a) : (b))

@@ -19,8 +19,8 @@
  *  MA  02110-1301  USA
  */
 
-#include <core/private.h>
-#include <abstract/private.h>
+#include <private-lib-core.h>
+#include <private-lib-abstract.h>
 
 extern const lws_abs_transport_t lws_abs_transport_cli_raw_skt,
 				 lws_abs_transport_cli_unit_test;

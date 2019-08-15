@@ -18,24 +18,30 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  *  MA  02110-1301  USA
  *
- *  This is included from core/private.h if LWS_ROLE_RAW_PROXY
+ * Included from lib/private-lib-core.h if LWS_WITH_OPTEE
  */
 
-extern struct lws_role_ops role_ops_raw_proxy;
+ #include <unistd.h>
+ #include <sys/types.h>
 
-#define lwsi_role_raw_proxy(wsi) (wsi->role_ops == &role_ops_raw_proxy)
+ #define LWS_ERRNO errno
+ #define LWS_EAGAIN EAGAIN
+ #define LWS_EALREADY EALREADY
+ #define LWS_EINPROGRESS EINPROGRESS
+ #define LWS_EINTR EINTR
+ #define LWS_EISCONN EISCONN
+ #define LWS_ENOTCONN ENOTCONN
+ #define LWS_EWOULDBLOCK EWOULDBLOCK
+ #define LWS_EADDRINUSE EADDRINUSE
 
-#if 0
-struct lws_vhost_role_ws {
-	const struct lws_extension *extensions;
-};
+ #define lws_set_blocking_send(wsi)
 
-struct lws_pt_role_ws {
-	struct lws *rx_draining_ext_list;
-	struct lws *tx_draining_ext_list;
-};
+#define compatible_close(x) close(x)
+#define lws_plat_socket_offset() (0)
+#define wsi_from_fd(A,B)  A->lws_lookup[B - lws_plat_socket_offset()]
+#define insert_wsi(A,B)   assert(A->lws_lookup[B->desc.sockfd - \
+				  lws_plat_socket_offset()] == 0); \
+				 A->lws_lookup[B->desc.sockfd - \
+				  lws_plat_socket_offset()] = B
+#define delete_from_fd(A,B) A->lws_lookup[B - lws_plat_socket_offset()] = 0
 
-struct _lws_raw_proxy_related {
-	struct lws *wsi_onward;
-};
-#endif

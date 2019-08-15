@@ -18,7 +18,7 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  *  MA  02110-1301  USA
  *
- *  This is included from core/private.h if LWS_WITH_HTTP_STREAM_COMPRESSION
+ *  This is included from private-lib-core.h if LWS_WITH_HTTP_STREAM_COMPRESSION
  */
 
 #if defined(LWS_WITH_MINIZ)

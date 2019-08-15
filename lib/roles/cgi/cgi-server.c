@@ -21,7 +21,7 @@
 
 #define  _GNU_SOURCE
 
-#include "core/private.h"
+#include "private-lib-core.h"
 
 #if defined(WIN32) || defined(_WIN32)
 #else

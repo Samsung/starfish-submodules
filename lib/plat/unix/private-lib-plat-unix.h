@@ -18,7 +18,7 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  *  MA  02110-1301  USA
  *
- *  Included from lib/core/private.h if no explicit platform
+ *  Included from lib/private-lib-core.h if no explicit platform
  */
 
 #include <fcntl.h>

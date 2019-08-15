@@ -18,10 +18,24 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  *  MA  02110-1301  USA
  *
- *  This is included from core/private.h if LWS_ROLE_H1
- *
- *  Most of the h1 business is defined in the h1 / h2 common roles/http dir
+ *  This is included from private-lib-core.h if LWS_ROLE_RAW_PROXY
  */
 
-extern struct lws_role_ops role_ops_h1;
-#define lwsi_role_h1(wsi) (wsi->role_ops == &role_ops_h1)
+extern struct lws_role_ops role_ops_raw_proxy;
+
+#define lwsi_role_raw_proxy(wsi) (wsi->role_ops == &role_ops_raw_proxy)
+
+#if 0
+struct lws_vhost_role_ws {
+	const struct lws_extension *extensions;
+};
+
+struct lws_pt_role_ws {
+	struct lws *rx_draining_ext_list;
+	struct lws *tx_draining_ext_list;
+};
+
+struct _lws_raw_proxy_related {
+	struct lws *wsi_onward;
+};
+#endif

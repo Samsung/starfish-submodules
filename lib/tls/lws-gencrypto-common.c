@@ -18,7 +18,8 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  *  MA  02110-1301  USA
  */
-#include "core/private.h"
+
+#include "private-lib-core.h"
 
 /*
  * These came from RFC7518 (JSON Web Algorithms) Section 3

@@ -19,8 +19,8 @@
  *  MA  02110-1301  USA
  */
 
-#include "core/private.h"
-#include "jose/private.h"
+#include "private-lib-core.h"
+#include "private-lib-jose.h"
 
 #if !defined(LWS_PLAT_OPTEE) && !defined(OPTEE_DEV_KIT)
 #include <fcntl.h>

@@ -19,7 +19,7 @@
  *  MA  02110-1301  USA
  */
 
-#include "core/private.h"
+#include "private-lib-core.h"
 
 const struct lws_role_ops *available_roles[] = {
 #if defined(LWS_ROLE_H2)

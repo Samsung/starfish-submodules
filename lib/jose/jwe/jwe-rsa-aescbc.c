@@ -22,8 +22,9 @@
  * JWE code related to rsa + aescbc
  *
  */
-#include "core/private.h"
-#include "jose/jwe/private.h"
+
+#include "private-lib-core.h"
+#include "private-lib-jose-jwe.h"
 
 /*
  * Requirements on entry:

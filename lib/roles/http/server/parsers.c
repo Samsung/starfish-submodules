@@ -19,14 +19,10 @@
  *  MA  02110-1301  USA
  */
 
-#include "core/private.h"
+#include "private-lib-core.h"
 
 static const unsigned char lextable[] = {
-#if defined(LWS_AMAZON_RTOS) || defined(LWS_AMAZON_LINUX)
-	#include "roles/http/lextable.h"
-#else
-	#include "../lextable.h"
-#endif
+	#include "lextable.h"
 };
 
 #define FAIL_CHAR 0x08

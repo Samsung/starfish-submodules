@@ -22,9 +22,9 @@
  * JWE code related to aeskw cbc
  *
  */
-#include "core/private.h"
-#include "jose/jwe/private.h"
 
+#include "private-lib-core.h"
+#include "private-lib-jose-jwe.h"
 
 /*
  * RFC3394 Key Wrap uses a 128-bit key, and bloats what it is wrapping by

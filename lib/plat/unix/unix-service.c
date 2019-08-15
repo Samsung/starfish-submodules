@@ -20,7 +20,7 @@
  */
 
 #define _GNU_SOURCE
-#include "core/private.h"
+#include "private-lib-core.h"
 
 int
 lws_poll_listen_fd(struct lws_pollfd *fd)

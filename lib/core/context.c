@@ -19,7 +19,7 @@
  *  MA  02110-1301  USA
  */
 
-#include "core/private.h"
+#include "private-lib-core.h"
 
 #ifndef LWS_BUILD_HASH
 #define LWS_BUILD_HASH "unknown-build-hash"
@@ -149,7 +149,11 @@ lwsl_info("context created\n");
 #endif
 
 #if defined(LWS_WITH_ESP32)
+#if defined(LWS_AMAZON_RTOS)
+	context->last_free_heap = xPortGetFreeHeapSize();
+#else
 	context->last_free_heap = esp_get_free_heap_size();
+#endif
 #endif
 
 	/* default to just the platform fops implementation */

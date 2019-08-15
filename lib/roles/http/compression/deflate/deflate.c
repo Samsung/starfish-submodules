@@ -19,7 +19,7 @@
  *  MA  02110-1301  USA
  */
 
-#include "core/private.h"
+#include "private-lib-core.h"
 
 static int
 lcs_init_compression_deflate(lws_comp_ctx_t *ctx, int decomp)

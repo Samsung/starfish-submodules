@@ -18,30 +18,10 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  *  MA  02110-1301  USA
  *
- *  Included from lib/core/private.h if LWS_WITH_OPTEE
+ *  This is included from private-lib-core.h if LWS_ROLE_H1
+ *
+ *  Most of the h1 business is defined in the h1 / h2 common roles/http dir
  */
 
- #include <unistd.h>
- #include <sys/types.h>
-
- #define LWS_ERRNO errno
- #define LWS_EAGAIN EAGAIN
- #define LWS_EALREADY EALREADY
- #define LWS_EINPROGRESS EINPROGRESS
- #define LWS_EINTR EINTR
- #define LWS_EISCONN EISCONN
- #define LWS_ENOTCONN ENOTCONN
- #define LWS_EWOULDBLOCK EWOULDBLOCK
- #define LWS_EADDRINUSE EADDRINUSE
-
- #define lws_set_blocking_send(wsi)
-
-#define compatible_close(x) close(x)
-#define lws_plat_socket_offset() (0)
-#define wsi_from_fd(A,B)  A->lws_lookup[B - lws_plat_socket_offset()]
-#define insert_wsi(A,B)   assert(A->lws_lookup[B->desc.sockfd - \
-				  lws_plat_socket_offset()] == 0); \
-				 A->lws_lookup[B->desc.sockfd - \
-				  lws_plat_socket_offset()] = B
-#define delete_from_fd(A,B) A->lws_lookup[B - lws_plat_socket_offset()] = 0
-
+extern struct lws_role_ops role_ops_h1;
+#define lwsi_role_h1(wsi) (wsi->role_ops == &role_ops_h1)

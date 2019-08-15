@@ -18,7 +18,7 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  *  MA  02110-1301  USA
  *
- *  This is included from core/private.h if LWS_WITH_TLS
+ *  This is included from private-lib-core.h if LWS_WITH_TLS
  */
 
 struct lws_context_per_thread;

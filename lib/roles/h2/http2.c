@@ -19,8 +19,7 @@
  *  MA  02110-1301  USA
  */
 
-
-#include "core/private.h"
+#include "private-lib-core.h"
 
 /*
  * bitmap of control messages that are valid to receive for each http2 state

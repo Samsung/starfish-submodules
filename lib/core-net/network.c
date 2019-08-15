@@ -19,7 +19,7 @@
  *  MA  02110-1301  USA
  */
 
-#include "core/private.h"
+#include "private-lib-core.h"
 
 #if !defined(LWS_WITH_ESP32) && !defined(LWS_PLAT_OPTEE)
 static int

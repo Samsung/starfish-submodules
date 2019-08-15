@@ -19,7 +19,7 @@
  *  MA  02110-1301  USA
  */
 
-#include "core/private.h"
+#include "private-lib-core.h"
 
 /*
  * parsers.c: lws_ws_rx_sm() needs to be roughly kept in

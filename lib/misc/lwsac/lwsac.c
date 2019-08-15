@@ -19,8 +19,8 @@
  *  MA  02110-1301  USA
  */
 
-#include "core/private.h"
-#include "misc/lwsac/private.h"
+#include "private-lib-core.h"
+#include "private-lib-misc-lwsac.h"
 
 void
 lws_list_ptr_insert(lws_list_ptr *head, lws_list_ptr *add,

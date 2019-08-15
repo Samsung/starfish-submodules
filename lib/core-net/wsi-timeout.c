@@ -19,7 +19,7 @@
  *  MA  02110-1301  USA
  */
 
-#include "core/private.h"
+#include "private-lib-core.h"
 
 void
 __lws_wsi_remove_from_sul(struct lws *wsi)

@@ -19,8 +19,8 @@
  *  MA  02110-1301  USA
  */
 
-#include "core/private.h"
-#include "tls/openssl/private.h"
+#include "private-lib-core.h"
+#include "private-lib-tls-openssl.h"
 
 extern int openssl_websocket_private_data_index,
 openssl_SSL_CTX_private_data_index;

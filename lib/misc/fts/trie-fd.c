@@ -19,8 +19,8 @@
  *  MA  02110-1301  USA
  */
 
-#include "core/private.h"
-#include "misc/fts/private.h"
+#include "private-lib-core.h"
+#include "private-lib-misc-fts.h"
 
 #include <stdio.h>
 #include <string.h>

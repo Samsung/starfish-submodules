@@ -19,8 +19,8 @@
  * MA  02110-1301  USA
  */
 
-#include "core/private.h"
-#include "abstract/private.h"
+#include "private-lib-core.h"
+#include "private-lib-abstract.h"
 
 /** enum lwsgs_smtp_states - where we are in SMTP protocol sequence */
 typedef enum lwsgs_smtp_states {

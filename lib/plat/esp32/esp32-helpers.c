@@ -19,9 +19,9 @@
  *  MA  02110-1301  USA
  */
 
-#include "core/private.h"
+#include "private-lib-core.h"
 
-#include "misc/romfs.h"
+#include "romfs.h"
 #include <esp_ota_ops.h>
 #include <tcpip_adapter.h>
 #include <esp_image_format.h>

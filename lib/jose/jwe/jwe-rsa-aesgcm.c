@@ -22,8 +22,9 @@
  * JWE code related to aes gcm
  *
  */
-#include "core/private.h"
-#include "jose/jwe/private.h"
+
+#include "private-lib-core.h"
+#include "private-lib-jose-jwe.h"
 
 #define LWS_AESGCM_IV 12
 

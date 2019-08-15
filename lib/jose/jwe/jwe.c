@@ -22,9 +22,10 @@
  * This supports RFC7516 JSON Web Encryption
  *
  */
-#include "core/private.h"
-#include "jose/private.h"
-#include "jose/jwe/private.h"
+
+#include "private-lib-core.h"
+#include "private-lib-jose.h"
+#include "private-lib-jose-jwe.h"
 
 /*
  * Currently only support flattened or compact (implicitly single signature)

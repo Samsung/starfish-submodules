@@ -22,8 +22,9 @@
  * JWE code related to ecdh-es + Concat KDF and aes kw
  *
  */
-#include "core/private.h"
-#include "jose/jwe/private.h"
+
+#include "private-lib-core.h"
+#include "private-lib-jose-jwe.h"
 
 /*
  * From RFC7518 JWA
