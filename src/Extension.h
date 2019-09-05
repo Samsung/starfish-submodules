@@ -81,24 +81,24 @@ namespace xwalk {
         int CheckAPIAccessControl(const char* api_name);
         int RegisterPermissions(const char* perm_table);
 
-        bool initialized_;
-        void* handle_;
+        bool initialized_{ false };
+        void* handle_{ nullptr };
         std::string library_path_;
 
-        XW_Extension xw_extension_;
+        XW_Extension xw_extension_{ 0 };
         std::string name_;
         std::string javascript_api_;
         std::vector<std::string> entry_points_;
-        bool use_trampoline_;
+        bool use_trampoline_{ true };
 
-        XW_CreatedInstanceCallback created_instance_callback_;
-        XW_DestroyedInstanceCallback destroyed_instance_callback_;
-        XW_ShutdownCallback shutdown_callback_;
-        XW_HandleMessageCallback handle_msg_callback_;
-        XW_HandleSyncMessageCallback handle_sync_msg_callback_;
-        XW_HandleDataCallback handle_data_callback_;
-        XW_HandleDataCallback handle_sync_data_callback_;
-        RuntimeVariableProvider* rv_provider_;
+        XW_CreatedInstanceCallback created_instance_callback_{ nullptr };
+        XW_DestroyedInstanceCallback destroyed_instance_callback_{ nullptr };
+        XW_ShutdownCallback shutdown_callback_{ nullptr };
+        XW_HandleMessageCallback handle_msg_callback_{ nullptr };
+        XW_HandleSyncMessageCallback handle_sync_msg_callback_{ nullptr };
+        XW_HandleDataCallback handle_data_callback_{ nullptr };
+        XW_HandleDataCallback handle_sync_data_callback_{ nullptr };
+        RuntimeVariableProvider* rv_provider_{ nullptr };
     };
 
     class PostMessageListener {
