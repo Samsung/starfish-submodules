@@ -389,7 +389,7 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject()
             m_strings->setMessageListener,
             [](ExecutionStateRef* state, ValueRef* thisValue, size_t argc,
                ValueRef** argv, bool isNewExpression) -> ValueRef* {
-                DEVICEAPI_LOG_ERROR("extension.setMessageListener");
+                DEVICEAPI_LOG_INFO("extension.setMessageListener");
                 printArguments(state->context(), argc, argv);
 
                 ExtensionManagerInstance* extensionManagerInstance =
@@ -409,14 +409,12 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject()
                     return ValueRef::create(true);
                 }
 
-                if (!listenerValue->isFunction()) {
-                    DEVICEAPI_LOG_ERROR(
-                        "Trying to set message listener with "
-                        "invalid value.");
+                if (!listenerValue->isCallable()) {
+                    DEVICEAPI_LOG_ERROR("Invalid message listener.");
                     return ValueRef::create(false);
                 }
 
-                FunctionObjectRef* listener = listenerValue->asFunction();
+                ObjectRef* listener = listenerValue->asObject();
                 ESPostMessageListener* postMessageListener =
                     ESPostMessageListener::create(state->context(), listener);
                 extensionInstance->set_post_message_listener(

@@ -249,12 +249,12 @@ namespace xwalk {
 namespace DeviceAPI {
 
 ESPostListener::ESPostListener(Escargot::ContextRef* context,
-                               Escargot::FunctionObjectRef* listener)
+                               Escargot::ObjectRef* listener)
     : context_(context)
     , listener_(listener)
 {
     DEVICEAPI_LOG_INFO("Enter");
-    GC_add_roots(&listener_, &listener_ + sizeof(Escargot::FunctionObjectRef*));
+    GC_add_roots(&listener_, &listener_ + sizeof(Escargot::ObjectRef*));
 }
 
 ESPostListener::~ESPostListener()
@@ -267,7 +267,7 @@ void ESPostListener::finalize()
 {
     DEVICEAPI_LOG_INFO("Enter");
     GC_remove_roots(&listener_,
-                    &listener_ + sizeof(Escargot::FunctionObjectRef*));
+                    &listener_ + sizeof(Escargot::ObjectRef*));
     listener_ = nullptr;
     context_ = nullptr;
 }
@@ -291,7 +291,7 @@ void ESPostMessageListener::PostMessageToJS(const std::string& msg)
 
     struct Params {
         Escargot::ContextRef* context;
-        Escargot::FunctionObjectRef* listener;
+        Escargot::ObjectRef* listener;
         std::string msg;
     };
 
@@ -305,7 +305,7 @@ void ESPostMessageListener::PostMessageToJS(const std::string& msg)
         [](size_t, void* data) {
             Params* params = (Params*)data;
             Escargot::ContextRef* context = params->context;
-            Escargot::FunctionObjectRef* listener = params->listener;
+            Escargot::ObjectRef* listener = params->listener;
             std::string msg = params->msg;
 
             Escargot::SandBoxRef* sb = Escargot::SandBoxRef::create(context);

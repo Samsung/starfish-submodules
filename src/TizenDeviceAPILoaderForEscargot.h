@@ -26,7 +26,7 @@
                __LINE__, ##args);
 
 #define DEVICEAPI_LOG_INFO(fmt, args...) _LOGGER_LOG(DLOG_INFO, fmt, ##args)
-#define DEVICEAPI_LOG_ERROR(fmt, args...) _LOGGER_LOG(DLOG_ERROR, fmt, ##args)
+#define DEVICEAPI_LOG_ERROR(fmt, args...) _LOGGER_LOG(DLOG_ERROR, "Error: " fmt, ##args)
 #define DEVICEAPI_LOG_WARN(fmt, args...) _LOGGER_LOG(DLOG_WARN, fmt, ##args)
 
 #define DEVICEAPI_SLOG_INFO(fmt, args...) _LOGGER_SLOG(DLOG_INFO, fmt, ##args)

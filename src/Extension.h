@@ -177,7 +177,7 @@ namespace xwalk {
 
 namespace Escargot {
 class ContextRef;
-class FunctionObjectRef;
+class ObjectRef;
 }
 
 namespace DeviceAPI {
@@ -189,17 +189,17 @@ public:
 
 protected:
     ESPostListener(Escargot::ContextRef* context,
-                   Escargot::FunctionObjectRef* listener);
+                   Escargot::ObjectRef* listener);
 
     Escargot::ContextRef* context_;
-    Escargot::FunctionObjectRef* listener_;
+    Escargot::ObjectRef* listener_;
 };
 
 class ESPostMessageListener : public wrt::xwalk::PostMessageListener,
                               public ESPostListener {
 public:
     static ESPostMessageListener* create(Escargot::ContextRef* context,
-                                         Escargot::FunctionObjectRef* listener)
+                                         Escargot::ObjectRef* listener)
     {
         return new ESPostMessageListener(context, listener);
     }
@@ -207,7 +207,7 @@ public:
 
 private:
     ESPostMessageListener(Escargot::ContextRef* context,
-                          Escargot::FunctionObjectRef* listener)
+                          Escargot::ObjectRef* listener)
         : ESPostListener(context, listener)
     {
     }
@@ -217,7 +217,7 @@ class ESPostDataListener : public wrt::xwalk::PostDataListener,
                            public ESPostListener {
 public:
     static ESPostDataListener* create(Escargot::ContextRef* context,
-                                      Escargot::FunctionObjectRef* listener)
+                                      Escargot::ObjectRef* listener)
     {
         return new ESPostDataListener(context, listener);
     }
@@ -225,7 +225,7 @@ public:
 
 private:
     ESPostDataListener(Escargot::ContextRef* context,
-                       Escargot::FunctionObjectRef* listener)
+                       Escargot::ObjectRef* listener)
         : ESPostListener(context, listener)
     {
     }

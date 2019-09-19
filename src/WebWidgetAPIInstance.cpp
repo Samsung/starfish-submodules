@@ -27,7 +27,7 @@ namespace DeviceAPI {
                 xwalk->toObject(state)->get(state, ValueRef::create(StringRef::fromASCII("utils"))); \
                 exceptionValue = state->context()->globalObject()->get(state, ValueRef::create(StringRef::fromASCII("WebAPIException"))); \
             } \
-            if (!exceptionValue->isFunction()) { \
+            if (!exceptionValue->isCallable()) { \
                 state->throwException(ValueRef::create(StringRef::fromASCII("invalid WebAPIException"))); \
             } \
             ValueRef* typeValue = exceptionValue->toObject(state)->get(state, ValueRef::create(StringRef::fromASCII(type))); \
@@ -236,7 +236,7 @@ ObjectRef* WebWidgetAPIInstance::createWebWidgetAPIObject(Escargot::ContextRef* 
                            ValueRef** argv, bool isNewExpression) -> ValueRef*
                     {
                         WIDGET_APP_API_LOG_INFO("Call setReceiveContentListener");
-                        if (argc != 1 || !argv[0]->isFunction()) {
+                        if (argc != 1 || !argv[0]->isCallable()) {
                             WIDGET_APP_API_LOG_ERROR("Trying to set receiveContent listener with invalid value.");
                             THROW_WEB_API_EXCEPTION(state, "TYPE_MISMATCH_ERR", "Trying to set receive content listener with invalid value." );
                             return ValueRef::createUndefined();
@@ -245,7 +245,7 @@ ObjectRef* WebWidgetAPIInstance::createWebWidgetAPIObject(Escargot::ContextRef* 
                         ::Starfish::Window* window = (::Starfish::Window*)state->context()->globalObject()->extraData();
                         WebWidgetAPIInstance* ww = window->webView()->mainBrowsingContext()->scriptBindingInstance()->deviceAPI()->webWidgetAPIInstance();
 
-                        if (!listenerValue->isFunction()) {
+                        if (!listenerValue->isCallable()) {
                             THROW_WEB_API_EXCEPTION(state, "TYPE_MISMATCH_ERR", "Trying to set receive content listener with invalid value." );
                             WIDGET_APP_API_LOG_ERROR("Trying to set receiveContent listener with invalid value.");
                             return ValueRef::createUndefined();
