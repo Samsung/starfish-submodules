@@ -3,7 +3,7 @@
 {% include 'unimpl_attribute_bind.cpp' ignore missing %}
 {% else %}
 {%- call util_macro.ifdef(attribute.flags) %}
-    StringRef* {{ attribute.name }}String = StringRef::fromASCII("{{ attribute.name }}");
+    StringRef* {{ attribute.name }}String = StringRef::createFromASCII("{{ attribute.name }}");
     defineNativeAccessorPropertyButNeedToGenerateJSFunction(
         state,
         targetObject, {{ attribute.name }}String,

@@ -4,7 +4,7 @@
     {% set fn_name = '%s%s'|format(function.name, name)
                       if function.custom else function.name %}
     {% set fn_static = function.static if not function.operations else function.operations[0].static %}
-    StringRef* {{ function.name }}String = StringRef::fromASCII("{{ function.name }}");
+    StringRef* {{ function.name }}String = StringRef::createFromASCII("{{ function.name }}");
     {% if fn_static %}
         {% set object %}{{ name }}Function{% endset %}
     {% else %}
@@ -19,7 +19,7 @@
         {% set fnStrict %}true{% endset %}
     {% endif %}
     FunctionObjectRef* {{fn_name}}ESFn = FunctionObjectRef::create(state,
-                            FunctionObjectRef::NativeFunctionInfo(AtomicStringRef::create(context, "{{ function.name }}"), {{ fn_name }}Function, {{ function.min_passed_count|default(0) }}, nullptr, {{ fnStrict }}, false)
+                            FunctionObjectRef::NativeFunctionInfo(AtomicStringRef::create(context, "{{ function.name }}"), {{ fn_name }}Function, {{ function.min_passed_count|default(0) }}, {{ fnStrict }}, false)
                             );
     {{ object }}->defineDataProperty(state,
                             ValueRef::create({{ function.name }}String),

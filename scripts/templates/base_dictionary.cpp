@@ -48,13 +48,13 @@ namespace Starfish {
         return {{name}}();
     }
     if (!from->isObject()) {
-        auto msg = StringRef::fromASCII("Failed to generate {{name}} from non-object");
+        auto msg = StringRef::createFromASCII("Failed to generate {{name}} from non-object");
         state->throwException(ValueRef::create(TypeErrorObjectRef::create(state, msg)));
         STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
     }
 {% for key in members %}
     {% if not key.unimplemented %}
-    ValueRef* arg{{loop.index - 1}} = from->asObject()->get(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")));
+    ValueRef* arg{{loop.index - 1}} = from->asObject()->get(state, ValueRef::create(StringRef::createFromASCII("{{ key.name }}")));
     {% endif %}
 {% endfor %}
     {{name}} result;
@@ -86,19 +86,19 @@ ValueRef* toValueRefFrom{{name}}(ExecutionStateRef* state, {{name}}& from)
     {{ vname }} = from.{{ key.name }}();
     {% if use_nullable %}
     if (!{{ vname }}.hasValue()) {
-        result->set(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")), ValueRef::createNull());
+        result->set(state, ValueRef::create(StringRef::createFromASCII("{{ key.name }}")), ValueRef::createNull());
     } else {
-        result->set(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")), {{ util_macro.gen_native_to_jsvalue(key.type, '%s.getValue()'|format(vname)) }});
+        result->set(state, ValueRef::create(StringRef::createFromASCII("{{ key.name }}")), {{ util_macro.gen_native_to_jsvalue(key.type, '%s.getValue()'|format(vname)) }});
     }
     {% elif key.type.nullable %}
     if ({{ vname }} == nullptr) {
-        result->set(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")), ValueRef::createNull());
+        result->set(state, ValueRef::create(StringRef::createFromASCII("{{ key.name }}")), ValueRef::createNull());
     } else {
-        result->set(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")), {{ vname }}->scriptValue());
+        result->set(state, ValueRef::create(StringRef::createFromASCII("{{ key.name }}")), {{ vname }}->scriptValue());
     }
     {% elif key.type.kind in pointer_type_kinds %}
     STARFISH_ASSERT({{ vname }} != nullptr);
-    result->set(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")), {{ util_macro.gen_native_to_jsvalue(key.type, vname) }});
+    result->set(state, ValueRef::create(StringRef::createFromASCII("{{ key.name }}")), {{ util_macro.gen_native_to_jsvalue(key.type, vname) }});
     {% elif key.type.kind == 'Sequence' %}
     ArrayObjectRef* {{ key.name }}ArrayObj = ArrayObjectRef::create(state);
     for (unsigned idx = 0; idx < {{ vname }}.size(); idx++) {
@@ -114,9 +114,9 @@ ValueRef* toValueRefFrom{{name}}(ExecutionStateRef* state, {{name}}& from)
         {% endif %}
         {{ key.name }}ArrayObj->set(state, ValueRef::create(idx), item);
     }
-    result->set(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")), ValueRef::create({{ key.name }}ArrayObj));
+    result->set(state, ValueRef::create(StringRef::createFromASCII("{{ key.name }}")), ValueRef::create({{ key.name }}ArrayObj));
     {% else %}
-    result->set(state, ValueRef::create(StringRef::fromASCII("{{ key.name }}")), {{ util_macro.gen_native_to_jsvalue(key.type, vname) }});
+    result->set(state, ValueRef::create(StringRef::createFromASCII("{{ key.name }}")), {{ util_macro.gen_native_to_jsvalue(key.type, vname) }});
     {% endif %}
     {% endif %}
 {% endfor %}

@@ -27,12 +27,12 @@
     // {{type}}
     {% if type == 'NamedGetter' %}
     // Search matched property through prototype chain
-    NullablePtr<ObjectRef> ref = scriptObject->getPrototypeObject(state);
+    OptionalRef<ObjectRef> ref = scriptObject->getPrototypeObject(state);
     while (ref) {
-        if (ref.getValue()->hasOwnProperty(state, key)) {
+        if (ref.value()->hasOwnProperty(state, key)) {
             return ExposableObjectGetOwnPropertyCallbackResult();
         }
-        ref = ref.getValue()->getPrototypeObject(state);
+        ref = ref.value()->getPrototypeObject(state);
     }
     {% endif %}
     {{ util_macro.gen_declare_return_value(getter.return, is_descriptor=True)|trim }}
@@ -161,21 +161,40 @@ static ExposableObjectEnumerationCallbackResultVector {{ name }}EnumerationCallb
 {
     STARFISH_ASSERT(((ScriptWrappable*)jsSelf->extraData())->is{{name}}());
     {{name}}* self = ({{name}}*)jsSelf->extraData();
-    ExposableObjectEnumerationCallbackResultVector v;
-    {% if igetter and igetter.enumerable %}
+    {% if igetter and igetter.enumerable and ngetter and ngetter.enumerable%}
     size_t len = self->length();
-    for (size_t i = 0; i < len; i++) {
-        v.push_back(ExposableObjectEnumerationCallbackResult(
-            ValueRef::create(i), false, true, false));
-    }
-    {% endif %}
-    {% if ngetter and ngetter.enumerable %}
     GCVector<String*> enums;
     self->defaultNamedEnumerator(enums);
+
+    ExposableObjectEnumerationCallbackResultVector v(self->length() + enums.size());
+
+    for (size_t i = 0; i < len; i++) {
+        v[i] = (ExposableObjectEnumerationCallbackResult(
+            ValueRef::create(i), false, true, false));
+    }
+
     for (size_t i = 0; i < enums.size(); i++) {
-        v.push_back(ExposableObjectEnumerationCallbackResult(
+        v[i + len] = (ExposableObjectEnumerationCallbackResult(
             ValueRef::create(toJSString(enums[i])), false, true, false));
     }
+
+    {% elif igetter and igetter.enumerable %}
+    ExposableObjectEnumerationCallbackResultVector v(self->length());
+    size_t len = self->length();
+    for (size_t i = 0; i < len; i++) {
+        v[i] = (ExposableObjectEnumerationCallbackResult(
+            ValueRef::create(i), false, true, false));
+    }
+    {% elif ngetter and ngetter.enumerable %}
+    GCVector<String*> enums;
+    self->defaultNamedEnumerator(enums);
+    ExposableObjectEnumerationCallbackResultVector v(enums.size());
+    for (size_t i = 0; i < enums.size(); i++) {
+        v[i] = (ExposableObjectEnumerationCallbackResult(
+            ValueRef::create(toJSString(enums[i])), false, true, false));
+    }
+    {% else %}
+    ExposableObjectEnumerationCallbackResultVector v;
     {% endif %}
     return v;
 }

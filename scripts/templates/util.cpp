@@ -189,7 +189,7 @@ ScriptObject
 {% if seq.nullable %}
 {{ gen_type_str(seq, False) }} {{ vector_name }};
 {% endif %}
-int {{ aname }}Size = (int){{ aname }}->asObject()->get(state, ValueRef::create(StringRef::fromASCII("length")))->toNumber(state);
+int {{ aname }}Size = (int){{ aname }}->asObject()->get(state, ValueRef::create(StringRef::createFromASCII("length")))->toNumber(state);
 for (int i = 0; i < {{ aname }}Size; i++) {
     {% set use_nullable = seq.data.kind in non_nullable_type_kinds and seq.data.nullable %}
     {% set type_exp = gen_type_str(seq.data, use_nullable) %}

@@ -4,7 +4,7 @@
     {% set fn_name = '%s%s'|format(function.name, name)
                       if function.custom else function.name %}
     {% set fn_static = function.static if not function.operations else function.operations[0].static %}
-    StringRef* {{ function.name }}String = StringRef::fromASCII("{{ function.name }}");
+    StringRef* {{ function.name }}String = StringRef::createFromASCII("{{ function.name }}");
     {% if fn_static %}
         {% set object %}{{ name }}Function{% endset %}
     {% else %}

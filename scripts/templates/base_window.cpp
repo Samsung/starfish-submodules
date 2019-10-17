@@ -152,12 +152,14 @@ extern void attachUnforgeables{{ parent.name }}(ScriptBindingInstance* instance,
 void attachUnforgeables{{ name }}(ScriptBindingInstance* instance, ObjectRef* targetObject)
 {
     ContextRef* context = instance->scriptContext();
-    ExecutionStateRef* state = ExecutionStateRef::create(context);
-    {% if parent and parent.has_unforgeable %}
-    attachUnforgeables{{ parent.name }}(instance, targetObject);
-    {% endif %}
-    {{ bind_common(condition_unforgeable_fn) }}
-    state->destroy();
+
+    Evaluator::execute(context, [](ExecutionStateRef* state, ScriptBindingInstance* instance, ObjectRef* targetObject) -> ValueRef* {
+        {% if parent and parent.has_unforgeable %}
+        attachUnforgeables{{ parent.name }}(instance, targetObject);
+        {% endif %}
+        {{ bind_common(condition_unforgeable_fn) }}
+        return ValueRef::createUndefined();
+    }, instance, targetObject);
 }
 {% endif %}
 
@@ -166,59 +168,62 @@ FunctionObjectRef* binding{{ name }}(
 {
     // Bind for constructor
     ContextRef* context = scriptBindingInstance->scriptContext();
-    ExecutionStateRef* state = ExecutionStateRef::create(context);
-{% include 'constructor_bind.cpp' ignore missing %}
 
-    ObjectRef* targetObject = {{ name }}PrototypeObj;
-    {{ bind_common(condition_binding_fn) }}
-    state->destroy();
-    return {{ name }}Function;
+    return Evaluator::execute(context, [](ExecutionStateRef* state, ScriptBindingInstance* scriptBindingInstance) -> ValueRef* {
+    {% include 'constructor_bind.cpp' ignore missing %}
+
+        ObjectRef* targetObject = {{ name }}PrototypeObj;
+        {{ bind_common(condition_binding_fn) }}
+        return {{ name }}Function;
+    }, scriptBindingInstance).result.asFunctionObject();
 }
 
 void Window::init(ScriptBindingInstance* instance, void* domObjectPointer)
 {
     ContextRef* context = instance->scriptContext();
-    ExecutionStateRef* state = ExecutionStateRef::create(context);
+    Evaluator::execute(context, [](ExecutionStateRef* state, ScriptBindingInstance* instance, void* domObjectPointer) -> ValueRef* {
 
-    m_object = context->globalObject();
-    m_object->setExtraData(domObjectPointer);
-    m_object->defineDataProperty(state, ValueRef::create(context->vmInstance()->toStringTagSymbol()),
-            ValueRef::create(StringRef::fromASCII("Window")), false, false, true);
+        m_object = context->globalObject();
+        m_object->setExtraData(domObjectPointer);
+        m_object->defineDataProperty(state, context->vmInstance()->toStringTagSymbol(),
+                StringRef::createFromASCII("Window"), false, false, true);
 
-    scriptObject()->setPrototype(state, instance->fn{{ name }}()->getFunctionPrototype(state));
-    ObjectRef* targetObject = scriptObject();
+        scriptObject()->setPrototype(state, instance->fn{{ name }}()->getFunctionPrototype(state));
+        ObjectRef* targetObject = scriptObject();
 
-    {{ bind_common(condition_init_fn) }}
-    {% if has_unforgeable %}
-    attachUnforgeables{{ name }}(instance, targetObject);
-    {% endif %}
-    postInit(instance);
-    state->destroy();
+        {{ bind_common(condition_init_fn) }}
+        {% if has_unforgeable %}
+        attachUnforgeables{{ name }}(instance, targetObject);
+        {% endif %}
+        postInit(instance);
+        return ValueRef::createUndefined();
+    }, instance, domObjectPointer);
 }
 
 void WindowProxy::init(ScriptBindingInstance* instance, void* domObjectPointer)
 {
     ContextRef* context = instance->scriptContext();
-    ExecutionStateRef* state = ExecutionStateRef::create(context);
+    Evaluator::execute(context, [](ExecutionStateRef* state, ScriptBindingInstance* instance, void* domObjectPointer) -> ValueRef* {
 
-    {% if descriptor %}
-    m_object = ObjectRef::createExposableObject(state, WindowGetOwnPropertyCallback, WindowDefineOwnPropertyCallback, WindowEnumerationCallback, WindowDeleteOwnPropertyCallback);
-    {% else %}
-    m_object = ObjectRef::create(state);
-    {% endif %}
-    m_object->setExtraData(domObjectPointer);
-    m_object->giveInternalClassProperty("Window");
+        {% if descriptor %}
+        m_object = ObjectRef::createExposableObject(state, WindowGetOwnPropertyCallback, WindowDefineOwnPropertyCallback, WindowEnumerationCallback, WindowDeleteOwnPropertyCallback);
+        {% else %}
+        m_object = ObjectRef::create(state);
+        {% endif %}
+        m_object->setExtraData(domObjectPointer);
+        m_object->giveInternalClassProperty("Window");
 
-    scriptObject()->setPrototype(state, instance->fnWindow()->getFunctionPrototype(state));
-    ObjectRef* windowObject = window()->scriptObject();
-    ObjectRef* targetObject = scriptObject();
+        scriptObject()->setPrototype(state, instance->fnWindow()->getFunctionPrototype(state));
+        ObjectRef* windowObject = window()->scriptObject();
+        ObjectRef* targetObject = scriptObject();
 
-    {{ bind_common_proxy(condition_init_fn) }}
-    {% if has_unforgeable %}
-    attachUnforgeablesWindow(instance, targetObject);
-    {% endif %}
-    postInit(instance);
-    state->destroy();
+        {{ bind_common_proxy(condition_init_fn) }}
+        {% if has_unforgeable %}
+        attachUnforgeablesWindow(instance, targetObject);
+        {% endif %}
+        postInit(instance);
+        return ValueRef::createUndefined();
+    }, instance, domObjectPointer);
 }
 
 bool Window::isWindow() const

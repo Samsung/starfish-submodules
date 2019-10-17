@@ -3,7 +3,7 @@
 {% else %}
 {% import 'util.cpp' as util_macro %}
 {%- call util_macro.ifdef(constant.flags) %}
-    StringRef* {{ constant.name }}String = StringRef::fromASCII("{{ constant.name }}");
+    StringRef* {{ constant.name }}String = StringRef::createFromASCII("{{ constant.name }}");
     ValueRef* {{ constant.name }}Value = ValueRef::create({{ constant.value }});
     targetObject
             ->defineDataProperty(state, ValueRef::create({{ constant.name }}String),

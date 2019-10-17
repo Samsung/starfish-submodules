@@ -1,13 +1,13 @@
-    StringRef* {{ name }}String = StringRef::fromASCII("{{ name }}");
+    StringRef* {{ name }}String = StringRef::createFromASCII("{{ name }}");
     {% if descriptor %}
         {% set native_ctor_fn %}TODO_UNFINISHED_CODE(ExecutionStateRef* state, size_t argc, ValueRef** argv){% endset %}
     {% else %}
         {% set native_ctor_fn %}nullptr{% endset %}
     {% endif %}
     {% if constructor and constructor.name|length == 0 and (not constructor.unimplemented or strict_mode) %}
-    FunctionObjectRef::NativeFunctionInfo ctorInfo(AtomicStringRef::create(context, "{{ name }}"), {{ name|lower }}Constructor, {{ constructor.min_passed_count|default(0) }}, {{ native_ctor_fn }}, true, true);
+    FunctionObjectRef::NativeFunctionInfo ctorInfo(AtomicStringRef::create(context, "{{ name }}"), {{ name|lower }}Constructor, {{ constructor.min_passed_count|default(0) }}, true, true);
     {% else %}
-    FunctionObjectRef::NativeFunctionInfo ctorInfo(AtomicStringRef::create(context, "{{ name }}"), errorOnConstructorFunction, 0, nullptr, true, true);
+    FunctionObjectRef::NativeFunctionInfo ctorInfo(AtomicStringRef::create(context, "{{ name }}"), errorOnConstructorFunction, 0, true, true);
     {% endif %}
     FunctionObjectRef* {{ name }}Function = FunctionObjectRef::createBuiltinFunction(state, ctorInfo);
     ObjectRef* {{ name }}PrototypeObj = {{ name }}Function->getFunctionPrototype(state)->asObject();
