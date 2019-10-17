@@ -77,7 +77,7 @@ namespace xwalk {
         DEVICEAPI_SLOG_INFO("Extension Module library : [%s]",
                             library_path_.c_str());
 
-        STARFISH_ASSERT(handle_==NULL);
+        STARFISH_ASSERT(handle_ == NULL);
         handle_ = dlopen(library_path_.c_str(), RTLD_LAZY);
         if (!handle_) {
             const char* error = (const char*)dlerror();
@@ -266,8 +266,7 @@ ESPostListener::~ESPostListener()
 void ESPostListener::finalize()
 {
     DEVICEAPI_LOG_INFO("Enter");
-    GC_remove_roots(&listener_,
-                    &listener_ + sizeof(Escargot::ObjectRef*));
+    GC_remove_roots(&listener_, &listener_ + sizeof(Escargot::ObjectRef*));
     listener_ = nullptr;
     context_ = nullptr;
 }
@@ -305,21 +304,26 @@ void ESPostMessageListener::PostMessageToJS(const std::string& msg)
         [](size_t, void* data) {
             Params* params = (Params*)data;
             Escargot::ContextRef* context = params->context;
-            Escargot::ObjectRef* listener = params->listener;
-            std::string msg = params->msg;
 
-            Escargot::SandBoxRef* sb = Escargot::SandBoxRef::create(context);
-            auto result = sb->run([&](Escargot::ExecutionStateRef* state)
-                                      -> Escargot::ValueRef* {
-                Escargot::ValueRef* arguments[] = { Escargot::ValueRef::create(
-                    Escargot::StringRef::fromASCII(msg.c_str())) };
-                return listener->call(state, Escargot::ValueRef::createNull(),
-                                      1, arguments);
-            });
-            sb->destroy();
+            auto result = Escargot::Evaluator::execute(
+                context,
+                [](Escargot::ExecutionStateRef* state,
+                   Params* params) -> Escargot::ValueRef* {
+                    Escargot::ObjectRef* listener = params->listener;
+                    std::string msg = params->msg;
+                    Escargot::ValueRef* arguments[] = {
+                        Escargot::ValueRef::create(
+                            Escargot::StringRef::createFromASCII(msg.c_str(),
+                                                                 msg.size()))
+                    };
+                    return listener->call(
+                        state, Escargot::ValueRef::createNull(), 1, arguments);
+                },
+                params);
             if (result.error.hasValue()) {
-                DEVICEAPI_LOG_ERROR("Uncaught %s\n",
-                                    result.msgStr->toStdUTF8String().c_str());
+                DEVICEAPI_LOG_ERROR(
+                    "Uncaught %s\n",
+                    result.resultOrErrorToString(context)->toStdUTF8String().c_str());
             }
 
             delete params;
@@ -330,8 +334,8 @@ void ESPostMessageListener::PostMessageToJS(const std::string& msg)
 void ESPostDataListener::PostDataToJS(const std::string& msg, uint8_t* buffer,
                                       size_t len)
 {
-    DEVICEAPI_LOG_INFO("ESPostDataListener::PostDataToJS (%s, %zu)", msg.c_str(),
-                       len);
+    DEVICEAPI_LOG_INFO("ESPostDataListener::PostDataToJS (%s, %zu)",
+                       msg.c_str(), len);
 
     ExtensionManagerInstance* extensionManagerInstance =
         ExtensionManagerInstance::get(context_);
@@ -342,22 +346,22 @@ void ESPostDataListener::PostDataToJS(const std::string& msg, uint8_t* buffer,
     Starfish::Window* wnd =
         (Starfish::Window*)context_->globalObject()->extraData();
 
-    Escargot::SandBoxRef* sb = Escargot::SandBoxRef::create(context_);
-    auto result =
-        sb->run([&](Escargot::ExecutionStateRef* state) -> Escargot::ValueRef* {
+    auto result = Escargot::Evaluator::execute(
+        context_,
+        [](Escargot::ExecutionStateRef* state) -> Escargot::ValueRef* {
 #if 0
-            Escargot::ValueRef* arguments[] = {Escargot::ValueRef::create(Escargot::StringRef::fromASCII(msg.c_str()))};
+            Escargot::ValueRef* arguments[] = {Escargot::ValueRef::create(Escargot::StringRef::createFromASCII(msg.c_str(), msg.size()))};
             return listener_->call(state, Escargot::ValueRef::createNull(), 1, arguments);
 #else
             DEVICEAPI_LOG_ERROR("NOT IMPLEMENTED");
             STARFISH_ASSERT_NOT_REACHED();
-            return Escargot::ValueRef::createEmpty();
+            return Escargot::ValueRef::createUndefined();
 #endif
         });
-    sb->destroy();
     if (result.error.hasValue()) {
-        DEVICEAPI_LOG_ERROR("Uncaught %s\n",
-                            result.msgStr->toStdUTF8String().c_str());
+        DEVICEAPI_LOG_ERROR(
+            "Uncaught %s\n",
+            result.resultOrErrorToString(context_)->toStdUTF8String().c_str());
     }
 }
 

@@ -26,7 +26,8 @@
                __LINE__, ##args);
 
 #define DEVICEAPI_LOG_INFO(fmt, args...) _LOGGER_LOG(DLOG_INFO, fmt, ##args)
-#define DEVICEAPI_LOG_ERROR(fmt, args...) _LOGGER_LOG(DLOG_ERROR, "Error: " fmt, ##args)
+#define DEVICEAPI_LOG_ERROR(fmt, args...) \
+    _LOGGER_LOG(DLOG_ERROR, "Error: " fmt, ##args)
 #define DEVICEAPI_LOG_WARN(fmt, args...) _LOGGER_LOG(DLOG_WARN, fmt, ##args)
 
 #define DEVICEAPI_SLOG_INFO(fmt, args...) _LOGGER_SLOG(DLOG_INFO, fmt, ##args)
@@ -47,38 +48,38 @@ class ESPostListener;
 
 #if defined(STARFISH_TIZEN_WEARABLE_WIDGET)
 #define FOR_EACH_EARLY_TIZEN_STRINGS(F) \
-    F(tizen) \
-    F(xwalk) \
+    F(tizen)                            \
+    F(xwalk)                            \
     F(webapis)
 
 #define FOR_EACH_LAZY_TIZEN_STRINGS(F) \
-    F(common) \
-    F(extension) \
-    F(postMessage) \
-    F(sendSyncMessage) \
-    F(sendSyncData) \
-    F(sendRuntimeMessage) \
-    F(sendRuntimeSyncMessage) \
-    F(sendRuntimeAsyncMessage) \
-    F(setMessageListener) \
-    F(receiveChunkData) \
-    F(reply) \
-    F(chunk_id) \
-    F(string) \
+    F(common)                          \
+    F(extension)                       \
+    F(postMessage)                     \
+    F(sendSyncMessage)                 \
+    F(sendSyncData)                    \
+    F(sendRuntimeMessage)              \
+    F(sendRuntimeSyncMessage)          \
+    F(sendRuntimeAsyncMessage)         \
+    F(setMessageListener)              \
+    F(receiveChunkData)                \
+    F(reply)                           \
+    F(chunk_id)                        \
+    F(string)                          \
     F(octet)
 
 #define SUPPORTED_TIZEN_PROPERTY(F) \
-    F(application) \
-    F(filesystem) \
-    F(systeminfo) \
-    F(sensorservice) \
-    F(preference) \
-    F(widgetservice) \
-    F(power) \
+    F(application)                  \
+    F(filesystem)                   \
+    F(systeminfo)                   \
+    F(sensorservice)                \
+    F(preference)                   \
+    F(widgetservice)                \
+    F(power)                        \
     F(time)
 
 #define SUPPORTED_TIZEN_ENTRYPOINTS(F) \
-    F(ApplicationControl) \
+    F(ApplicationControl)              \
     F(ApplicationControlData)
 #else
 #define FOR_EACH_EARLY_TIZEN_STRINGS(F) \
@@ -179,7 +180,8 @@ private:
         ExtensionInstanceMap;
     typedef std::vector<ESPostListener*> ESPostListenerVector;
 
-    Escargot::ObjectRef* createExtensionObject();
+    Escargot::ObjectRef* createExtensionObject(
+        Escargot::ExecutionStateRef* state);
     size_t addChunk(uint8_t* buffer, size_t length);
     ChunkData getChunk(size_t chunkID);
 

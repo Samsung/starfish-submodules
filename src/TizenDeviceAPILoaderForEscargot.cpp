@@ -47,11 +47,18 @@ void TizenStrings::initializeLazyStrings()
 void printArguments(ContextRef* context, size_t argc, ValueRef** argv)
 {
     DEVICEAPI_LOG_INFO("printing %zu arguments", argc);
-    ExecutionStateRef* state = ExecutionStateRef::create(context);
-    for (size_t i = 0; i < argc; i++) {
-        DEVICEAPI_LOG_INFO("argument %zu : %s", i,
-                           argv[i]->toString(state)->toStdUTF8String().c_str());
-    }
+    Evaluator::execute(
+        context,
+        [](ExecutionStateRef* state, size_t argc,
+           ValueRef** argv) -> ValueRef* {
+            for (size_t i = 0; i < argc; i++) {
+                DEVICEAPI_LOG_INFO(
+                    "argument %zu : %s", i,
+                    argv[i]->toString(state)->toStdUTF8String().c_str());
+            }
+            return ValueRef::createUndefined();
+        },
+        argc, argv);
 }
 
 void* ExtensionManagerInstance::operator new(size_t size)
@@ -65,8 +72,8 @@ void* ExtensionManagerInstance::operator new(size_t size)
         GC_set_bit(obj_bitmap,
                    GC_WORD_OFFSET(ExtensionManagerInstance, m_strings));
 #if defined(STARFISH_TIZEN_WEARABLE_WIDGET)
-        GC_set_bit(obj_bitmap,
-                   GC_WORD_OFFSET(ExtensionManagerInstance, m_webWidgetAPIInstance));
+        GC_set_bit(obj_bitmap, GC_WORD_OFFSET(ExtensionManagerInstance,
+                                              m_webWidgetAPIInstance));
 #endif
 #define DECLARE_TIZEN_VALUE(name)                                   \
     GC_set_bit(obj_bitmap, GC_WORD_OFFSET(ExtensionManagerInstance, \
@@ -103,8 +110,7 @@ wrt::xwalk::Extension* ExtensionManagerInstance::getExtension(
         else if (!strcmp(apiName, "sa")) {
             snprintf(library_path, 512,
                      "/usr/lib/tizen-extensions-crosswalk/libwebapis_sa.so");
-        }
-        else
+        } else
             snprintf(library_path, 512,
                      "/usr/lib/tizen-extensions-crosswalk/libtizen_%s.so",
                      apiName);
@@ -131,56 +137,74 @@ ObjectRef* ExtensionManagerInstance::initializeExtensionInstance(
 {
     DEVICEAPI_LOG_INFO("Enter");
 
-    ExecutionStateRef* state = ExecutionStateRef::create(m_context);
-    wrt::xwalk::Extension* extension = getExtension(apiName);
-    if (!extension) {
-        DEVICEAPI_LOG_INFO("Cannot load extension %s", apiName);
-        return ObjectRef::create(state);
-    }
-    std::string str;
-    str.append("(function(extension){");
-    str.append("extension.internal = {};");
-    str.append(
-        "extension.internal.sendSyncMessage_ = extension.sendSyncMessage;");
-    str.append(
-        "extension.internal.sendSyncMessage = function(){ return "
-        "extension.internal.sendSyncMessage_.apply(extension, arguments); };");
-    str.append("delete extension.sendSyncMessage;");
-    str.append("var exports = {};");
-    str.append("console.log('Start loading ");
-    str.append(apiName);
-    str.append("');");
-    str.append("(function() {'use strict';");
-    str.append(extension->javascript_api().c_str());
-    str.append("})();");
-    str.append("console.log('Loading ");
-    str.append(apiName);
-    str.append(" done ');");
-    str.append("return exports;})");
+    return Evaluator::execute(
+               m_context,
+               [](ExecutionStateRef* state, ExtensionManagerInstance* self,
+                  const char* apiName) -> ValueRef* {
+                   wrt::xwalk::Extension* extension = getExtension(apiName);
+                   if (!extension) {
+                       DEVICEAPI_LOG_INFO("Cannot load extension %s", apiName);
+                       return ObjectRef::create(state);
+                   }
+                   std::string str;
+                   str.append("(function(extension){");
+                   str.append("extension.internal = {};");
+                   str.append(
+                       "extension.internal.sendSyncMessage_ = "
+                       "extension.sendSyncMessage;");
+                   str.append(
+                       "extension.internal.sendSyncMessage = function(){ "
+                       "return "
+                       "extension.internal.sendSyncMessage_.apply(extension, "
+                       "arguments); };");
+                   str.append("delete extension.sendSyncMessage;");
+                   str.append("var exports = {};");
+                   str.append("console.log('Start loading ");
+                   str.append(apiName);
+                   str.append("');");
+                   str.append("(function() {'use strict';");
+                   str.append(extension->javascript_api().c_str());
+                   str.append("})();");
+                   str.append("console.log('Loading ");
+                   str.append(apiName);
+                   str.append(" done ');");
+                   str.append("return exports;})");
 
-    std::string jsFileName = apiName;
-    jsFileName += ".js";
-    jsFileName = "tizen_api_internal_" + jsFileName;
-    StringRef* apiSource = StringRef::fromASCII(str.c_str());
-    FunctionObjectRef* initializer =
-        m_context->scriptParser()
-            ->parse(apiSource, StringRef::fromASCII(jsFileName.c_str()))
-            .m_script->execute(state)
-            ->asFunction();
-    ObjectRef* extensionObject = createExtensionObject();
-    wrt::xwalk::ExtensionInstance* extensionInstance =
-        extension->CreateInstance();
-    m_extensionInstances[extensionObject] = extensionInstance;
-    ValueRef* arguments[] = { ValueRef::create(extensionObject) };
-    return initializer->call(state, ValueRef::createNull(), 1, arguments)
-        ->toObject(state);
+                   std::string jsFileName = apiName;
+                   jsFileName += ".js";
+                   jsFileName = "tizen_api_internal_" + jsFileName;
+                   StringRef* apiSource =
+                       StringRef::createFromUTF8(str.c_str(), str.length());
+                   FunctionObjectRef* initializer =
+                       self->m_context->scriptParser()
+                           ->initializeScript(
+                               apiSource,
+                               StringRef::createFromUTF8(jsFileName.c_str(),
+                                                         jsFileName.length()))
+                           .script.value()
+                           ->execute(state)
+                           ->asFunctionObject();
+                   ObjectRef* extensionObject =
+                       self->createExtensionObject(state);
+                   wrt::xwalk::ExtensionInstance* extensionInstance =
+                       extension->CreateInstance();
+                   self->m_extensionInstances[extensionObject] =
+                       extensionInstance;
+                   ValueRef* arguments[] = { ValueRef::create(
+                       extensionObject) };
+                   return initializer
+                       ->call(state, ValueRef::createNull(), 1, arguments)
+                       ->toObject(state);
+               },
+               this, apiName)
+        .result->asObject();
 }
 
-ObjectRef* ExtensionManagerInstance::createExtensionObject()
+ObjectRef* ExtensionManagerInstance::createExtensionObject(
+    ExecutionStateRef* state)
 {
     DEVICEAPI_LOG_INFO("Enter");
 
-    ExecutionStateRef* state = ExecutionStateRef::create(m_context);
     ObjectRef* extensionObject = ObjectRef::create(state);
 
     FunctionObjectRef* postMessageFn = FunctionObjectRef::create(
@@ -192,9 +216,9 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject()
                 DEVICEAPI_LOG_ERROR("extension.postMessage UNIMPLEMENTED");
                 printArguments(state->context(), argc, argv);
                 STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
-                return ValueRef::createEmpty();
+                return ValueRef::createUndefined();
             },
-            0, nullptr, true, true));
+            0, true, true));
 
     extensionObject->defineDataProperty(
         state, ValueRef::create(m_strings->postMessage->string()),
@@ -231,9 +255,10 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject()
                 if (reply.empty()) {
                     return ValueRef::createNull();
                 }
-                return ValueRef::create(StringRef::fromASCII(reply.c_str()));
+                return ValueRef::create(
+                    StringRef::createFromASCII(reply.c_str(), reply.size()));
             },
-            0, nullptr, true, true));
+            0, true, true));
 
     extensionObject->defineDataProperty(
         state, ValueRef::create(m_strings->sendSyncMessage->string()),
@@ -267,7 +292,7 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject()
                             arrayData
                                 ->get(state,
                                       ValueRef::create(
-                                          StringRef::fromASCII("length")))
+                                          StringRef::createFromASCII("length")))
                                 ->toLength(state);
                         uint8_t* buffer =
                             (uint8_t*)malloc(sizeof(uint8_t) * length);
@@ -308,8 +333,9 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject()
                     state,
                     ValueRef::create(
                         extensionManagerInstance->strings()->reply->string()),
-                    ValueRef::create(StringRef::fromASCII(reply.c_str())), true,
-                    true, true);
+                    ValueRef::create(StringRef::createFromASCII(reply.c_str(),
+                                                                reply.size())),
+                    true, true, true);
 
                 if (replyBuffer || replyLength > 0) {
                     size_t chunkID = extensionManagerInstance->addChunk(
@@ -323,7 +349,7 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject()
 
                 return ValueRef::create(returnObject);
             },
-            0, nullptr, true, true));
+            0, true, true));
 
     extensionObject->defineDataProperty(
         state, ValueRef::create(m_strings->sendSyncData->string()),
@@ -339,9 +365,9 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject()
                     "extension.sendRuntimeMessage UNIMPLEMENTED");
                 printArguments(state->context(), argc, argv);
                 STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
-                return ValueRef::createEmpty();
+                return ValueRef::createUndefined();
             },
-            0, nullptr, true, true));
+            0, true, true));
 
     extensionObject->defineDataProperty(
         state, ValueRef::create(m_strings->sendRuntimeMessage->string()),
@@ -357,9 +383,9 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject()
                     "extension.sendRuntimeAsyncMessage UNIMPLEMENTED");
                 printArguments(state->context(), argc, argv);
                 STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
-                return ValueRef::createEmpty();
+                return ValueRef::createUndefined();
             },
-            0, nullptr, true, true));
+            0, true, true));
 
     extensionObject->defineDataProperty(
         state, ValueRef::create(m_strings->sendRuntimeAsyncMessage->string()),
@@ -375,9 +401,9 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject()
                     "extension.sendRuntimeSyncMessage UNIMPLEMENTED");
                 printArguments(state->context(), argc, argv);
                 STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
-                return ValueRef::createEmpty();
+                return ValueRef::createUndefined();
             },
-            0, nullptr, true, true));
+            0, true, true));
 
     extensionObject->defineDataProperty(
         state, ValueRef::create(m_strings->sendRuntimeSyncMessage->string()),
@@ -425,7 +451,7 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject()
 
                 return ValueRef::create(true);
             },
-            0, nullptr, true, true));
+            0, true, true));
 
     extensionObject->defineDataProperty(
         state, ValueRef::create(m_strings->setMessageListener->string()),
@@ -465,8 +491,9 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject()
 
                 ValueRef* ret;
                 if (isStringType) {
-                    ret = ValueRef::create(
-                        StringRef::fromASCII((const char*)chunkData.m_buffer));
+                    ret = ValueRef::create(StringRef::createFromUTF8(
+                        (const char*)chunkData.m_buffer,
+                        strlen((const char*)chunkData.m_buffer)));
                 } else {
                     ArrayObjectRef* octetArray = ArrayObjectRef::create(state);
                     for (size_t i = 0; i < chunkData.m_length; i++) {
@@ -479,7 +506,7 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject()
                 free(chunkData.m_buffer);
                 return ret;
             },
-            0, nullptr, true, true));
+            0, true, true));
 
     extensionObject->defineDataProperty(
         state, ValueRef::create(m_strings->receiveChunkData->string()),
@@ -496,8 +523,15 @@ ExtensionManagerInstance::getExtensionInstanceFromCallingContext(
         return nullptr;
     }
 
-    ExecutionStateRef* state = ExecutionStateRef::create(m_context);
-    auto it = m_extensionInstances.find(thisValue->toObject(state));
+    ObjectRef* obj = Evaluator::execute(m_context,
+                                        [](ExecutionStateRef* state,
+                                           ValueRef* thisValue) -> ValueRef* {
+                                            return thisValue->toObject(state);
+                                        },
+                                        thisValue)
+                         .result->asObject();
+
+    auto it = m_extensionInstances.find(obj);
     if (it == m_extensionInstances.end()) {
         return nullptr;
     }
@@ -546,36 +580,40 @@ ExtensionManagerInstance::ExtensionManagerInstance(ContextRef* context)
 #undef DECLARE_TIZEN_OBJECT
 
     m_strings = new TizenStrings(m_context);
-    ExecutionStateRef* state = ExecutionStateRef::create(m_context);
+    Evaluator::execute(
+        m_context,
+        [](ExecutionStateRef* state,
+           ExtensionManagerInstance* self) -> ValueRef* {
+            ValueRef* tizenGetter = ValueRef::create(FunctionObjectRef::create(
+                state,
+                FunctionObjectRef::NativeFunctionInfo(
+                    self->m_strings->tizen,
+                    [](ExecutionStateRef* state, ValueRef* thisValue,
+                       size_t argc, ValueRef** argv,
+                       bool isNewExpression) -> ValueRef* {
+                        DEVICEAPI_LOG_INFO("Enter");
 
-    ValueRef* tizenGetter = ValueRef::create(FunctionObjectRef::create(
-        state,
-        FunctionObjectRef::NativeFunctionInfo(
-            m_strings->tizen,
-            [](ExecutionStateRef* state, ValueRef* thisValue, size_t argc,
-               ValueRef** argv, bool isNewExpression) -> ValueRef* {
-                DEVICEAPI_LOG_INFO("Enter");
+                        ExtensionManagerInstance* extensionManagerInstance =
+                            get(state->context());
 
-                ExtensionManagerInstance* extensionManagerInstance =
-                    get(state->context());
+                        if (extensionManagerInstance->m_tizenValue) {
+                            return extensionManagerInstance->m_tizenValue;
+                        }
 
-                if (extensionManagerInstance->m_tizenValue) {
-                    return extensionManagerInstance->m_tizenValue;
-                }
+                        TizenStrings* strings =
+                            extensionManagerInstance->strings();
+                        strings->initializeLazyStrings();
 
-                TizenStrings* strings = extensionManagerInstance->strings();
-                strings->initializeLazyStrings();
-
-                // initialize tizen object
-                ObjectRef* tizenObject =
-                    extensionManagerInstance->initializeExtensionInstance(
-                        "tizen");
-                extensionManagerInstance->m_tizenValue =
-                    ValueRef::create(tizenObject);
+                        // initialize tizen object
+                        ObjectRef* tizenObject =
+                            extensionManagerInstance
+                                ->initializeExtensionInstance("tizen");
+                        extensionManagerInstance->m_tizenValue =
+                            ValueRef::create(tizenObject);
 
 #define DEFINE_SUPPORTED_TIZEN_API(name)                                       \
     tizenObject->defineAccessorProperty(                                       \
-        state, ValueRef::create(StringRef::fromASCII("" #name)),               \
+        state, ValueRef::create(StringRef::createFromASCII("" #name)),         \
         ObjectRef::AccessorPropertyDescriptor(                                 \
             ValueRef::create(FunctionObjectRef::create(                        \
                 state,                                                         \
@@ -598,15 +636,15 @@ ExtensionManagerInstance::ExtensionManagerInstance(ContextRef* context)
                         extensionManagerInstance->VALUE_NAME_STRCAT(           \
                             m_##name) = ValueRef::create(apiObject);           \
                         thisValue->toObject(state)->defineDataProperty(        \
-                            state,                                             \
-                            ValueRef::create(StringRef::fromASCII("" #name)),  \
+                            state, ValueRef::create(                           \
+                                       StringRef::createFromASCII("" #name)),  \
                             ValueRef::create(apiObject), false, true, false);  \
                         return ValueRef::create(apiObject);                    \
                     },                                                         \
-                    0, nullptr, true, true))),                                 \
+                    0, true, true))),                                          \
             nullptr, ObjectRef::PresentAttribute::EnumerablePresent));
 
-                SUPPORTED_TIZEN_PROPERTY(DEFINE_SUPPORTED_TIZEN_API)
+                        SUPPORTED_TIZEN_PROPERTY(DEFINE_SUPPORTED_TIZEN_API)
 #undef DEFINE_SUPPORTED_TIZEN_API
 
 #define DEFINE_SUPPORTED_TIZEN_ENTRYPOINTS(name)                               \
@@ -623,8 +661,8 @@ ExtensionManagerInstance::ExtensionManagerInstance(ContextRef* context)
                 }                                                              \
                 DEVICEAPI_LOG_INFO("Loading plugin for %s", "" #name);         \
                 extensionManagerInstance->m_tizenValue->toObject(state)->get(  \
-                    state,                                                     \
-                    ValueRef::create(StringRef::fromASCII("application")));    \
+                    state, ValueRef::create(                                   \
+                               StringRef::createFromASCII("application")));    \
                 NativeDataAccessorPropertyDataForEntryPoint* myData =          \
                     (NativeDataAccessorPropertyDataForEntryPoint*)data;        \
                 extensionManagerInstance->VALUE_NAME_STRCAT(m_##name) =        \
@@ -640,68 +678,81 @@ ExtensionManagerInstance::ExtensionManagerInstance(ContextRef* context)
                 return true;                                                   \
             });                                                                \
     tizenObject->defineNativeDataAccessorProperty(                             \
-        state, ValueRef::create(StringRef::fromASCII(#name)),                  \
+        state, ValueRef::create(StringRef::createFromASCII(#name)),            \
         nativeData##name);
 
-                SUPPORTED_TIZEN_ENTRYPOINTS(DEFINE_SUPPORTED_TIZEN_ENTRYPOINTS)
+                        SUPPORTED_TIZEN_ENTRYPOINTS(
+                            DEFINE_SUPPORTED_TIZEN_ENTRYPOINTS)
 #undef DEFINE_SUPPORTED_TIZEN_ENTRYPOINTS
 
 #if defined(STARFISH_TIZEN_WEARABLE_WIDGET)
-                WebWidgetAPIInstance* ww = new(GC) WebWidgetAPIInstance();
-                extensionManagerInstance->m_webWidgetAPIInstance = ww;
-                ObjectRef* widgetAPIObj = ww->createWebWidgetAPIObject(state->context());
-                tizenObject->defineDataProperty(state, ValueRef::create(StringRef::fromASCII("webWidget")), ValueRef::create(widgetAPIObj), false, true, false);
+                        WebWidgetAPIInstance* ww =
+                            new (GC) WebWidgetAPIInstance();
+                        extensionManagerInstance->m_webWidgetAPIInstance = ww;
+                        ObjectRef* widgetAPIObj =
+                            ww->createWebWidgetAPIObject(state->context());
+                        tizenObject->defineDataProperty(
+                            state, ValueRef::create(
+                                       StringRef::createFromASCII("webWidget")),
+                            ValueRef::create(widgetAPIObj), false, true, false);
 #endif
 
-                return ValueRef::create(tizenObject);
-            },
-            0, nullptr, true, true)));
+                        return ValueRef::create(tizenObject);
+                    },
+                    0, true, true)));
 
-    m_context->globalObject()->defineAccessorProperty(
-        state, ValueRef::create(m_strings->tizen->string()),
-        ObjectRef::AccessorPropertyDescriptor(
-            tizenGetter, nullptr,
-            ObjectRef::PresentAttribute::EnumerablePresent));
+            self->m_context->globalObject()->defineAccessorProperty(
+                state, ValueRef::create(self->m_strings->tizen->string()),
+                ObjectRef::AccessorPropertyDescriptor(
+                    tizenGetter, nullptr,
+                    ObjectRef::PresentAttribute::EnumerablePresent));
 
-    ValueRef* xwalkGetter = ValueRef::create(FunctionObjectRef::create(
-        state,
-        FunctionObjectRef::NativeFunctionInfo(
-            m_strings->xwalk,
-            [](ExecutionStateRef* state, ValueRef* thisValue, size_t argc,
-               ValueRef** argv, bool isNewExpression) -> ValueRef* {
-                DEVICEAPI_LOG_INFO("xwalkGetter Enter");
+            ValueRef* xwalkGetter = ValueRef::create(FunctionObjectRef::create(
+                state,
+                FunctionObjectRef::NativeFunctionInfo(
+                    self->m_strings->xwalk,
+                    [](ExecutionStateRef* state, ValueRef* thisValue,
+                       size_t argc, ValueRef** argv,
+                       bool isNewExpression) -> ValueRef* {
+                        DEVICEAPI_LOG_INFO("xwalkGetter Enter");
 
-                ExtensionManagerInstance* extensionManagerInstance =
-                    get(state->context());
-                if (extensionManagerInstance->m_xwalkValue) {
-                    return extensionManagerInstance->m_xwalkValue;
-                }
-                DEVICEAPI_LOG_INFO("Loading plugin for xwalk.utils");
+                        ExtensionManagerInstance* extensionManagerInstance =
+                            get(state->context());
+                        if (extensionManagerInstance->m_xwalkValue) {
+                            return extensionManagerInstance->m_xwalkValue;
+                        }
+                        DEVICEAPI_LOG_INFO("Loading plugin for xwalk.utils");
 
-                TizenStrings* strings = extensionManagerInstance->strings();
-                strings->initializeLazyStrings();
+                        TizenStrings* strings =
+                            extensionManagerInstance->strings();
+                        strings->initializeLazyStrings();
 
-                // initialize xwalk object
-                ObjectRef* xwalkObject =
-                    extensionManagerInstance->initializeExtensionInstance(
-                        "utils");
-                extensionManagerInstance->m_xwalkValue =
-                    ValueRef::create(xwalkObject);
+                        // initialize xwalk object
+                        ObjectRef* xwalkObject =
+                            extensionManagerInstance
+                                ->initializeExtensionInstance("utils");
+                        extensionManagerInstance->m_xwalkValue =
+                            ValueRef::create(xwalkObject);
 
-                // re-define xwalk object
-                thisValue->toObject(state)->defineDataProperty(
-                    state, ValueRef::create(strings->xwalk->string()),
-                    ValueRef::create(xwalkObject), false, true, false);
+                        // re-define xwalk object
+                        thisValue->toObject(state)->defineDataProperty(
+                            state, ValueRef::create(strings->xwalk->string()),
+                            ValueRef::create(xwalkObject), false, true, false);
 
-                return ValueRef::create(xwalkObject);
-            },
-            0, nullptr, true, true)));
+                        return ValueRef::create(xwalkObject);
+                    },
+                    0, true, true)));
 
-    m_context->globalObject()->defineAccessorProperty(
-        state, ValueRef::create(m_strings->xwalk->string()),
-        ObjectRef::AccessorPropertyDescriptor(
-            xwalkGetter, nullptr,
-            ObjectRef::PresentAttribute::EnumerablePresent));
+            self->m_context->globalObject()->defineAccessorProperty(
+                state, ValueRef::create(self->m_strings->xwalk->string()),
+                ObjectRef::AccessorPropertyDescriptor(
+                    xwalkGetter, nullptr,
+                    ObjectRef::PresentAttribute::EnumerablePresent));
+
+            return ValueRef::createUndefined();
+
+        },
+        this);
 
 #if defined(STARFISH_TIZEN_WEARABLE_WIDGET)
     m_webWidgetAPIInstance = nullptr;
