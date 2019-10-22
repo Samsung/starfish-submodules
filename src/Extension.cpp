@@ -321,9 +321,10 @@ void ESPostMessageListener::PostMessageToJS(const std::string& msg)
                 },
                 params);
             if (result.error.hasValue()) {
-                DEVICEAPI_LOG_ERROR(
-                    "Uncaught %s\n",
-                    result.resultOrErrorToString(context)->toStdUTF8String().c_str());
+                DEVICEAPI_LOG_ERROR("Uncaught %s\n",
+                                    result.resultOrErrorToString(context)
+                                        ->toStdUTF8String()
+                                        .c_str());
             }
 
             delete params;
