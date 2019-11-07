@@ -45,7 +45,8 @@ CFLAGS+=" -D_PNG_COLOR_PICK_ENABLED_ -D_PNG_SEQUENTIAL_READ_SUPPORTED_"
 %configure \
     --disable-static \
 %ifarch %arm armv7l armv7el aarch64
-    --enable-arm-neon=check
+    --enable-arm-neon=check \
+    %{?ubsan: --enable-arm-neon=no}
 %endif
 
 
