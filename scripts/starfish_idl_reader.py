@@ -262,15 +262,23 @@ class StarfishIDLReader():
     result = {}
     _set_boolean_prop(result, node, 'NULLABLE', 'nullable')
     for child in node.GetChildren():
-      if _is_class(child, 'Sequence') or\
-         _is_class(child, 'Promise'):
-        # Sequence | Promise
+      if _is_class(child, 'Promise'):
+        # Promise
         result['kind'] = child.GetClass()
         result['name'] = child.GetClass()
         _set_boolean_prop(result, child, 'NULLABLE', 'nullable')
         for subt in child.GetChildren():
           if subt.GetClass() == 'Type':
             result['data'] = self._gen_ir_type(subt)
+            break
+      if _is_class(child, 'Sequence'):
+        # Sequence
+        _set_boolean_prop(result, child, 'NULLABLE', 'nullable')
+        for subt in child.GetChildren():
+          if subt.GetClass() == 'Type':
+            result['data'] = self._gen_ir_type(subt)
+            result['kind'] = child.GetClass()+"Of"+str(result['data']['name'])
+            result['name'] = result['kind']
             break
       elif _is_class(child, 'UnionType'):
         result['kind'] = child.GetClass()
@@ -629,7 +637,7 @@ class StarfishIDLReader():
                           _hd_extattr_custom_descriptor,
                           _hd_extattr_serializable,
                           _hd_extattr_transferable,
-                          _hd_extattr_raise_expection, 
+                          _hd_extattr_raise_expection,
                           _hd_extattr_exposed])
     rs_except = result.pop('raises_exception', None)
     call_with = result.pop('_call_with', None)

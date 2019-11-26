@@ -52,7 +52,7 @@
 {%- macro gen_check_type(type, aname) -%}
     {% if type.kind == 'Typeref' %}
         _CHECK_TYPEOF({{ aname }}, {{ type.name }})
-    {% elif type.kind == 'Sequence' %}
+    {% elif type.kind.startswith('SequenceOf') %}
         ({{ aname }}->isObject())
     {% elif type.kind == 'Promise' %}
         ({{ aname }}->isObject() && {{ aname }}->asObject()->isPromiseObject())
@@ -191,9 +191,9 @@ ScriptObject
 {% endif %}
 int {{ aname }}Size = (int){{ aname }}->asObject()->get(state, ValueRef::create(StringRef::createFromASCII("length")))->toNumber(state);
 for (int i = 0; i < {{ aname }}Size; i++) {
-    {% set use_nullable = seq.data.kind in non_nullable_type_kinds and seq.data.nullable %}
+    {% set use_nullable = is_non_nullable_type(seq.data.kind) and seq.data.nullable %}
     {% set type_exp = gen_type_str(seq.data, use_nullable) %}
-    {% if seq.data.kind == 'Sequence' %}
+    {% if seq.data.kind.startswith('SequenceOf') %}
     DOES NOT SUPPORT NESTED SEQUENCE YET !! (PLEASE USE `CUSTOM`)
     {% endif %}
     ValueRef* itemJS = {{ aname }}->asObject()->get(state, ValueRef::create(i));
@@ -225,7 +225,7 @@ for (int i = 0; i < {{ aname }}Size; i++) {
         {% set type_str = 'ScriptValue'%}
     {% elif type.kind == 'PrimitiveType' %}
         {% set type_str  = gen_primitive_type_str(type)|trim %}
-    {% elif type.kind == 'Sequence' %}
+    {% elif type.kind.startswith('SequenceOf') %}
         {% if type.data.kind == 'PrimitiveType' %}
             {% set type_str  = 'GCAtomicVector<%s>'|format(gen_type_str(type.data, type.data.kind in non_nullable_type_kinds and type.data.nullable)) %}
         {% else %}
@@ -304,8 +304,19 @@ if (!std::isfinite({{names.vname}})) {
     {% endif %}
 {%- endmacro %}
 
+{% macro is_non_nullable_type(kind) %}
+    {% set found = False %}
+    {% for x in non_nullable_type_kinds %}
+        {% if x == 'SequenceOf' and kind.startswith(x) %}
+            {{ True }}
+        {% elif kind == x %}
+            {{ True }}
+        {% endif %}
+    {% endfor %}
+{% endmacro %}
+
 {%- macro handle_arg(arg, names, fromattr=False, skip_type_check=False, need_counting=False) %}
-    {% set use_nullable = arg.type.kind in non_nullable_type_kinds and arg.type.nullable %}
+    {% set use_nullable = is_non_nullable_type(arg.type.kind) and arg.type.nullable %}
     {% set type_exp = gen_type_str(arg.type, use_nullable) %}
     {{ '// Handle argument %s'|format(names.aname) }}
     {###### Declaring native variable of an argument ######}
@@ -331,7 +342,7 @@ if (!std::isfinite({{names.vname}})) {
     {% endif %}
     {###### Assigning native variable of an argument ######}
     {% set check_type = gen_check_type_exception(arg.type, names.aname, skip_type_check)|trim %}
-    {% if arg.type.kind == 'Sequence' %}
+    {% if arg.type.kind.startswith('SequenceOf') %}
     {% set assign_exp = get_arrayobject_to_native(arg.type, names.aname, names.vname) %}
     {% else %}
     {% set assign_exp = '%s = %s;'|format(names.vname, gen_esvalue_to_native(arg.type, names.aname, fromattr)) %}
@@ -394,7 +405,7 @@ if (!std::isfinite({{names.vname}})) {
 
 {################## 'HANDLE RETURNS' ##################}
 {%- macro gen_declare_return_value_impl(type, vname, is_descriptor) -%}
-    {% set use_nullable = type.kind in non_nullable_type_kinds and (type.nullable or is_descriptor) %}
+    {% set use_nullable = is_non_nullable_type(type.kind) and (type.nullable or is_descriptor) %}
     {% set type_exp = gen_type_str(type, use_nullable) %}
     {% if type.kind in pointer_type_kinds %}
     {{- '%s %s = nullptr;'|format(type_exp, vname) -}}
@@ -431,8 +442,9 @@ ValueRef::create({{var_name}})
 {%- endmacro -%}
 
 {%- macro gen_return_code(type, vname='result') -%}
-    {% if type.kind == 'Sequence' %}
+    {% if type.kind.startswith('SequenceOf') %}
 ArrayObjectRef* arrayObj = ArrayObjectRef::create(state);
+
 for (unsigned aidx = 0; aidx < {{ vname }}.size(); aidx++) {
     {% if type.data.kind in non_nullable_type_kinds and type.data.nullable %}
     ValueRef* item = {{ vname }}[aidx].hasValue() ? {{ gen_native_to_jsvalue(type.data, '%s[aidx].getValue()'|format(vname)) }} : ValueRef::createNull();
@@ -453,7 +465,7 @@ return {{ gen_native_to_jsvalue(type, vname) }};
 {%- endmacro -%}
 
 {%- macro handle_return_impl(return_type, vname='result') -%}
-    {% set use_nullable = return_type.kind in non_nullable_type_kinds and return_type.nullable %}
+    {% set use_nullable = is_non_nullable_type(return_type.kind) and return_type.nullable %}
     {% if return_type.name == 'void' -%}
     return ValueRef::createUndefined();
     {%- elif use_nullable -%}

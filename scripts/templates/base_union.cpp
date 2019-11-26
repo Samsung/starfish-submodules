@@ -55,7 +55,7 @@ namespace Starfish {
     if ({{ util_macro.gen_check_type(subtype, 'from')|trim }}) {
         {% set use_nullable = subtype.kind in non_nullable_type_kinds and subtype.nullable %}
         {% set type_exp = util_macro.gen_type_str(subtype, use_nullable)|trim %}
-        {% if subtype.kind == 'Sequence' %}
+        {% if subtype.kind.startswith('SequenceOf') %}
             if (from->asObject()->getPrototype(state)->isObject() && ((from->asObject()->getPrototype(state)->asObject()->isArrayPrototypeObject())||from->asObject()->getPrototype(state)->asObject()->isTypedArrayPrototypeObject())) {
                 {{ type_exp }} resultValue;
                 {{ util_macro.get_arrayobject_to_native(subtype, 'from', 'resultValue')|indent(16) }}

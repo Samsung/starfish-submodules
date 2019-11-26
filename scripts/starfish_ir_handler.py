@@ -65,7 +65,9 @@ class StarfishIRHandler():
         type_ir['data'] = self.unions[union_name]['data']
       else:
         self.unions[union_name] = type_ir
-    elif kind in ['Sequence', 'Promise']:
+    elif kind in ['Promise']:
+      self._change_types(type_ir, 'data', unimpl)
+    elif str(kind).startswith('SequenceOf'):
       self._change_types(type_ir, 'data', unimpl)
 
   def _udpate_has_exception(self, op):

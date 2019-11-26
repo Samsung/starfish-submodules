@@ -99,7 +99,7 @@ ValueRef* toValueRefFrom{{name}}(ExecutionStateRef* state, {{name}}& from)
     {% elif key.type.kind in pointer_type_kinds %}
     STARFISH_ASSERT({{ vname }} != nullptr);
     result->set(state, ValueRef::create(StringRef::createFromASCII("{{ key.name }}")), {{ util_macro.gen_native_to_jsvalue(key.type, vname) }});
-    {% elif key.type.kind == 'Sequence' %}
+    {% elif key.type.kind.startswith('SequenceOf') %}
     ArrayObjectRef* {{ key.name }}ArrayObj = ArrayObjectRef::create(state);
     for (unsigned idx = 0; idx < {{ vname }}.size(); idx++) {
         {% if key.type.data.kind in non_nullable_type_kinds and key.type.data.nullable %}
