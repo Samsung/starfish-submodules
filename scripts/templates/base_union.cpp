@@ -53,7 +53,7 @@ namespace Starfish {
 {% for subtype in data %}
     {%- call util_macro.ifdef_and_exposed(subtype.flags, subtype.exposed, args.exposed) %}
     if ({{ util_macro.gen_check_type(subtype, 'from')|trim }}) {
-        {% set use_nullable = subtype.kind in non_nullable_type_kinds and subtype.nullable %}
+        {% set use_nullable = util_macro.is_non_nullable_type(subtype.kind) and subtype.nullable %}
         {% set type_exp = util_macro.gen_type_str(subtype, use_nullable)|trim %}
         {% if subtype.kind.startswith('SequenceOf') %}
             if (from->asObject()->getPrototype(state)->isObject() && ((from->asObject()->getPrototype(state)->asObject()->isArrayPrototypeObject())||from->asObject()->getPrototype(state)->asObject()->isTypedArrayPrototypeObject())) {
@@ -80,7 +80,7 @@ ValueRef* toValueRefFrom{{ name }}(ExecutionStateRef* state, const {{ name }}& f
 {
 {% for subtype in data %}
     {%- call util_macro.ifdef_and_exposed(subtype.flags, subtype.exposed, args.exposed) %}
-        {% set use_nullable = subtype.kind in non_nullable_type_kinds and subtype.nullable %}
+        {% set use_nullable = util_macro.is_non_nullable_type(subtype.kind) and subtype.nullable %}
     if (from.is{{ subtype.name }}Value()) {
         {{ util_macro.gen_type_str(subtype, use_nullable) }} resultValue = from.get{{ subtype.name }}Value();
         {{ util_macro.gen_return_code(subtype, 'resultValue')|indent(8) }}

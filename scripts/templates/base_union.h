@@ -16,7 +16,7 @@
 {% import 'util.cpp' as util_macro %}
 {%- call util_macro.ifdef(flags) %}
 {%- macro gen_item_type_exp(item) -%}
-{{ util_macro.gen_type_str(item, item.kind in non_nullable_type_kinds and item.nullable) }}
+{{ util_macro.gen_type_str(item, util_macro.is_non_nullable_type(item.kind) and item.nullable) }}
 {%- endmacro -%}
 #ifndef __Starfish{{ name }}__
 #define __Starfish{{ name }}__
@@ -44,6 +44,15 @@
     {% endif %}
 {% endfor %}
 {%- endmacro -%}
+
+{% macro has_sequence_type(list) %}
+    {% for x in list %}
+        {% if x.kind.startswith('SequenceOf') %}
+            {{ True }}
+        {% endif %}
+    {% endfor %}
+{% endmacro %}
+
 namespace Starfish {
 
 class {{ name }} : public gc {
@@ -79,10 +88,15 @@ public:
         ValueData()
         {{ initialize_first_member(data, args.exposed) }}
         {
+        {% if has_sequence_type(data) %}
+            // memory blocks need to be initialized before making an empty vector
+            memset(this,0x00,sizeof(ValueData));
+        {% else %}
 #ifndef NDEBUG
             // This initialization is added for debugging purposes.(memory corruption)
             memset(this,0xFF,sizeof(ValueData));
 #endif
+        {% endif %}
         }
 {% for item in data %}
     {%- call util_macro.ifdef_and_exposed(item.flags, item.exposed, args.exposed) %}

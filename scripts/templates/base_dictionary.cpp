@@ -81,14 +81,33 @@ ValueRef* toValueRefFrom{{name}}(ExecutionStateRef* state, {{name}}& from)
 {% for key in members %}
     {% if not key.unimplemented %}
     {% set vname = 'value%d'|format(loop.index - 1) %}
-    {% set use_nullable = key.type.kind in non_nullable_type_kinds and key.type.nullable %}
+    {% set use_nullable = util_macro.is_non_nullable_type(key.type.kind) and key.type.nullable %}
     {{ util_macro.gen_declare_return_value(key.type, vname)|trim }}
     {{ vname }} = from.{{ key.name }}();
+
     {% if use_nullable %}
     if (!{{ vname }}.hasValue()) {
         result->set(state, ValueRef::create(StringRef::createFromASCII("{{ key.name }}")), ValueRef::createNull());
     } else {
+        {% if key.type.kind.startswith('SequenceOf') %}
+        ArrayObjectRef* {{ key.name }}ArrayObj = ArrayObjectRef::create(state);
+        for (unsigned idx = 0; idx < {{ vname }}.value().size(); idx++) {
+            {% if util_macro.is_non_nullable_type(key.type.data.kind) and key.type.data.nullable %}
+            ValueRef* item = {{ vname }}.value()[idx].hasValue() ? {{ util_macro.gen_native_to_jsvalue(key.type.data, '%s.value()[idx].getValue()'|format(vname)) }} : ValueRef::createNull();
+            {% elif key.type.data.kind in pointer_type_kinds and key.type.data.nullable %}
+            ValueRef* item = {{ vname }}.value()[idx] != nullptr ? {{ util_macro.gen_native_to_jsvalue(key.type.data, '%s.value()[idx]'|format(vname)) }} : ValueRef::createNull();
+            {% else %}
+                {% if key.type.data.kind in pointer_type_kinds %}
+            STARFISH_ASSERT({{ vname }}.value()[idx] != nullptr);
+                {% endif %}
+            ValueRef* item = {{ util_macro.gen_native_to_jsvalue(key.type.data, '%s.value()[idx]'|format(vname)) }};
+            {% endif %}
+            {{ key.name }}ArrayObj->set(state, ValueRef::create(idx), item);
+        }
+        result->set(state, ValueRef::create(StringRef::createFromASCII("{{ key.name }}")), ValueRef::create({{ key.name }}ArrayObj));
+        {% else %}
         result->set(state, ValueRef::create(StringRef::createFromASCII("{{ key.name }}")), {{ util_macro.gen_native_to_jsvalue(key.type, '%s.getValue()'|format(vname)) }});
+        {% endif %}
     }
     {% elif key.type.nullable %}
     if ({{ vname }} == nullptr) {
@@ -102,7 +121,7 @@ ValueRef* toValueRefFrom{{name}}(ExecutionStateRef* state, {{name}}& from)
     {% elif key.type.kind.startswith('SequenceOf') %}
     ArrayObjectRef* {{ key.name }}ArrayObj = ArrayObjectRef::create(state);
     for (unsigned idx = 0; idx < {{ vname }}.size(); idx++) {
-        {% if key.type.data.kind in non_nullable_type_kinds and key.type.data.nullable %}
+        {% if util_macro.is_non_nullable_type(key.type.data.kind) and key.type.data.nullable %}
         ValueRef* item = {{ vname }}[idx].hasValue() ? {{ util_macro.gen_native_to_jsvalue(key.type.data, '%s[idx].getValue()'|format(vname)) }} : ValueRef::createNull();
         {% elif key.type.data.kind in pointer_type_kinds and key.type.data.nullable %}
         ValueRef* item = {{ vname }}[idx] != nullptr ? {{ util_macro.gen_native_to_jsvalue(key.type.data, '%s[idx]'|format(vname)) }} : ValueRef::createNull();

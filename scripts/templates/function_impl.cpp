@@ -159,7 +159,7 @@ if (validArgCount == {{function.min_passing_count|string}}) {
 
 {%- macro handle_ellipsis(start_idx) %}
     {% set ellp_type = function.arguments[start_idx].type -%}
-    {% set type_exp = util_macro.gen_type_str(ellp_type, ellp_type.nullable and ellp_type in non_nullable_type_kinds) -%}
+    {% set type_exp = util_macro.gen_type_str(ellp_type, ellp_type.nullable and util_macro.is_non_nullable_type(ellp_type)) -%}
     // Handle ellipsis arguments from index{{start_idx}}
     GCVector<{{type_exp}}> value{{start_idx}};
     {% if function.min_passed_count == 0 or skip_type_check %}

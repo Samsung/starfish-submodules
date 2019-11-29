@@ -189,6 +189,7 @@ ScriptObject
 {% if seq.nullable %}
 {{ gen_type_str(seq, False) }} {{ vector_name }};
 {% endif %}
+if (!{{ aname }}->isUndefinedOrNull()) {
 int {{ aname }}Size = (int){{ aname }}->asObject()->get(state, ValueRef::create(StringRef::createFromASCII("length")))->toNumber(state);
 for (int i = 0; i < {{ aname }}Size; i++) {
     {% set use_nullable = is_non_nullable_type(seq.data.kind) and seq.data.nullable %}
@@ -213,6 +214,7 @@ for (int i = 0; i < {{ aname }}Size; i++) {
     {% endif %}
     {{vector_name}}.push_back(itemNV);
 }
+}
 {% if seq.nullable %}
 {{ vname }} = {{ vector_name }};
 {% endif %}
@@ -227,9 +229,9 @@ for (int i = 0; i < {{ aname }}Size; i++) {
         {% set type_str  = gen_primitive_type_str(type)|trim %}
     {% elif type.kind.startswith('SequenceOf') %}
         {% if type.data.kind == 'PrimitiveType' %}
-            {% set type_str  = 'GCAtomicVector<%s>'|format(gen_type_str(type.data, type.data.kind in non_nullable_type_kinds and type.data.nullable)) %}
+            {% set type_str  = 'GCAtomicVector<%s>'|format(gen_type_str(type.data, is_non_nullable_type(type.data.kind) and type.data.nullable)) %}
         {% else %}
-            {% set type_str  = 'GCVector<%s>'|format(gen_type_str(type.data, type.data.kind in non_nullable_type_kinds and type.data.nullable)) %}
+            {% set type_str  = 'GCVector<%s>'|format(gen_type_str(type.data, is_non_nullable_type(type.data.kind) and type.data.nullable)) %}
         {% endif %}
     {% elif type.kind == 'SpecialType' %}
         {% if type.name == 'ArrayBuffer' %}
@@ -446,7 +448,7 @@ ValueRef::create({{var_name}})
 ArrayObjectRef* arrayObj = ArrayObjectRef::create(state);
 
 for (unsigned aidx = 0; aidx < {{ vname }}.size(); aidx++) {
-    {% if type.data.kind in non_nullable_type_kinds and type.data.nullable %}
+    {% if is_non_nullable_type(type.data.kind) and type.data.nullable %}
     ValueRef* item = {{ vname }}[aidx].hasValue() ? {{ gen_native_to_jsvalue(type.data, '%s[aidx].getValue()'|format(vname)) }} : ValueRef::createNull();
     {% elif type.data.kind in pointer_type_kinds and type.data.nullable %}
     ValueRef* item = {{ vname }}[aidx] != nullptr ? {{ gen_native_to_jsvalue(type.data, '%s[aidx]'|format(vname)) }} : ValueRef::createNull();
