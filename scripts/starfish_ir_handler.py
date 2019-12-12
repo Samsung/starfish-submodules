@@ -53,7 +53,9 @@ class StarfishIRHandler():
         type_ir['data'] = self.callbacks[name]
         return
       if name in self.enums:
-        parent[type_key] = self.enums[name]
+        parent[type_key] = self.enums[name].copy()
+        if 'nullable' in type_ir:
+          parent[type_key]['nullable'] = True
         return
       if not unimpl:
         self._add_used_typeref(name)

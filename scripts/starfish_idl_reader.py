@@ -271,7 +271,7 @@ class StarfishIDLReader():
           if subt.GetClass() == 'Type':
             result['data'] = self._gen_ir_type(subt)
             break
-      if _is_class(child, 'Sequence'):
+      elif _is_class(child, 'Sequence'):
         # Sequence
         _set_boolean_prop(result, child, 'NULLABLE', 'nullable')
         for subt in child.GetChildren():
