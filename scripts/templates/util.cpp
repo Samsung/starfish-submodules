@@ -340,7 +340,11 @@ if (!std::isfinite({{names.vname}})) {
     {% elif arg.type.kind in pointer_type_kinds %}
     {{ '%s %s = nullptr;'|format(type_exp, names.vname) }}
     {% else %}
+        {% if type_exp in number_type_names %}
+    {{ '%s %s = 0;'|format(type_exp, names.vname) }}
+        {% else %}
     {{ '%s %s;'|format(type_exp, names.vname) }}
+        {% endif %}
     {% endif %}
     {###### Assigning native variable of an argument ######}
     {% set check_type = gen_check_type_exception(arg.type, names.aname, skip_type_check)|trim %}
