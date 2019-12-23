@@ -1,11 +1,11 @@
 Name:       libwebsockets
 Summary:    WebSocket Library
-Version:    2.3.0
+Version:    3.2.0
 Release:    1
 Group:      System/Libraries
 License:    LGPL-2.1+ OR BSD-3-Clause
 URL:        https://github.com/warmcat/libwebsockets
-Source0:    %{name}-%{version}.tar.bz2
+Source0:    %{name}-%{version}.tar.gz
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 BuildRequires: zlib-devel
@@ -54,7 +54,9 @@ rm -rf %{buildroot}
 %files devel
 %defattr(-,root,root,-)
 %{_includedir}/libwebsockets.h
+%{_includedir}/lws-plugin-ssh.h
 %{_includedir}/lws_config.h
+%{_includedir}/libwebsockets/*
 %{_libdir}/libwebsockets.so
 %{_libdir}/pkgconfig/*
 %{_libdir}/cmake/*
