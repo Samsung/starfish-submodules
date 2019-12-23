@@ -1,7 +1,7 @@
 /*
  * ws protocol handler plugin for messageboard "generic sessions" demo
  *
- * Copyright (C) 2010-2016 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010-2019 Andy Green <andy@warmcat.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,10 +21,11 @@
 
 #define LWS_DLL
 #define LWS_INTERNAL
-#include "../lib/libwebsockets.h"
+#include <libwebsockets.h>
 
 #include <sqlite3.h>
 #include <string.h>
+#include <stdlib.h>
 
 struct per_vhost_data__gs_mb {
 	struct lws_vhost *vh;
@@ -40,6 +41,7 @@ struct per_session_data__gs_mb {
 	struct lws_spa *spa;
 	unsigned long last_idx;
 	unsigned int our_form:1;
+	char second_http_part;
 };
 
 static const char * const param_names[] = {
@@ -83,23 +85,19 @@ lookup_cb(void *priv, int cols, char **col_val, char **col_name)
 			continue;
 		}
 		if (!strcmp(col_name[n], "username")) {
-			strncpy(m->username, col_val[n], sizeof(m->username) - 1);
-			m->username[sizeof(m->username) - 1] = '\0';
+			lws_strncpy(m->username, col_val[n], sizeof(m->username));
 			continue;
 		}
 		if (!strcmp(col_name[n], "email")) {
-			strncpy(m->email, col_val[n], sizeof(m->email) - 1);
-			m->email[sizeof(m->email) - 1] = '\0';
+			lws_strncpy(m->email, col_val[n], sizeof(m->email));
 			continue;
 		}
 		if (!strcmp(col_name[n], "ip")) {
-			strncpy(m->ip, col_val[n], sizeof(m->ip) - 1);
-			m->ip[sizeof(m->ip) - 1] = '\0';
+			lws_strncpy(m->ip, col_val[n], sizeof(m->ip));
 			continue;
 		}
 		if (!strcmp(col_name[n], "content")) {
-			strncpy(m->content, col_val[n], sizeof(m->content) - 1);
-			m->content[sizeof(m->content) - 1] = '\0';
+			lws_strncpy(m->content, col_val[n], sizeof(m->content));
 			continue;
 		}
 	}
@@ -159,12 +157,13 @@ callback_messageboard(struct lws *wsi, enum lws_callback_reasons reason,
 	const struct lws_protocol_vhost_options *pvo;
 	struct per_vhost_data__gs_mb *vhd = (struct per_vhost_data__gs_mb *)
 		lws_protocol_vh_priv_get(lws_get_vhost(wsi), lws_get_protocol(wsi));
-	unsigned char *p, *start, *end, buffer[LWS_PRE + 256];
+	unsigned char *p, *start, *end, buffer[LWS_PRE + 4096];
 	char s[512];
 	int n;
 
 	switch (reason) {
 	case LWS_CALLBACK_PROTOCOL_INIT: /* per vhost */
+
 		vhd = lws_protocol_vh_priv_zalloc(lws_get_vhost(wsi),
 			lws_get_protocol(wsi), sizeof(struct per_vhost_data__gs_mb));
 		if (!vhd)
@@ -189,9 +188,8 @@ callback_messageboard(struct lws *wsi, enum lws_callback_reasons reason,
 			return 1;
 		}
 
-		if (sqlite3_open_v2(vhd->message_db, &vhd->pdb,
-				    SQLITE_OPEN_READWRITE |
-				    SQLITE_OPEN_CREATE, NULL) != SQLITE_OK) {
+		if (lws_struct_sq3_open(lws_get_context(wsi),
+					vhd->message_db, &vhd->pdb)) {
 			lwsl_err("Unable to open message db %s: %s\n",
 				 vhd->message_db, sqlite3_errmsg(vhd->pdb));
 
@@ -212,7 +210,7 @@ callback_messageboard(struct lws *wsi, enum lws_callback_reasons reason,
 		break;
 
 	case LWS_CALLBACK_PROTOCOL_DESTROY:
-		if (vhd->pdb)
+		if (vhd && vhd->pdb)
 			sqlite3_close(vhd->pdb);
 		goto passthru;
 
@@ -226,6 +224,14 @@ callback_messageboard(struct lws *wsi, enum lws_callback_reasons reason,
 		}
 
 		lws_callback_on_writable(wsi);
+		break;
+
+	case LWS_CALLBACK_CLOSED:
+		lwsl_debug("%s: LWS_CALLBACK_CLOSED\n", __func__);
+		if (pss && pss->pss_gs) {
+			free(pss->pss_gs);
+			pss->pss_gs = NULL;
+		}
 		break;
 
 	case LWS_CALLBACK_SERVER_WRITEABLE:
@@ -281,7 +287,8 @@ callback_messageboard(struct lws *wsi, enum lws_callback_reasons reason,
 		pss->our_form = 0;
 
 		/* ie, it's our messageboard new message form */
-		if (!strcmp((const char *)in, "/msg")) {
+		if (!strcmp((const char *)in, "/msg") ||
+		    !strcmp((const char *)in, "msg")) {
 			pss->our_form = 1;
 			break;
 		}
@@ -296,7 +303,7 @@ callback_messageboard(struct lws *wsi, enum lws_callback_reasons reason,
 			break;
 		if (!pss->spa) {
 			pss->spa = lws_spa_create(wsi, param_names,
-						ARRAY_SIZE(param_names),
+					LWS_ARRAY_SIZE(param_names),
 						MAX_MSG_LEN + 1024, NULL, NULL);
 			if (!pss->spa)
 				return -1;
@@ -307,6 +314,18 @@ callback_messageboard(struct lws *wsi, enum lws_callback_reasons reason,
 			return -1;
 		}
 		break;
+
+	case LWS_CALLBACK_HTTP_WRITEABLE:
+		if (!pss->second_http_part)
+			goto passthru;
+
+		s[0] = '0';
+		n = lws_write(wsi, (unsigned char *)s, 1, LWS_WRITE_HTTP|
+				LWS_WRITE_H2_STREAM_END);
+		if (n != 1)
+			return -1;
+
+		goto try_to_reuse;
 
 	case LWS_CALLBACK_HTTP_BODY_COMPLETION:
 		if (!pss->our_form)
@@ -328,20 +347,18 @@ callback_messageboard(struct lws *wsi, enum lws_callback_reasons reason,
 			return -1;
 		if (lws_finalize_http_header(wsi, &p, end))
 			return -1;
+
 		n = lws_write(wsi, start, p - start, LWS_WRITE_HTTP_HEADERS);
 		if (n != (p - start)) {
 			lwsl_err("_write returned %d from %ld\n", n, (long)(p - start));
 			return -1;
 		}
-		s[0] = '0';
-		n = lws_write(wsi, (unsigned char *)s, 1, LWS_WRITE_HTTP);
-		if (n != 1)
-			return -1;
-
-		goto try_to_reuse;
+		pss->second_http_part = 1;
+		lws_callback_on_writable(wsi);
+		break;
 
 	case LWS_CALLBACK_HTTP_BIND_PROTOCOL:
-		if (!pss || pss->pss_gs)
+		if (!pss || !vhd || pss->pss_gs)
 			break;
 
 		pss->pss_gs = malloc(vhd->gsp->per_session_data_size);
@@ -367,7 +384,10 @@ callback_messageboard(struct lws *wsi, enum lws_callback_reasons reason,
 
 	default:
 passthru:
-		return vhd->gsp->callback(wsi, reason, pss ? pss->pss_gs : NULL, in, len);
+		if (!pss || !vhd)
+			break;
+
+		return vhd->gsp->callback(wsi, reason, pss->pss_gs, in, len);
 	}
 
 	return 0;
@@ -400,7 +420,7 @@ init_protocol_lws_messageboard(struct lws_context *context,
 	}
 
 	c->protocols = protocols;
-	c->count_protocols = ARRAY_SIZE(protocols);
+	c->count_protocols = LWS_ARRAY_SIZE(protocols);
 	c->extensions = NULL;
 	c->count_extensions = 0;
 
