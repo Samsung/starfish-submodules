@@ -21,7 +21,7 @@
 
 #define LWS_DLL
 #define LWS_INTERNAL
-#include <libwebsockets.h>
+#include "../lib/libwebsockets.h"
 
 #include <sqlite3.h>
 #include <string.h>
@@ -62,28 +62,24 @@ struct lwsgs_user {
 };
 
 struct per_vhost_data__gs {
-	lws_abs_t *smtp_client;
+	struct lws_email email;
 	struct lwsgs_user u;
-	lws_token_map_t transport_tokens[3];
-	lws_token_map_t protocol_tokens[2];
-	char helo[64], ip[64];
 	struct lws_context *context;
 	char session_db[256];
 	char admin_user[32];
-	char urlroot[48];
 	char confounder[32];
 	char email_contact_person[128];
 	char email_title[128];
 	char email_template[128];
 	char email_confirm_url[128];
-	char email_from[128];
-	lwsgw_hash admin_password_sha256;
+	lwsgw_hash admin_password_sha1;
 	sqlite3 *pdb;
 	int timeout_idle_secs;
 	int timeout_absolute_secs;
 	int timeout_anon_absolute_secs;
 	int timeout_email_secs;
 	time_t last_session_expire;
+	char email_inited;
 };
 
 struct per_session_data__gs {
@@ -98,10 +94,8 @@ struct per_session_data__gs {
 	char ip[46];
 	struct lws_process_html_state phs;
 	int spos;
-	char check_response_value;
 
 	unsigned int logging_out:1;
-	unsigned int check_response:1;
 };
 
 /* utils.c */
@@ -123,7 +117,7 @@ int
 lwsgs_check_credentials(struct per_vhost_data__gs *vhd,
 			const char *username, const char *password);
 void
-sha256_to_lwsgw_hash(unsigned char *hash, lwsgw_hash *shash);
+sha1_to_lwsgw_hash(unsigned char *hash, lwsgw_hash *shash);
 unsigned int
 lwsgs_now_secs(void);
 int
@@ -155,7 +149,7 @@ lwsgs_handler_forgot(struct per_vhost_data__gs *vhd, struct lws *wsi,
 		     struct per_session_data__gs *pss);
 int
 lwsgs_handler_check(struct per_vhost_data__gs *vhd, struct lws *wsi,
-		      struct per_session_data__gs *pss, const char *in);
+		      struct per_session_data__gs *pss);
 int
 lwsgs_handler_change_password(struct per_vhost_data__gs *vhd, struct lws *wsi,
 			      struct per_session_data__gs *pss);

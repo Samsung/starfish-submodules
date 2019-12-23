@@ -111,7 +111,7 @@ rm -rf build_tree
 mkdir build_tree
 cd build_tree
 cmake -DCMAKE_INSTALL_PREFIX=%{rpmprefix} ../%{srcdirname}
-make %{?_smp_mflags}
+make
 
 %install
 cd ../build_tree

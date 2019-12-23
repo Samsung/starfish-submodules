@@ -1,7 +1,7 @@
 /*
  * libwebsockets-test-server - libwebsockets test implementation
  *
- * Written in 2010-2019 by Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010-2016 Andy Green <andy@warmcat.com>
  *
  * This file is made available under the Creative Commons CC0 1.0
  * Universal Public Domain Dedication.
@@ -21,7 +21,7 @@
 #if !defined (LWS_PLUGIN_STATIC)
 #define LWS_DLL
 #define LWS_INTERNAL
-#include <libwebsockets.h>
+#include "../lib/libwebsockets.h"
 #endif
 
 #include <time.h>
@@ -43,13 +43,12 @@ struct per_session_data__lws_status {
 	struct per_session_data__lws_status *next;
 	struct lws *wsi;
 	time_t time_est;
-	char user_agent[256];
+	char user_agent[128];
 
 	e_walk walk;
 	struct per_session_data__lws_status *walk_next;
 	unsigned char subsequent:1;
 	unsigned char changed_partway:1;
-	unsigned char wss_over_h2:1;
 };
 
 struct per_vhost_data__lws_status {
@@ -63,15 +62,18 @@ struct per_vhost_data__lws_status {
 static void
 trigger_resend(struct per_vhost_data__lws_status *vhd)
 {
-	lws_start_foreach_ll(struct per_session_data__lws_status *, pss,
-			     vhd->live_pss_list) {
+	struct per_session_data__lws_status *pss = vhd->live_pss_list;
+
+	while (pss) {
 		if (pss->walk == WALK_NONE) {
 			pss->subsequent = 0;
 			pss->walk_next = vhd->live_pss_list;
 			pss->walk = WALK_INITIAL;
 		} else
 			pss->changed_partway = 1;
-	} lws_end_foreach_ll(pss, next);
+
+		pss = pss->next;
+	}
 
 	lws_callback_on_writable_all_protocol(vhd->context, vhd->protocol);
 }
@@ -83,7 +85,8 @@ callback_lws_status(struct lws *wsi, enum lws_callback_reasons reason,
 		    void *user, void *in, size_t len)
 {
 	struct per_session_data__lws_status *pss =
-			(struct per_session_data__lws_status *)user;
+			(struct per_session_data__lws_status *)user,
+			*pss1, *pss2;
 	struct per_vhost_data__lws_status *vhd =
 			(struct per_vhost_data__lws_status *)
 			lws_protocol_vh_priv_get(lws_get_vhost(wsi),
@@ -115,28 +118,23 @@ callback_lws_status(struct lws *wsi, enum lws_callback_reasons reason,
 		pss->next = vhd->live_pss_list;
 		vhd->live_pss_list = pss;
 
-		pss->wss_over_h2 = !!len;
-
 		time(&pss->time_est);
 		pss->wsi = wsi;
-
-		if (lws_hdr_copy(wsi, pss->user_agent, sizeof(pss->user_agent),
-			     WSI_TOKEN_HTTP_USER_AGENT) < 0) /* too big */
-			strcpy(pss->user_agent, "unknown");
+		strcpy(pss->user_agent, "unknown");
+		lws_hdr_copy(wsi, pss->user_agent, sizeof(pss->user_agent),
+			     WSI_TOKEN_HTTP_USER_AGENT);
 		trigger_resend(vhd);
 		break;
 
 	case LWS_CALLBACK_SERVER_WRITEABLE:
 		switch (pss->walk) {
 		case WALK_INITIAL:
-			n = LWS_WRITE_TEXT | LWS_WRITE_NO_FIN;
+			n = LWS_WRITE_TEXT | LWS_WRITE_NO_FIN;;
 			p += lws_snprintf(p, end - p,
 				      "{ \"version\":\"%s\","
-				      " \"wss_over_h2\":\"%d\","
 				      " \"hostname\":\"%s\","
 				      " \"wsi\":\"%d\", \"conns\":[",
 				      lws_get_library_version(),
-				      pss->wss_over_h2,
 				      lws_canonical_hostname(vhd->context),
 				      vhd->count_live_pss);
 			pss->walk = WALK_LIST;
@@ -152,14 +150,14 @@ callback_lws_status(struct lws *wsi, enum lws_callback_reasons reason,
 			pss->subsequent = 1;
 
 			m = 0;
-			lws_start_foreach_ll(struct per_session_data__lws_status *,
-					     pss2, vhd->live_pss_list) {
+			pss2 = vhd->live_pss_list;
+			while (pss2) {
 				if (pss2 == pss->walk_next) {
 					m = 1;
 					break;
 				}
-			} lws_end_foreach_ll(pss2, next);
-
+				pss2 = pss2->next;
+			}
 			if (!m) {
 				/* our next guy went away */
 				pss->walk = WALK_FINAL;
@@ -167,7 +165,6 @@ callback_lws_status(struct lws *wsi, enum lws_callback_reasons reason,
 				break;
 			}
 
-			strcpy(ip, "unknown");
 			lws_get_peer_simple(pss->walk_next->wsi, ip, sizeof(ip));
 			p += lws_snprintf(p, end - p,
 					"{\"peer\":\"%s\",\"time\":\"%ld\","
@@ -181,9 +178,8 @@ callback_lws_status(struct lws *wsi, enum lws_callback_reasons reason,
 		case WALK_FINAL:
 walk_final:
 			n = LWS_WRITE_CONTINUATION;
-			p += lws_snprintf(p, 4, "]}");
+			p += sprintf(p, "]}");
 			if (pss->changed_partway) {
-				pss->changed_partway = 0;
 				pss->subsequent = 0;
 				pss->walk_next = vhd->live_pss_list;
 				pss->walk = WALK_INITIAL;
@@ -206,18 +202,26 @@ walk_final:
 
 	case LWS_CALLBACK_RECEIVE:
 		lwsl_notice("pmd test: RX len %d\n", (int)len);
+		puts(in);
 		break;
 
 	case LWS_CALLBACK_CLOSED:
-		// lwsl_debug("****** LWS_CALLBACK_CLOSED\n");
-		lws_start_foreach_llp(struct per_session_data__lws_status **,
-			ppss, vhd->live_pss_list) {
-			if (*ppss == pss) {
-				*ppss = pss->next;
+		pss1 = vhd->live_pss_list;
+		pss2 = NULL;
+
+		while (pss1) {
+			if (pss1 == pss) {
+				if (pss2)
+					pss2->next = pss->next;
+				else
+					vhd->live_pss_list = pss->next;
+
 				break;
 			}
-		} lws_end_foreach_llp(ppss, next);
 
+			pss2 = pss1;
+			pss1 = pss1->next;
+		}
 		trigger_resend(vhd);
 		break;
 
@@ -234,7 +238,6 @@ walk_final:
 		callback_lws_status, \
 		sizeof(struct per_session_data__lws_status), \
 		512, /* rx buf size must be >= permessage-deflate rx size */ \
-		0, NULL, 0 \
 	}
 
 #if !defined (LWS_PLUGIN_STATIC)
@@ -255,7 +258,7 @@ init_protocol_lws_status(struct lws_context *context,
 	}
 
 	c->protocols = protocols;
-	c->count_protocols = LWS_ARRAY_SIZE(protocols);
+	c->count_protocols = ARRAY_SIZE(protocols);
 	c->extensions = NULL;
 	c->count_extensions = 0;
 

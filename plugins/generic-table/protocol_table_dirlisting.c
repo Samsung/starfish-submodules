@@ -21,9 +21,8 @@
 
 #define LWS_DLL
 #define LWS_INTERNAL
-#include <libwebsockets.h>
+#include "../lib/libwebsockets.h"
 
-#include <stdlib.h>
 #include <string.h>
 #include <uv.h>
 
@@ -230,7 +229,7 @@ callback_lws_table_dirlisting(struct lws *wsi, enum lws_callback_reasons reason,
 		if (len > sizeof(pss->reldir) - 1)
 			len = sizeof(pss->reldir) - 1;
 		if (!strstr(in, "..") && !strchr(in, '~'))
-			lws_strncpy(pss->reldir, in, len + 1);
+			strncpy(pss->reldir, in, len);
 		else
 			len = 0;
 		pss->reldir[len] = '\0';
@@ -262,19 +261,21 @@ callback_lws_table_dirlisting(struct lws *wsi, enum lws_callback_reasons reason,
 				s1[0] = '\0';
 				q += strlen(q);
 			} else {
-				n = lws_ptr_diff(q1, q);
-				if (n > (int)sizeof(s) - 1)
+				n = q1 - q;
+				if (n > sizeof(s) - 1)
 					n = sizeof(s) - 1;
 				if (first) {
 					strcpy(s1, "/");
 					strcpy(s, "top");
 				} else {
-					lws_strncpy(s, q, n + 1);
+					strncpy(s, q, n);
+					s[n] = '\0';
 
-					n = lws_ptr_diff(q1, pss->reldir);
-					if (n > (int)sizeof(s1) - 1)
+					n = q1 - pss->reldir;
+					if (n > sizeof(s1) - 1)
 						n = sizeof(s1) - 1;
-					lws_strncpy(s1, pss->reldir, n + 1);
+					strncpy(s1, pss->reldir, n);
+					s1[n] = '\0';
 				}
 				q = q1 + 1;
 			}
@@ -380,7 +381,7 @@ init_protocol_lws_table_dirlisting(struct lws_context *context,
 	}
 
 	c->protocols = protocols;
-	c->count_protocols = LWS_ARRAY_SIZE(protocols);
+	c->count_protocols = ARRAY_SIZE(protocols);
 	c->extensions = NULL;
 	c->count_extensions = 0;
 
