@@ -3192,10 +3192,10 @@ png_check_chunk_length(png_const_structrp png_ptr, png_uint_32 length)
    }
 }
 
-#ifdef _PNG_COLOR_PICK_ENABLED_
+#ifdef __TIZEN__
 #ifdef _ARCH_ARM_
-void 
-copy_src_to_dst(png_bytep dp, png_bytep sp, int width, 
+void
+copy_src_to_dst(png_bytep dp, png_bytep sp, int width,
                   int row_stride, int nplanes, PngPickColor *png_pickcolor)
 {
    int j;
@@ -3293,7 +3293,7 @@ copy_src_to_dst(png_bytep dp, png_bytep sp, int width,
 
       uint64x2_t sumR_64x2 = vpaddlq_u32 ( sumR_32x4 );
       uint64x2_t sumG_64x2 = vpaddlq_u32 ( sumG_32x4 );
-      uint64x2_t sumB_64x2 = vpaddlq_u32 ( sumB_32x4 );	
+      uint64x2_t sumB_64x2 = vpaddlq_u32 ( sumB_32x4 );
 
       uint64x1_t sumR_Lo_64x1 = vget_low_u64 ( sumR_64x2 );
       uint64x1_t sumR_Hi_64x1 = vget_high_u64 ( sumR_64x2 );
@@ -3311,8 +3311,8 @@ copy_src_to_dst(png_bytep dp, png_bytep sp, int width,
       vst3_u64( sumRGBA, sumRGB_64x1);
 
       png_pickcolor->sumR += sumRGBA[0];
-      png_pickcolor->sumG += sumRGBA[1];	
-      png_pickcolor->sumB += sumRGBA[2];	
+      png_pickcolor->sumG += sumRGBA[1];
+      png_pickcolor->sumB += sumRGBA[2];
    }
 
    memcpy(dst, src, (width-j)*nplanes);
@@ -3351,7 +3351,7 @@ void copy_row(png_bytep dp, png_bytep sp, int width, int pixel_bits, PngPickColo
 
 }
 #endif
-#endif
+#endif /* __TIZEN__ */
 
 /* Combines the row recently read in with the existing pixels in the row.  This
  * routine takes care of alpha and transparency if requested.  This routine also

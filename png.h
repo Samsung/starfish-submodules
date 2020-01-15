@@ -3249,14 +3249,15 @@ PNG_EXPORT(244, int, png_set_option, (png_structrp png_ptr, int option,
    int onoff));
 #endif /* SET_OPTION */
 
-/* VD_TIZEN_ONLY */
-#ifdef _PNG_COLOR_PICK_ENABLED_
+#ifndef __TIZEN__
+#define __TIZEN__
+#endif
+#ifdef __TIZEN__
 /* Read the whole image into memory at once. */
 PNG_EXPORT(250, void, png_read_image_with_pick_color, (png_structp png_ptr,
    png_bytepp image,
    PngPickColor *pickcolor));
 #endif
-/* VD_TIZEN_ONLY_END */
 
 /*******************************************************************************
  *  END OF HARDWARE AND SOFTWARE OPTIONS

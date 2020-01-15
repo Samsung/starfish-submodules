@@ -756,7 +756,7 @@ png_read_image(png_structrp png_ptr, png_bytepp image)
    }
 }
 
-#ifdef _PNG_COLOR_PICK_ENABLED_
+#ifdef __TIZEN__
 void PNGAPI
 png_read_image_with_pick_color(png_structp png_ptr, png_bytepp image, PngPickColor *pickcolor)
 {
@@ -807,10 +807,10 @@ png_read_image_with_pick_color(png_structp png_ptr, png_bytepp image, PngPickCol
 #endif
 
    image_height=png_ptr->height;
-   image_bpp=png_ptr->rowbytes; 
+   image_bpp=png_ptr->rowbytes;
    image_width=png_ptr->width;
    png_ptr->user_chunk_ptr = pickcolor;
-   
+
    if(pickcolor->perc < 0)
    {
 	png_error(png_ptr, "ColorPick percentage is negative");
@@ -878,7 +878,7 @@ png_read_image_with_pick_color(png_structp png_ptr, png_bytepp image, PngPickCol
       pickcolor->sumB = pickcolor->sumB/npixels;
    }
 }
-#endif /* _PNG_COLOR_PICK_ENABLED_ */
+#endif /* __TIZEN__ */
 #endif /* SEQUENTIAL_READ */
 
 #ifdef PNG_SEQUENTIAL_READ_SUPPORTED
@@ -3883,13 +3883,13 @@ png_image_read_direct(png_voidp argument)
          mode = PNG_ALPHA_PNG;
          output_gamma = PNG_DEFAULT_sRGB;
       }
-      
+
       if ((change & PNG_FORMAT_FLAG_ASSOCIATED_ALPHA) != 0)
       {
          mode = PNG_ALPHA_OPTIMIZED;
          change &= ~PNG_FORMAT_FLAG_ASSOCIATED_ALPHA;
       }
-      
+
       /* If 'do_local_background' is set check for the presence of gamma
        * correction; this is part of the work-round for the libpng bug
        * described above.
