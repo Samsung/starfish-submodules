@@ -1,12 +1,113 @@
 			GIFLIB NEWS
 
-Repository head
-===============
+Version 5.1.9
+=============
+
+The documentation directory now includes an HTMlified version of the
+GIF89 standard, and a more detailed description of how LZW compression
+is applied to GIFs.
+
+* Address SF bug #129: The latest version of giflib cannot be build on windows.
+
+* Address SF bug #126: Cannot compile giflib using c89
+
+Version 5.1.8
+=============
+
+* Address SF bug #119: MemorySanitizer: FPE on unknown address
+
+* Address SF bug #125: 5.1.7: xmlto is still required for tarball
+
+* Address SF bug #124: 5.1.7: ar invocation is not crosscompile compatible
+
+* Address SF bug #122: 5.1.7 installs manpages to wrong directory
+
+* Address SF bug #121: make: getversion: Command not found
+
+* Address SF bug #120: 5.1.7 does not build a proper library - no 
+
+Version 5.1.7
+=============
+
+Correct a minor packaging error (superfluous symlinks) in the 5.1.6 tarballs.
+
+Version 5.1.6
+=============
+
+Build Fixes
+-----------
+
+Fix library installation in the Makefile.
+
+Version 5.1.5
+=============
 
 Code Fixes
 ----------
 
+* Fix SF bug #114: Null dereferences in main() of gifclrmp
+
+* Fix SF bug #113: Heap Buffer Overflow-2 in function DGifDecompressLine()
+  in cgif.c.  This had been assigned CVE-2018-11490.
+
+# Fix SF bug #111: segmentation fault in PrintCodeBlock
+
+* Fix SF bug #109: Segmentation fault of giftool reading a crafted file
+
+* Fix SF bug #107: Floating point exception in giftext utility
+
+* Fix SF bug: #105 heap buffer overflow in DumpScreen2RGB in gif2rgb.c:317
+
+* Fix SF bug #104: Ineffective bounds check in DGifSlurp
+
+^ Fix SF bug #103: GIFLIB 5.1.4: DGifSlurp fails on empty comment
+
 * Fix SF bug #87 Heap buffer overflow in 5.1.2 (gif2rgb).
+
+Build Fixes
+-----------
+
+The horrible old autoconf build system has been removed with extreme prejudice. 
+You now build this simply by running "make" from the top-level directory.
+
+Version 5.1.4
+=============
+
+Code Fixes
+----------
+
+* Fix SF bug #94: giflib 5 loves to fail to load images... a LOT.
+
+* Fix SF Bug #92: Fix buffer overread in gifbuild.
+
+* Fix SF Bug #93: Add bounds check in gifbuild netscape2.0 path
+
+* Fix SF Bug #89: Fix buffer overread in gifbuild.
+
+Version 5.1.3
+=============
+
+As of this version the library and code has been seriously abused by fuzzers,
+smoking out crash bugs (now fixed) induced by various kinds of severely
+malformed GIF.
+
+Code Fixes
+----------
+
+* Prevent malloc randomess from causing the header output routine to emit
+  a GIF89 version string even when no GIF89 features are present. Only
+  breaks tests, not production code, but it's odd this wasn't caught sooner.
+
+* Prevent malloc randomess from producing sporadic failures by causing
+  sanity checks added in 5.1.2 to misfire.
+
+* Bulletproof gif2rgb against 0-height images. Addressed SF bug #78:
+  Heap overflow in gif2rgb with images of size 0, also SF bug #82.
+
+* Remove unnecessary duplicate EGifClose() in gifcolor.c. Fixes SF bug #83
+  introduced in 5.1.2.
+
+* Fix SF Bug #84: incorrect return of DGifSlurp().
 
 Version 5.1.2
 =============
@@ -38,7 +139,7 @@ Code Fixes
 * Fix SourceForge bug #73: Null pointer deference in gifclrmap (only
   reachable with malformed GIF).
 
-* Fix SourceForge bug #74: Double free in gifsponge under 5.1,1,
+* Fix SourceForge bug #74: Double free in gifsponge under 5.1.1,
   for any valid gif image.
 
 * Fix SourceForge bug #75: GAGetArgs overflows due to uncounted use of va_arg.
@@ -154,7 +255,7 @@ Documentation and polish
 
 Retirements
 -----------
-* gifinter is gone.  Use convert -interlace from the ImageMagic suite.
+* gifinter is gone.  Use "convert -interlace line" from the ImageMagick suite.
 
 Code Fixes
 ----------
