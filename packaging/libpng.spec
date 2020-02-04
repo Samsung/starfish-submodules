@@ -1,5 +1,5 @@
 Name:           libpng
-Version:        1.6.36
+Version:        1.6.37
 Release:        1
 License:        Libpng
 Summary:        A library of functions for manipulating PNG image format files
