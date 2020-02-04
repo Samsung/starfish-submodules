@@ -1,7 +1,7 @@
 %bcond_with wayland
 %bcond_with x
 Name:           giflib
-Version:        5.1.2
+Version:        5.1.9
 Release:        10
 License:        MIT
 Summary:        Library for manipulating GIF format image files
