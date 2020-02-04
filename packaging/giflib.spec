@@ -40,6 +40,7 @@ You should install this package if you need to develop programs which
 will use giflib library functions.  You'll also need to install the
 giflib package.
 
+# It is necessary to check if this package is needed.
 %package utils
 Summary:        Programs for manipulating GIF format image files
 Group:          Applications/Multimedia
@@ -57,23 +58,17 @@ You'll also need to install the giflib package.
 cp %{SOURCE1001} .
 
 %build
-%configure  \
-%if %{with wayland} && !%{with x}
-  --disable-x11
-%endif
-
-make %{?_smp_mflags} all
-
-MAJOR=`echo '%{version}' | sed 's/\([0-9]\+\)\..*/\1/'`
-gcc %{optflags} -shared -Wl,-soname,libungif.so.$MAJOR -Llib/.libs -lgif -o libungif.so.%{version}
+make libgif.so libutil.so DESTDIR=$RPM_BUILD_ROOT PREFIX=/usr
 
 %install
-%make_install
+make install-lib install-include install-bin DESTDIR=$RPM_BUILD_ROOT PREFIX=/usr
 
-install -m 0755 -p libungif.so.%{version} %{buildroot}%{_libdir}
-ln -sf libungif.so.%{version} %{buildroot}%{_libdir}/libungif.so.4
-ln -sf libungif.so.4 %{buildroot}%{_libdir}/libungif.so
+install -m 0755 -p libutil.so %{buildroot}%{_libdir}/libgifutil.so.7.1.0
+ln -sf libgifutil.so.7.1.0 %{buildroot}%{_libdir}/libgifutil.so.7
+ln -sf libgifutil.so.7 %{buildroot}%{_libdir}/libgifutil.so
 
+%clean
+make clean
 
 %post -p /sbin/ldconfig
 
