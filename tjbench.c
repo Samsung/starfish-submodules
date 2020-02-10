@@ -47,7 +47,7 @@
 #define THROW_UNIX(m) { \
 	char err_str[256]; \
 	strerror_r(errno, err_str, 256); \
-	_throw(m, err_str) \
+	THROW(m, err_str) \
 }
 #else
 #define THROW_UNIX(m)  THROW(m, strerror(errno))
