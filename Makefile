@@ -17,7 +17,7 @@ INSTALL = install
 PREFIX = /usr/local
 BINDIR = $(PREFIX)/bin
 INCDIR = $(PREFIX)/include
-LIBDIR = $(PREFIX)/lib
+#LIBDIR = $(PREFIX)/lib
 MANDIR = $(PREFIX)/share/man
 
 # No user-serviceable parts below this line

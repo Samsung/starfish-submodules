@@ -58,10 +58,10 @@ You'll also need to install the giflib package.
 cp %{SOURCE1001} .
 
 %build
-make libgif.so libutil.so DESTDIR=$RPM_BUILD_ROOT PREFIX=/usr
+make libgif.so libutil.so DESTDIR=$RPM_BUILD_ROOT PREFIX=/usr LIBDIR=%{_libdir}
 
 %install
-make install-lib install-include install-bin DESTDIR=$RPM_BUILD_ROOT PREFIX=/usr
+make install-lib install-include install-bin DESTDIR=$RPM_BUILD_ROOT PREFIX=/usr LIBDIR=%{_libdir}
 
 install -m 0755 -p libutil.so %{buildroot}%{_libdir}/libgifutil.so.7.1.0
 ln -sf libgifutil.so.7.1.0 %{buildroot}%{_libdir}/libgifutil.so.7
