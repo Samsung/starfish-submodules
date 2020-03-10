@@ -72,7 +72,7 @@ def gen_interface_collection(interfaces, outpath, mode_strict, exposed_module):
       ' *  This library is free software; you can redistribute it and/or\n'
       ' *  modify it under the terms of the GNU Lesser General Public\n'
       ' *  License as published by the Free Software Foundation; either\n'
-      ' *  version 2 of the License, or (at your option) any later version.\n'
+      ' *  version 2.1 of the License, or (at your option) any later version.\n'
       ' *\n'
       ' *  This library is distributed in the hope that it will be useful,\n'
       ' *  but WITHOUT ANY WARRANTY; without even the implied warranty of\n'
