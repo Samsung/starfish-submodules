@@ -99,7 +99,7 @@ wrt::xwalk::Extension* ExtensionManagerInstance::getExtension(
 
     auto it = extensions.find(apiName);
     if (it == extensions.end()) {
-        DEVICEAPI_LOG_INFO("Enter");
+        DEVICEAPI_LOG_INFO("Creating a new extension: %s\n", apiName);
         char library_path[512];
         if (!strcmp(apiName, "tizen"))
             snprintf(library_path, 512,
@@ -426,11 +426,13 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject(
                             state->context(), thisValue);
 
                 if (!extensionInstance || argc != 1) {
+                    DEVICEAPI_LOG_ERROR("extensionInstance == nullptr");
                     return ValueRef::create(false);
                 }
 
                 ValueRef* listenerValue = argv[0];
                 if (listenerValue->isUndefined()) {
+                    DEVICEAPI_LOG_ERROR("listenerValue == undefined");
                     extensionInstance->set_post_message_listener(nullptr);
                     return ValueRef::create(true);
                 }
@@ -660,6 +662,8 @@ ExtensionManagerInstance::ExtensionManagerInstance(ContextRef* context)
                         m_##name);                                             \
                 }                                                              \
                 DEVICEAPI_LOG_INFO("Loading plugin for %s", "" #name);         \
+                extensionManagerInstance->VALUE_NAME_STRCAT(m_##name) =        \
+                    Escargot::ValueRef::createUndefined();                     \
                 extensionManagerInstance->m_tizenValue->toObject(state)->get(  \
                     state, ValueRef::create(                                   \
                                StringRef::createFromASCII("application")));    \
