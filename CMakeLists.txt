@@ -1553,23 +1553,30 @@ if (LWS_WITH_STATIC)
 			PROPERTIES
 			OUTPUT_NAME websockets_static)
 	endif()
-	add_custom_command(
+
+	if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/include/libwebsockets.h)
+		add_custom_command(
 		      TARGET websockets
 		      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/include/libwebsockets.h
 		     					 ${CMAKE_CURRENT_BINARY_DIR}/include/libwebsockets.h
-	)
+		)
+	endif()
 
-	add_custom_command(
+	if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/include/libwebsockets)
+		add_custom_command(
 		      TARGET websockets
 		      COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/include/libwebsockets/
 									${CMAKE_CURRENT_BINARY_DIR}/include/libwebsockets
-	)
+		)
+	endif()
 
-	add_custom_command(
+	if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/include/lws_config.h)
+		add_custom_command(
 		      TARGET websockets
 		      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/lws_config.h
 		     					 ${CMAKE_CURRENT_BINARY_DIR}/include/lws_config.h
-	)
+		)
+	endif()
 
 endif()
 
@@ -1600,23 +1607,29 @@ if (LWS_WITH_SHARED)
 		set_property(TARGET websockets_shared PROPERTY MACOSX_RPATH YES)
 	endif()
 
-	add_custom_command(
+	if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/include/libwebsockets.h)
+		add_custom_command(
 		      TARGET websockets_shared
 		      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/include/libwebsockets.h
 		     					 ${CMAKE_CURRENT_BINARY_DIR}/include/libwebsockets.h
-	)
+		)
+	endif()
 
-	add_custom_command(
-		      TARGET websockets
+	if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/include/libwebsockets)
+		add_custom_command(
+		      TARGET websockets_shared
 		      COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/include/libwebsockets
 									${CMAKE_CURRENT_BINARY_DIR}/include/libwebsockets
-	)
+		)
+	endif()
 
-	add_custom_command(
+	if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/include/lws_config.h)
+		add_custom_command(
 		      TARGET websockets_shared
 		      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/lws_config.h
 		     					 ${CMAKE_CURRENT_BINARY_DIR}/include/lws_config.h
-	)
+		)
+	endif()
 
 
 endif()
