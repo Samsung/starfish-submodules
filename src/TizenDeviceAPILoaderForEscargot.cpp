@@ -256,7 +256,7 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject(
                     return ValueRef::createNull();
                 }
                 return ValueRef::create(
-                    StringRef::createFromASCII(reply.c_str(), reply.size()));
+                    StringRef::createFromUTF8(reply.c_str(), reply.size()));
             },
             0, true, true));
 
@@ -333,8 +333,8 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject(
                     state,
                     ValueRef::create(
                         extensionManagerInstance->strings()->reply->string()),
-                    ValueRef::create(StringRef::createFromASCII(reply.c_str(),
-                                                                reply.size())),
+                    ValueRef::create(
+                        StringRef::createFromUTF8(reply.c_str(), reply.size())),
                     true, true, true);
 
                 if (replyBuffer || replyLength > 0) {
@@ -615,7 +615,7 @@ ExtensionManagerInstance::ExtensionManagerInstance(ContextRef* context)
 
 #define DEFINE_SUPPORTED_TIZEN_API(name)                                       \
     tizenObject->defineAccessorProperty(                                       \
-        state, ValueRef::create(StringRef::createFromASCII("" #name)),         \
+        state, ValueRef::create(StringRef::createFromUTF8("" #name)),          \
         ObjectRef::AccessorPropertyDescriptor(                                 \
             ValueRef::create(FunctionObjectRef::create(                        \
                 state,                                                         \
@@ -639,7 +639,7 @@ ExtensionManagerInstance::ExtensionManagerInstance(ContextRef* context)
                             m_##name) = ValueRef::create(apiObject);           \
                         thisValue->toObject(state)->defineDataProperty(        \
                             state, ValueRef::create(                           \
-                                       StringRef::createFromASCII("" #name)),  \
+                                       StringRef::createFromUTF8("" #name)),   \
                             ValueRef::create(apiObject), false, true, false);  \
                         return ValueRef::create(apiObject);                    \
                     },                                                         \
@@ -682,7 +682,7 @@ ExtensionManagerInstance::ExtensionManagerInstance(ContextRef* context)
                 return true;                                                   \
             });                                                                \
     tizenObject->defineNativeDataAccessorProperty(                             \
-        state, ValueRef::create(StringRef::createFromASCII(#name)),            \
+        state, ValueRef::create(StringRef::createFromUTF8(#name)),             \
         nativeData##name);
 
                         SUPPORTED_TIZEN_ENTRYPOINTS(
