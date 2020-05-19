@@ -139,7 +139,7 @@ void File::Close() {
 int64_t File::Seek(Whence whence, int64_t offset) {
   DCHECK(IsValid());
 
-  static_assert(sizeof(int64_t) == sizeof(off_t), "off_t must be 64 bits");
+  // static_assert(sizeof(int64_t) == sizeof(off_t), "off_t must be 64 bits");
   return lseek(file_.get(), static_cast<off_t>(offset),
                static_cast<int>(whence));
 }

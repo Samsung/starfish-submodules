@@ -30,7 +30,8 @@ clang_toolchain("clang_arm64") {
 }
 
 gcc_toolchain("arm64") {
-  toolprefix = "aarch64-linux-gnu-"
+  # toolprefix = "aarch64-linux-gnu-"
+  toolprefix = ""
 
   cc = "${toolprefix}gcc"
   cxx = "${toolprefix}g++"

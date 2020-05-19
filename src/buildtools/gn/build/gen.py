@@ -276,8 +276,8 @@ def WriteGNNinja(path, platform, host, options):
     ld = os.environ.get('LD', 'g++')
     ar = os.environ.get('AR', 'ar -X64')
   else:
-    cc = os.environ.get('CC', 'clang')
-    cxx = os.environ.get('CXX', 'clang++')
+    cc = os.environ.get('CC', 'gcc')
+    cxx = os.environ.get('CXX', 'g++')
     ld = cxx
     ar = os.environ.get('AR', 'ar')
 
@@ -322,7 +322,7 @@ def WriteGNNinja(path, platform, host, options):
         ldflags.append('-Wl,--icf=all')
 
     cflags.extend([
-        '-D_FILE_OFFSET_BITS=64',
+        # '-D_FILE_OFFSET_BITS=64',
         '-D__STDC_CONSTANT_MACROS', '-D__STDC_FORMAT_MACROS',
         '-pthread',
         '-pipe',
