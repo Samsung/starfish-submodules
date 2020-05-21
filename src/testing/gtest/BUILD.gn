@@ -41,7 +41,7 @@ static_library("gtest") {
     "empty.cc",
   ]
   public_deps = [
-    "//third_party/googletest:gtest",
+#    "//third_party/googletest:gtest",
   ]
 
   public_configs = [ ":gtest_direct_config" ]
@@ -88,7 +88,7 @@ static_library("gtest") {
 source_set("gtest_main") {
   testonly = true
   deps = [
-    "//third_party/googletest:gtest_main",
+   # "//third_party/googletest:gtest_main",
   ]
 }
 

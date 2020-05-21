@@ -82,7 +82,7 @@ rtc_source_set("mock_common_audio") {
   ]
   deps = [
     ":common_audio",
-    "../test:test_support",
+    #"../test:test_support",
   ]
 }
 

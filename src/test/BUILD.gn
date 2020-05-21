@@ -16,13 +16,13 @@ group("test") {
   testonly = true
 
   deps = [
-    ":copy_to_file_audio_capturer",
-    ":rtp_test_utils",
-    ":test_common",
-    ":test_renderer",
-    ":test_support",
-    ":video_test_common",
-    "pc/e2e",
+    #":copy_to_file_audio_capturer",
+    #":rtp_test_utils",
+    #":test_common",
+    #":test_renderer",
+    #":test_support",
+    #":video_test_common",
+    #"pc/e2e",
   ]
 
   if (rtc_include_tests) {
@@ -216,13 +216,13 @@ rtc_source_set("test_support") {
 
   all_dependent_configs = [
     ":suppress_warning_4373",
-    "//third_party/googletest:gmock_config",
-    "//third_party/googletest:gtest_config",
+    #"//third_party/googletest:gmock_config",
+    #"//third_party/googletest:gtest_config",
   ]
 
   sources = [
-    "gmock.h",
-    "gtest.h",
+    #"gmock.h",
+    #"gtest.h",
   ]
 
   public_deps = []  # no-presubmit-check TODO(webrtc:8603)
@@ -233,8 +233,8 @@ rtc_source_set("test_support") {
   public_configs = [ ":test_main_direct_config" ]
   deps = [
     "../rtc_base:rtc_base_approved",
-    "//testing/gmock",
-    "//testing/gtest",
+    #"//testing/gmock",
+    #"//testing/gtest",
   ]
 }
 
@@ -385,8 +385,8 @@ if (rtc_include_tests) {
       "pc/e2e:e2e_unittests",
       "scenario:scenario_unittests",
       "time_controller:time_controller_unittests",
-      "//testing/gmock",
-      "//testing/gtest",
+      #"//testing/gmock",
+      #"//testing/gtest",
       "//third_party/abseil-cpp/absl/memory",
       "//third_party/abseil-cpp/absl/strings",
     ]
@@ -729,7 +729,7 @@ rtc_source_set("test_common") {
     "../api/audio_codecs:builtin_audio_encoder_factory",
     "../api/task_queue",
     "../api/task_queue:default_task_queue_factory",
-    "../api/test/video:function_video_factory",
+    #"../api/test/video:function_video_factory",
     "../api/video:builtin_video_bitrate_allocator_factory",
     "../api/video:video_bitrate_allocator_factory",
     "../api/video:video_frame",

@@ -46,7 +46,6 @@ rtc_source_set("sdk_tests") {
   ]
   deps = [
     ":media_constraints",
-    "../test:test_support",
   ]
 }
 

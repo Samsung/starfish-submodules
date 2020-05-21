@@ -1,4 +1,0 @@
-Prototype and playground for generating stack maps to garbage-collected objects
-using clang/llvm infrastructure.
-
-Design doc: https://bit.ly/chromium-stack-maps

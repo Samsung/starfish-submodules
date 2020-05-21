@@ -296,7 +296,7 @@ if (libyuv_include_tests) {
 
     deps = [
       ":libyuv",
-      "//testing/gtest",
+      #"//testing/gtest",
     ]
 
     defines = []
@@ -308,7 +308,7 @@ if (libyuv_include_tests) {
     configs += [ ":libyuv_unittest_warnings_config" ]
 
     public_deps = [
-      "//testing/gtest",
+      #"//testing/gtest",
     ]
     public_configs = [ ":libyuv_unittest_config" ]
 

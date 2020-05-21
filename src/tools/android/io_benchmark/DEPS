@@ -1,5 +1,0 @@
-include_rules = [
-  "+third_party/brotli",
-  "+third_party/snappy",
-  "+third_party/zlib",
-]
