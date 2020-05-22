@@ -77,7 +77,7 @@ group("libyuv") {
     # Make sure that clients of libyuv link with libjpeg. This can't go in
     # libyuv_internal because in Windows x64 builds that will generate a clang
     # build of libjpeg, and we don't want two copies.
-    deps += [ "//third_party:jpeg" ]
+    #deps += [ "//third_party:jpeg" ]
   }
 }
 
@@ -150,7 +150,7 @@ static_library("libyuv_internal") {
     configs += [ "//build/config/gcc:symbol_visibility_default" ]
   }
 
-  if (!is_ios) {
+  if (!is_ios && !libyuv_disable_jpeg) {
     defines += [ "HAVE_JPEG" ]
 
     # Needed to pull in libjpeg headers. Can't add //third_party:jpeg to deps
