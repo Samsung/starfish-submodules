@@ -338,6 +338,8 @@ def WriteGNNinja(path, platform, host, options):
       if not options.no_static_libstdcpp:
         ldflags.append('-static-libstdc++')
 
+      libs.append('-static')
+      libs.append('-static-libgcc')
       # This is needed by libc++.
       libs.append('-ldl')
     elif platform.is_darwin():
@@ -352,7 +354,7 @@ def WriteGNNinja(path, platform, host, options):
       cflags_cc.extend(['-D_BSD_SOURCE'])
 
     if platform.is_posix() and not platform.is_haiku():
-      ldflags.append('-pthread')
+      ldflags.append('-Wl,--whole-archive -lrt -lpthread -Wl,--no-whole-archive')
 
     if options.use_lto:
       cflags.extend(['-flto', '-fwhole-program-vtables'])

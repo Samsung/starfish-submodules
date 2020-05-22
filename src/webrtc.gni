@@ -198,7 +198,7 @@ declare_args() {
 }
 
 if (!build_with_mozilla) {
-  # import("//testing/test.gni")
+  import("//testing/test.gni")
 }
 
 # A second declare_args block, so that declarations within it can

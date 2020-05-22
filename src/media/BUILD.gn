@@ -224,7 +224,7 @@ rtc_static_library("rtc_internal_video_codecs") {
     "../rtc_base:deprecation",
     "../rtc_base:rtc_base_approved",
     "../rtc_base/system:rtc_export",
-    #"../test:fake_video_codecs",
+    "../test:fake_video_codecs",
     "//third_party/abseil-cpp/absl/memory",
     "//third_party/abseil-cpp/absl/strings",
   ]
