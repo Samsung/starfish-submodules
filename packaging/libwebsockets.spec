@@ -32,7 +32,12 @@ Development files needed for building websocket clients and servers
 
 %build
 
-%cmake -DLWS_WITH_SSL=On -DLWS_WITHOUT_TESTAPPS=ON -DLWS_WITH_SERVER_STATUS=ON
+%cmake -DLWS_WITH_SSL=On \
+	-DLWS_WITHOUT_TESTAPPS=ON \
+	-DLWS_WITH_SERVER_STATUS=ON \
+	-DLWS_IPV6=ON \
+	-DLWS_WITH_SO_BINDTODEVICE=ON \
+	.
 
 make %{?jobs:-j%jobs}
 

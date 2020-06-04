@@ -133,6 +133,8 @@ option(LWS_WITH_DEPRECATED_LWS_DLL "Migrate to lws_dll2 instead ASAP" OFF)
 option(LWS_WITH_SEQUENCER "lws_seq_t support" ON)
 option(LWS_WITH_EXTERNAL_POLL "Support external POLL integration using callback messages (not recommended)" OFF)
 option(LWS_WITH_LWS_DSH "Support lws_dsh_t Disordered Shared Heap" OFF)
+
+option(LWS_WITH_SO_BINDTODEVICE "Use SO_BINDTODEVICE option for socket" OFF)
 #
 # to use miniz, enable both LWS_WITH_ZLIB and LWS_WITH_MINIZ
 #
@@ -954,6 +956,9 @@ if (MSVC)
 	add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE)
 endif(MSVC)
 
+if (LWS_WITH_SO_BINDTODEVICE)
+	add_definitions(-D_SO_BINDTODEVICE)
+endif()
 include_directories("${PROJECT_SOURCE_DIR}/lib")
 
 # Group headers and sources.
@@ -2750,7 +2755,7 @@ message(" LWS_HAVE_STAT32I64 = ${LWS_HAVE_STAT32I64}")
 message(" LWS_HAS_INTPTR_T = ${LWS_HAS_INTPTR_T}")
 message(" LWS_WITH_EXPORT_LWSTARGETS = ${LWS_WITH_EXPORT_LWSTARGETS}")
 message(" LWS_WITH_ABSTRACT = ${LWS_WITH_ABSTRACT}")
-
+message(" LWS_WITH_SO_BINDTODEVICE = ${LWS_WITH_SO_BINDTODEVICE}")
 message("---------------------------------------------------------------------")
 
 # These will be available to parent projects including libwebsockets using add_subdirectory()
