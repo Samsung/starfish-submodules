@@ -1029,10 +1029,38 @@ png_set_filter(png_structrp png_ptr, int method, int filters)
          case 7: png_app_error(png_ptr, "Unknown row filter for method 0");
 #endif /* WRITE_FILTER */
             /* FALLTHROUGH */
+#ifdef __TIZEN__
+            /* 'switch ~ case' is dead code.
+             * If filters is #PNG_FILTER_VALUE_NONE, #PNG_FILTER_VALUE_SUB ...,
+             * filter flag will be assigned to 'png_ptr->do_filter'. But
+             * 'png_ptr->do_filter' is overwritten as 'filters' at below code.
+             * Issue code(#1155) is 'png_ptr->do_filter = (png_byte)filters;'.
+             * So the result of 'switch ~ case' has been lost at the line.
+             * To keep the value of 'switch ~ case', we fixed it to apply
+             * the result into 'filters'.
+             * It will be updated into 'png_ptr->do_filter' at #1155 line.
+             */
+         case PNG_FILTER_VALUE_NONE:
+            filters = PNG_FILTER_NONE; break;
+#else
          case PNG_FILTER_VALUE_NONE:
             png_ptr->do_filter = PNG_FILTER_NONE; break;
+#endif /* __TIZEN__ */
 
 #ifdef PNG_WRITE_FILTER_SUPPORTED
+#ifdef __TIZEN__
+         case PNG_FILTER_VALUE_SUB:
+            filters = PNG_FILTER_SUB; break;
+
+         case PNG_FILTER_VALUE_UP:
+            filters = PNG_FILTER_UP; break;
+
+         case PNG_FILTER_VALUE_AVG:
+            filters = PNG_FILTER_AVG; break;
+
+         case PNG_FILTER_VALUE_PAETH:
+            filters = PNG_FILTER_PAETH; break;
+#else
          case PNG_FILTER_VALUE_SUB:
             png_ptr->do_filter = PNG_FILTER_SUB; break;
 
@@ -1044,7 +1072,7 @@ png_set_filter(png_structrp png_ptr, int method, int filters)
 
          case PNG_FILTER_VALUE_PAETH:
             png_ptr->do_filter = PNG_FILTER_PAETH; break;
-
+#endif /* __TIZEN__ */
          default:
             png_ptr->do_filter = (png_byte)filters; break;
 #else
