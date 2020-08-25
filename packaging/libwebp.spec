@@ -49,7 +49,7 @@ cp %{SOURCE1} .
 
 %build
 # WEBP_USE_THREAD is added for using multi-thread(pthread)
-export CFLAGS="$CFLAGS -DWEBP_USE_THREAD"
+export CFLAGS="$CFLAGS -D__TIZEN__"
 %cmake .
 make %{?_smp_mflags}
 

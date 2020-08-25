@@ -12,6 +12,8 @@
 // Authors: Somnath Banerjee (somnath@google.com)
 //          Johann Koenig (johannkoenig@google.com)
 
+#include <stdio.h>
+
 #include "src/dsp/dsp.h"
 
 #if defined(WEBP_USE_NEON)
@@ -877,6 +879,9 @@ static void VFilter16i_NEON(uint8_t* p, int stride,
   for (k = 3; k != 0; --k) {
     uint8x16_t q0, q1, q2, q3;
     p += 4 * stride;
+#ifdef __TIZEN__
+	usleep(1);
+#endif
     Load16x4_NEON(p + 2  * stride, stride, &q0, &q1, &q2, &q3);
     {
       const uint8x16_t mask =
