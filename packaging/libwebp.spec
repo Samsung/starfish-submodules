@@ -4,7 +4,7 @@ Version:	1.1.0
 Release:	1
 Group:		Multimedia/Libraries
 URL:		https://developers.google.com/speed/webp/
-License:	BSD 3-clause
+License:	BSD-3-clause
 Source0:	%{name}-%{version}.tar.gz
 Source1:	%{name}.manifest
 
