@@ -53,6 +53,7 @@ class ESPostListener;
     F(webapis)
 
 #define FOR_EACH_LAZY_TIZEN_STRINGS(F) \
+    F(sa)                              \
     F(common)                          \
     F(extension)                       \
     F(postMessage)                     \

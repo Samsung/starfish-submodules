@@ -101,25 +101,29 @@ wrt::xwalk::Extension* ExtensionManagerInstance::getExtension(
     if (it == extensions.end()) {
         DEVICEAPI_LOG_INFO("Creating a new extension: %s\n", apiName);
         char library_path[512];
-        if (!strcmp(apiName, "tizen"))
+        if (strcmp(apiName, "tizen") == 0) {
             snprintf(library_path, 512,
                      "/usr/lib/tizen-extensions-crosswalk/libtizen.so");
-        else if (!strcmp(apiName, "sensorservice"))
+        } else if (strcmp(apiName, "sensorservice") == 0) {
             snprintf(library_path, 512,
                      "/usr/lib/tizen-extensions-crosswalk/libtizen_sensor.so");
-        else if (!strcmp(apiName, "sa")) {
+        } else if (strcmp(apiName, "webapis") == 0) {
+            snprintf(library_path, 512,
+                     "/usr/lib/tizen-extensions-crosswalk/libwebapis.so");
+        } else if (strcmp(apiName, "sa") == 0) {
             snprintf(library_path, 512,
                      "/usr/lib/tizen-extensions-crosswalk/libwebapis_sa.so");
-        } else
+        } else {
             snprintf(library_path, 512,
                      "/usr/lib/tizen-extensions-crosswalk/libtizen_%s.so",
                      apiName);
+        }
         wrt::xwalk::Extension* extension =
             new wrt::xwalk::Extension(library_path, nullptr);
         if (extension->Initialize()) {
             wrt::xwalk::ExtensionManager::GetInstance()->RegisterExtension(
                 extension);
-            extensions[apiName] = extension;
+            extensions[apiName] = extension; // dup. Needed?
             return extension;
         } else {
             DEVICEAPI_LOG_INFO("Cannot initialize extension %s", apiName);
@@ -215,7 +219,7 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject(
                ValueRef** argv, bool isNewExpression) -> ValueRef* {
                 DEVICEAPI_LOG_ERROR("extension.postMessage UNIMPLEMENTED");
                 printArguments(state->context(), argc, argv);
-                STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
+                STARFISH_RELEASE_ASSERT_UNIMPLEMENTED();
                 return ValueRef::createUndefined();
             },
             0, true, true));
@@ -364,7 +368,7 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject(
                 DEVICEAPI_LOG_ERROR(
                     "extension.sendRuntimeMessage UNIMPLEMENTED");
                 printArguments(state->context(), argc, argv);
-                STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
+                STARFISH_RELEASE_ASSERT_UNIMPLEMENTED();
                 return ValueRef::createUndefined();
             },
             0, true, true));
@@ -382,7 +386,7 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject(
                 DEVICEAPI_LOG_ERROR(
                     "extension.sendRuntimeAsyncMessage UNIMPLEMENTED");
                 printArguments(state->context(), argc, argv);
-                STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
+                STARFISH_RELEASE_ASSERT_UNIMPLEMENTED();
                 return ValueRef::createUndefined();
             },
             0, true, true));
@@ -400,7 +404,7 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject(
                 DEVICEAPI_LOG_ERROR(
                     "extension.sendRuntimeSyncMessage UNIMPLEMENTED");
                 printArguments(state->context(), argc, argv);
-                STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
+                STARFISH_RELEASE_ASSERT_UNIMPLEMENTED();
                 return ValueRef::createUndefined();
             },
             0, true, true));
@@ -752,6 +756,108 @@ ExtensionManagerInstance::ExtensionManagerInstance(ContextRef* context)
                 ObjectRef::AccessorPropertyDescriptor(
                     xwalkGetter, nullptr,
                     ObjectRef::PresentAttribute::EnumerablePresent));
+
+#if defined(STARFISH_TIZEN_WEARABLE_WIDGET)
+            ValueRef* webapisGetter = ValueRef::create(FunctionObjectRef::create(
+                state,
+                FunctionObjectRef::NativeFunctionInfo(
+                    self->m_strings->webapis,
+                    [](ExecutionStateRef* state, ValueRef* thisValue,
+                       size_t argc, ValueRef** argv,
+                       bool isNewExpression) -> ValueRef* {
+                        DEVICEAPI_LOG_INFO("webapisGetter Enter");
+
+                        ExtensionManagerInstance* extensionManagerInstance =
+                            get(state->context());
+                        if (extensionManagerInstance->m_webapisValue) {
+                            return extensionManagerInstance->m_webapisValue;
+                        }
+                        DEVICEAPI_LOG_INFO("Loading plugin for webapis");
+
+                        TizenStrings* strings =
+                            extensionManagerInstance->strings();
+                        strings->initializeLazyStrings();
+
+                        // initialize webapis object
+                        ObjectRef* webapisObject =
+                            extensionManagerInstance
+                                ->initializeExtensionInstance("webapis");
+                        extensionManagerInstance->m_webapisValue =
+                            ValueRef::create(webapisObject);
+
+                        // re-define webapis object
+                        thisValue->toObject(state)->defineDataProperty(
+                            state, ValueRef::create(strings->webapis->string()),
+                            ValueRef::create(webapisObject), false, true,
+                            false);
+
+                        ValueRef* saGetter =
+                            ValueRef::create(FunctionObjectRef::create(
+                                state,
+                                FunctionObjectRef::NativeFunctionInfo(
+                                    extensionManagerInstance->m_strings->sa,
+                                    [](ExecutionStateRef* state,
+                                       ValueRef* thisValue, size_t argc,
+                                       ValueRef** argv,
+                                       bool isNewExpression) -> ValueRef* {
+                                        DEVICEAPI_LOG_INFO(
+                                            "webapis.sa Getter Enter");
+
+                                        ExtensionManagerInstance*
+                                            extensionManagerInstance =
+                                                get(state->context());
+                                        if (extensionManagerInstance
+                                                ->m_saValue) {
+                                            return extensionManagerInstance
+                                                ->m_saValue;
+                                        }
+                                        DEVICEAPI_LOG_INFO(
+                                            "Loading plugin for webapis.sa");
+
+                                        TizenStrings* strings =
+                                            extensionManagerInstance->strings();
+                                        strings->initializeLazyStrings();
+
+                                        // initialize webapis.sa object
+                                        ObjectRef* saObject =
+                                            extensionManagerInstance
+                                                ->initializeExtensionInstance(
+                                                    "sa");
+                                        extensionManagerInstance->m_saValue =
+                                            ValueRef::create(saObject);
+
+                                        // re-define sa object
+                                        thisValue->toObject(state)
+                                            ->defineDataProperty(
+                                                state,
+                                                ValueRef::create(
+                                                    strings->sa->string()),
+                                                ValueRef::create(saObject),
+                                                false, true, false);
+
+                                        return ValueRef::create(saObject);
+                                    },
+                                    0, true, true)));
+
+                        webapisObject->defineAccessorProperty(
+                            state,
+                            ValueRef::create(extensionManagerInstance->m_strings
+                                                 ->sa->string()),
+                            ObjectRef::AccessorPropertyDescriptor(
+                                saGetter, nullptr,
+                                ObjectRef::PresentAttribute::
+                                    EnumerablePresent));
+
+                        return ValueRef::create(webapisObject);
+                    },
+                    0, true, true)));
+
+            self->m_context->globalObject()->defineAccessorProperty(
+                state, ValueRef::create(self->m_strings->webapis->string()),
+                ObjectRef::AccessorPropertyDescriptor(
+                    webapisGetter, nullptr,
+                    ObjectRef::PresentAttribute::EnumerablePresent));
+#endif
 
             return ValueRef::createUndefined();
 
