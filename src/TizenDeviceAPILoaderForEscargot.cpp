@@ -207,7 +207,7 @@ ObjectRef* ExtensionManagerInstance::initializeExtensionInstance(
 ObjectRef* ExtensionManagerInstance::createExtensionObject(
     ExecutionStateRef* state)
 {
-    DEVICEAPI_LOG_INFO("Enter");
+    DEVICEAPI_LOG_INFO("<createExtensionObject>");
 
     ObjectRef* extensionObject = ObjectRef::create(state);
 
@@ -518,6 +518,7 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject(
         state, ValueRef::create(m_strings->receiveChunkData->string()),
         ValueRef::create(receiveChunkDataFn), true, true, true);
 
+    DEVICEAPI_LOG_INFO("</createExtensionObject>");
     return extensionObject;
 }
 

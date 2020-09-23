@@ -57,23 +57,27 @@ namespace xwalk {
 
     Extension::~Extension()
     {
-        if (!initialized_)
+        if (!initialized_) {
             return;
+        }
 
-        if (handle_)
+        if (handle_) {
             dlclose(handle_);
+        }
 
-        if (shutdown_callback_)
+        if (shutdown_callback_) {
             shutdown_callback_(xw_extension_);
+        }
         ExtensionAdapter::GetInstance()->UnregisterExtension(this);
     }
 
     bool Extension::Initialize()
     {
-        if (initialized_)
+        if (initialized_) {
             return true;
+        }
 
-        DEVICEAPI_LOG_INFO("========== << Initialize >> ENTER ==========");
+        DEVICEAPI_LOG_INFO("<initialize>");
         DEVICEAPI_SLOG_INFO("Extension Module library : [%s]",
                             library_path_.c_str());
 
@@ -114,7 +118,7 @@ namespace xwalk {
         }
 
         initialized_ = true;
-        DEVICEAPI_LOG_INFO("========== << Initialize >> END ==========");
+        DEVICEAPI_LOG_INFO("</initialize>");
         return true;
     }
 
@@ -159,7 +163,7 @@ namespace xwalk {
         , post_message_listener_(NULL)
         , post_data_listener_(NULL)
     {
-        DEVICEAPI_LOG_INFO("Enter");
+        DEVICEAPI_LOG_INFO("Enter: name: %s\n", extension->name().data());
         ExtensionAdapter::GetInstance()->RegisterInstance(this);
         XW_CreatedInstanceCallback callback =
             extension_->created_instance_callback_;

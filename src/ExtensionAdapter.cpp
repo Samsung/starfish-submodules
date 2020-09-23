@@ -42,50 +42,54 @@ namespace xwalk {
     void ExtensionAdapter::RegisterExtension(Extension* extension)
     {
         XW_Extension xw_extension = extension->xw_extension();
-        if (!(xw_extension > 0 && xw_extension < next_xw_extension_)) {
+        if (!(0 < xw_extension && xw_extension < next_xw_extension_)) {
             DEVICEAPI_LOG_WARN("xw_extension (%d) is invalid.", xw_extension);
             return;
         }
-        if (extension_map_.find(xw_extension) == extension_map_.end())
+        if (extension_map_.find(xw_extension) == extension_map_.end()) {
             extension_map_[xw_extension] = extension;
+        }
     }
 
     void ExtensionAdapter::UnregisterExtension(Extension* extension)
     {
         XW_Extension xw_extension = extension->xw_extension();
-        if (!(xw_extension > 0 && xw_extension < next_xw_extension_)) {
+        if (!(0 < xw_extension && xw_extension < next_xw_extension_)) {
             DEVICEAPI_LOG_WARN("xw_extension (%d) is invalid.", xw_extension);
             return;
         }
-        if (extension_map_.find(xw_extension) != extension_map_.end())
+        if (extension_map_.find(xw_extension) != extension_map_.end()) {
             extension_map_.erase(xw_extension);
+        }
     }
 
     void ExtensionAdapter::RegisterInstance(ExtensionInstance* instance)
     {
         XW_Instance xw_instance = instance->xw_instance();
-        if (!(xw_instance > 0 && xw_instance < next_xw_instance_)) {
+        if (!(0 < xw_instance && xw_instance < next_xw_instance_)) {
             DEVICEAPI_LOG_WARN("xw_instance (%d) is invalid.", xw_instance);
             return;
         }
-        if (instance_map_.find(xw_instance) == instance_map_.end())
+        if (instance_map_.find(xw_instance) == instance_map_.end()) {
             instance_map_[xw_instance] = instance;
+        }
     }
 
     void ExtensionAdapter::UnregisterInstance(ExtensionInstance* instance)
     {
         XW_Instance xw_instance = instance->xw_instance();
-        if (!(xw_instance > 0 && xw_instance < next_xw_instance_)) {
+        if (!(0 < xw_instance && xw_instance < next_xw_instance_)) {
             DEVICEAPI_LOG_WARN("xw_instance (%d) is invalid.", xw_instance);
             return;
         }
-        if (instance_map_.find(xw_instance) != instance_map_.end())
+        if (instance_map_.find(xw_instance) != instance_map_.end()) {
             instance_map_.erase(xw_instance);
+        }
     }
 
     const void* ExtensionAdapter::GetInterface(const char* name)
     {
-        if (!strcmp(name, XW_CORE_INTERFACE_1)) {
+        if (strcmp(name, XW_CORE_INTERFACE_1) == 0) {
             static const XW_CoreInterface_1 coreInterface1 = {
                 CoreSetExtensionName,          CoreSetJavaScriptAPI,
                 CoreRegisterInstanceCallbacks, CoreRegisterShutdownCallback,
@@ -94,41 +98,41 @@ namespace xwalk {
             return &coreInterface1;
         }
 
-        if (!strcmp(name, XW_MESSAGING_INTERFACE_1)) {
+        if (strcmp(name, XW_MESSAGING_INTERFACE_1) == 0) {
             static const XW_MessagingInterface_1 messagingInterface1 = {
                 MessagingRegister, MessagingPostMessage
             };
             return &messagingInterface1;
         }
 
-        if (!strcmp(name, XW_INTERNAL_SYNC_MESSAGING_INTERFACE_1)) {
+        if (strcmp(name, XW_INTERNAL_SYNC_MESSAGING_INTERFACE_1) == 0) {
             static const XW_Internal_SyncMessagingInterface_1
                 syncMessagingInterface1 = { SyncMessagingRegister,
                                             SyncMessagingSetSyncReply };
             return &syncMessagingInterface1;
         }
 
-        if (!strcmp(name, XW_INTERNAL_ENTRY_POINTS_INTERFACE_1)) {
+        if (strcmp(name, XW_INTERNAL_ENTRY_POINTS_INTERFACE_1) == 0) {
             static const XW_Internal_EntryPointsInterface_1
                 entryPointsInterface1 = { EntryPointsSetExtraJSEntryPoints };
             return &entryPointsInterface1;
         }
 
-        if (!strcmp(name, XW_INTERNAL_RUNTIME_INTERFACE_1)) {
+        if (strcmp(name, XW_INTERNAL_RUNTIME_INTERFACE_1) == 0) {
             static const XW_Internal_RuntimeInterface_1 runtimeInterface1 = {
                 RuntimeGetStringVariable
             };
             return &runtimeInterface1;
         }
 
-        if (!strcmp(name, XW_INTERNAL_PERMISSIONS_INTERFACE_1)) {
+        if (strcmp(name, XW_INTERNAL_PERMISSIONS_INTERFACE_1) == 0) {
             static const XW_Internal_PermissionsInterface_1
                 permissionsInterface1 = { PermissionsCheckAPIAccessControl,
                                           PermissionsRegisterPermissions };
             return &permissionsInterface1;
         }
 
-        if (!strcmp(name, XW_INTERNAL_DATA_INTERFACE_1)) {
+        if (strcmp(name, XW_INTERNAL_DATA_INTERFACE_1) == 0) {
             static const XW_Internal_DataInterface_1 dataInterface1 = {
                 DataRegisterSync, DataRegisterAsync, DataSetSyncReply,
                 DataPostData
@@ -137,15 +141,16 @@ namespace xwalk {
         }
 
         DEVICEAPI_LOG_WARN("Interface '%s' is not supported.", name);
-        return NULL;
+        return nullptr;
     }
 
     Extension* ExtensionAdapter::GetExtension(XW_Extension xw_extension)
     {
         ExtensionAdapter* adapter = ExtensionAdapter::GetInstance();
         ExtensionMap::iterator it = adapter->extension_map_.find(xw_extension);
-        if (it == adapter->extension_map_.end())
-            return NULL;
+        if (it == adapter->extension_map_.end()) {
+            return nullptr;
+        }
         return it->second;
     }
 
@@ -154,8 +159,9 @@ namespace xwalk {
     {
         ExtensionAdapter* adapter = ExtensionAdapter::GetInstance();
         InstanceMap::iterator it = adapter->instance_map_.find(xw_instance);
-        if (it == adapter->instance_map_.end())
-            return NULL;
+        if (it == adapter->instance_map_.end()) {
+            return nullptr;
+        }
         return it->second;
     }
 
@@ -166,8 +172,9 @@ namespace xwalk {
     }
 
 #define RETURN_IF_INITIALIZED(x) \
-    if (x->initialized_)         \
-        return;
+    if (x->initialized_) {       \
+        return;                  \
+    }
 
     void ExtensionAdapter::CoreSetExtensionName(XW_Extension xw_extension,
                                                 const char* name)
@@ -218,10 +225,11 @@ namespace xwalk {
     void* ExtensionAdapter::CoreGetInstanceData(XW_Instance xw_instance)
     {
         ExtensionInstance* instance = GetExtensionInstance(xw_instance);
-        if (instance)
+        if (instance) {
             return instance->instance_data_;
-        else
-            return NULL;
+        } else {
+            return nullptr;
+        }
     }
 
     void ExtensionAdapter::MessagingRegister(
@@ -285,20 +293,22 @@ namespace xwalk {
         XW_Extension xw_extension, const char* api_name)
     {
         Extension* extension = GetExtension(xw_extension);
-        if (extension)
+        if (extension) {
             return extension->CheckAPIAccessControl(api_name);
-        else
+        } else {
             return XW_ERROR;
+        }
     }
 
     int ExtensionAdapter::PermissionsRegisterPermissions(
         XW_Extension xw_extension, const char* perm_table)
     {
         Extension* extension = GetExtension(xw_extension);
-        if (extension)
+        if (extension) {
             return extension->RegisterPermissions(perm_table);
-        else
+        } else {
             return XW_ERROR;
+        }
     }
 
     void ExtensionAdapter::DataRegisterSync(

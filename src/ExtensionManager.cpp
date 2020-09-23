@@ -131,13 +131,12 @@ void ExtensionManager::RegisterExtensionsByMetadata(
 
     bool ExtensionManager::RegisterExtension(Extension* extension)
     {
-        DEVICEAPI_LOG_INFO(
-            "========== << RegisterExtension >> ENTER ==========");
-        if (!extension)
+        DEVICEAPI_LOG_INFO("<RegisterExtension>");
+        if (!extension) {
             return false;
+        }
 
         std::string name = extension->name();
-
         DEVICEAPI_LOG_INFO("Register Extension name : [%s]", name.c_str());
         if (extension_symbols_.find(name) != extension_symbols_.end()) {
             DEVICEAPI_LOG_WARN(
@@ -147,8 +146,8 @@ void ExtensionManager::RegisterExtensionsByMetadata(
         }
 
         std::vector<std::string>& entry_points = extension->entry_points();
-        std::vector<std::string>::iterator iter;
-        for (iter = entry_points.begin(); iter != entry_points.end(); ++iter) {
+        DEVICEAPI_LOG_INFO("    # of entryPoints: %zu\n", entry_points.size());
+        for (auto iter = entry_points.begin(); iter != entry_points.end(); ++iter) {
             if (extension_symbols_.find(*iter) != extension_symbols_.end()) {
                 DEVICEAPI_LOG_WARN(
                     "Ignoring extension with entry_point already registred. "
@@ -156,16 +155,17 @@ void ExtensionManager::RegisterExtensionsByMetadata(
                     (*iter).c_str());
                 return false;
             }
+            DEVICEAPI_LOG_INFO("    entryPoint: %s\n", (*iter).c_str());
         }
 
-        for (iter = entry_points.begin(); iter != entry_points.end(); ++iter) {
+        for (auto iter = entry_points.begin(); iter != entry_points.end(); ++iter) {
             extension_symbols_.insert(*iter);
         }
 
         extension_symbols_.insert(name);
         extensions_[name] = extension;
 
-        DEVICEAPI_LOG_INFO("========== << RegisterExtension >> END ==========");
+        DEVICEAPI_LOG_INFO("</RegisterExtension>");
         return true;
     }
 
