@@ -37,6 +37,7 @@ Development files needed for building websocket clients and servers
 	-DLWS_WITH_SERVER_STATUS=ON \
 	-DLWS_IPV6=ON \
 	-DLWS_WITH_SO_BINDTODEVICE=ON \
+	-DLWS_WITH_HTTP2=OFF\
 	.
 
 make %{?jobs:-j%jobs}
