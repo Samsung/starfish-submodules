@@ -4,7 +4,7 @@
  * This file was part of the Independent JPEG Group's software:
  * Copyright (C) 1995-2010, Thomas G. Lane, Guido Vollbeding.
  * libjpeg-turbo Modifications:
- * Copyright (C) 2010, 2014, 2017, D. R. Commander.
+ * Copyright (C) 2010, 2014, 2017, 2020, D. R. Commander.
  * For conditions of distribution and use, see the accompanying README.ijg
  * file.
  *
@@ -69,7 +69,7 @@ usage(void)
 #endif
   fprintf(stderr, "Switches for modifying the image:\n");
 #if TRANSFORMS_SUPPORTED
-  fprintf(stderr, "  -crop WxH+X+Y  Crop to a rectangular subarea\n");
+  fprintf(stderr, "  -crop WxH+X+Y  Crop to a rectangular region\n");
   fprintf(stderr, "  -grayscale     Reduce to grayscale (omit color data)\n");
   fprintf(stderr, "  -flip [horizontal|vertical]  Mirror image (left-right or top-bottom)\n");
   fprintf(stderr, "  -perfect       Fail if there is non-transformable edge blocks\n");
@@ -591,8 +591,7 @@ main(int argc, char **argv)
   end_progress_monitor((j_common_ptr)&dstinfo);
 #endif
 
-  if (icc_profile != NULL)
-    free(icc_profile);
+  free(icc_profile);
 
   /* All done. */
   exit(jsrcerr.num_warnings + jdsterr.num_warnings ?
