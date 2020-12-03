@@ -5,7 +5,7 @@ if(CMAKE_EXECUTABLE_SUFFIX)
 endif()
 
 project(libjpeg-turbo C)
-set(VERSION 2.0.4)
+set(VERSION 2.0.6)
 string(REPLACE "." ";" VERSION_TRIPLET ${VERSION})
 list(GET VERSION_TRIPLET 0 VERSION_MAJOR)
 list(GET VERSION_TRIPLET 1 VERSION_MINOR)
@@ -55,10 +55,12 @@ if(CMAKE_SYSTEM_PROCESSOR_LC MATCHES "x86_64" OR
     set(CMAKE_SYSTEM_PROCESSOR ${CPU_TYPE})
   endif()
 elseif(CMAKE_SYSTEM_PROCESSOR_LC STREQUAL "aarch64" OR
-  CMAKE_SYSTEM_PROCESSOR_LC MATCHES "arm*64*")
-  set(CPU_TYPE arm64)
-elseif(CMAKE_SYSTEM_PROCESSOR_LC MATCHES "arm*")
-  set(CPU_TYPE arm)
+  CMAKE_SYSTEM_PROCESSOR_LC MATCHES "arm*")
+  if(BITS EQUAL 64)
+    set(CPU_TYPE arm64)
+  else()
+    set(CPU_TYPE arm)
+  endif()
 elseif(CMAKE_SYSTEM_PROCESSOR_LC MATCHES "ppc*" OR
   CMAKE_SYSTEM_PROCESSOR_LC MATCHES "powerpc*")
   set(CPU_TYPE powerpc)
@@ -195,6 +197,14 @@ if(ENABLE_SHARED)
   set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
 endif()
 
+if(WITH_JPEG8 OR WITH_JPEG7)
+  set(WITH_ARITH_ENC 1)
+  set(WITH_ARITH_DEC 1)
+endif()
+if(WITH_JPEG8)
+  set(WITH_MEM_SRCDST 0)
+endif()
+
 if(WITH_12BIT)
   set(WITH_ARITH_DEC 0)
   set(WITH_ARITH_ENC 0)
@@ -206,14 +216,6 @@ else()
   set(BITS_IN_JSAMPLE 8)
 endif()
 report_option(WITH_12BIT "12-bit JPEG support")
-
-if(WITH_JPEG8 OR WITH_JPEG7)
-  set(WITH_ARITH_ENC 1)
-  set(WITH_ARITH_DEC 1)
-endif()
-if(WITH_JPEG8)
-  set(WITH_MEM_SRCDST 0)
-endif()
 
 if(WITH_ARITH_DEC)
   set(D_ARITH_CODING_SUPPORTED 1)
@@ -459,6 +461,21 @@ if(NOT INLINE_WORKS)
 endif()
 message(STATUS "INLINE = ${INLINE} (FORCE_INLINE = ${FORCE_INLINE})")
 
+if(WITH_TURBOJPEG)
+  if(MSVC)
+    set(THREAD_LOCAL "__declspec(thread)")
+  else()
+    set(THREAD_LOCAL "__thread")
+  endif()
+  check_c_source_compiles("${THREAD_LOCAL} int i;  int main(void) { i = 0;  return i; }" HAVE_THREAD_LOCAL)
+  if(HAVE_THREAD_LOCAL)
+    message(STATUS "THREAD_LOCAL = ${THREAD_LOCAL}")
+  else()
+    message(WARNING "Thread-local storage is not available.  The TurboJPEG API library's global error handler will not be thread-safe.")
+    unset(THREAD_LOCAL)
+  endif()
+endif()
+
 if(UNIX AND NOT APPLE)
   file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/conftest.map "VERS_1 { global: *; };")
   set(CMAKE_REQUIRED_FLAGS
@@ -700,10 +717,11 @@ if(WITH_12BIT)
 
   set(MD5_JPEG_3x2_FLOAT_PROG_SSE a8c17daf77b457725ec929e215b603f8)
   set(MD5_PPM_3x2_FLOAT_SSE 42876ab9e5c2f76a87d08db5fbd57956)
-  set(MD5_JPEG_3x2_FLOAT_PROG_32BIT a8c17daf77b457725ec929e215b603f8)
-  set(MD5_PPM_3x2_FLOAT_32BIT ${MD5_PPM_3x2_FLOAT_SSE})
-  set(MD5_JPEG_3x2_FLOAT_PROG_64BIT ${MD5_JPEG_3x2_FLOAT_PROG_32BIT})
-  set(MD5_PPM_3x2_FLOAT_64BIT ${MD5_PPM_3x2_FLOAT_SSE})
+  set(MD5_JPEG_3x2_FLOAT_PROG_NO_FP_CONTRACT a8c17daf77b457725ec929e215b603f8)
+  set(MD5_PPM_3x2_FLOAT_NO_FP_CONTRACT ${MD5_PPM_3x2_FLOAT_SSE})
+  set(MD5_JPEG_3x2_FLOAT_PROG_FP_CONTRACT
+    ${MD5_JPEG_3x2_FLOAT_PROG_NO_FP_CONTRACT})
+  set(MD5_PPM_3x2_FLOAT_FP_CONTRACT ${MD5_PPM_3x2_FLOAT_SSE})
   set(MD5_JPEG_3x2_FLOAT_PROG_387 bc6dbbefac2872f6b9d6c4a0ae60c3c0)
   set(MD5_PPM_3x2_FLOAT_387 bcc5723c61560463ac60f772e742d092)
   set(MD5_JPEG_3x2_FLOAT_PROG_MSVC e27840755870fa849872e58aa0cd1400)
@@ -752,10 +770,11 @@ else()
 
   set(MD5_JPEG_3x2_FLOAT_PROG_SSE 343e3f8caf8af5986ebaf0bdc13b5c71)
   set(MD5_PPM_3x2_FLOAT_SSE 1a75f36e5904d6fc3a85a43da9ad89bb)
-  set(MD5_JPEG_3x2_FLOAT_PROG_32BIT 9bca803d2042bd1eb03819e2bf92b3e5)
-  set(MD5_PPM_3x2_FLOAT_32BIT f6bfab038438ed8f5522fbd33595dcdc)
-  set(MD5_JPEG_3x2_FLOAT_PROG_64BIT ${MD5_JPEG_3x2_FLOAT_PROG_32BIT})
-  set(MD5_PPM_3x2_FLOAT_64BIT 0e917a34193ef976b679a6b069b1be26)
+  set(MD5_JPEG_3x2_FLOAT_PROG_NO_FP_CONTRACT 9bca803d2042bd1eb03819e2bf92b3e5)
+  set(MD5_PPM_3x2_FLOAT_NO_FP_CONTRACT f6bfab038438ed8f5522fbd33595dcdc)
+  set(MD5_JPEG_3x2_FLOAT_PROG_FP_CONTRACT
+    ${MD5_JPEG_3x2_FLOAT_PROG_NO_FP_CONTRACT})
+  set(MD5_PPM_3x2_FLOAT_FP_CONTRACT 0e917a34193ef976b679a6b069b1be26)
   set(MD5_JPEG_3x2_FLOAT_PROG_387 1657664a410e0822c924b54f6f65e6e9)
   set(MD5_PPM_3x2_FLOAT_387 cb0a1f027f3d2917c902b5640214e025)
   set(MD5_JPEG_3x2_FLOAT_PROG_MSVC 7999ce9cd0ee9b6c7043b7351ab7639d)
@@ -765,7 +784,29 @@ else()
   set(MD5_PPM_3x2_IFAST fd283664b3b49127984af0a7f118fccd)
   set(MD5_JPEG_420_ISLOW_ARI e986fb0a637a8d833d96e8a6d6d84ea1)
   set(MD5_JPEG_444_ISLOW_PROGARI 0a8f1c8f66e113c3cf635df0a475a617)
-  set(MD5_PPM_420M_IFAST_ARI 72b59a99bcf1de24c5b27d151bde2437)
+  # Since v1.5.1, libjpeg-turbo uses the separate non-fancy upsampling and
+  # YCbCr -> RGB color conversion routines rather than merged upsampling/color
+  # conversion when fancy upsampling is disabled on platforms that have a SIMD
+  # implementation of YCbCr -> RGB color conversion but no SIMD implementation
+  # of merged upsampling/color conversion.  This was intended to improve the
+  # performance of the Arm Neon SIMD extensions, the only SIMD extensions for
+  # which those circumstances currently apply.  The separate non-fancy
+  # upsampling and color conversion routines usually produce bitwise-identical
+  # output to the merged upsampling/color conversion routines, but that is not
+  # the case when skipping scanlines starting at an odd-numbered scanline.  In
+  # libjpeg-turbo 2.0.5 and prior, doing that while using merged h2v2
+  # upsampling caused a segfault, so this test validates the fix for that
+  # segfault.  Unfortunately, however, the test also produces different bitwise
+  # output when using the Neon SIMD extensions, because of the aforementioned
+  # optimization.  The easiest workaround is to use the old test from
+  # libjpeg-turbo 2.0.5 and prior when using the Neon SIMD extensions.  The
+  # aforementioned segfault never would have occurred with the Neon SIMD
+  # extensions anyhow, since merged upsampling is disabled when using them.
+  if((CPU_TYPE STREQUAL "arm64" OR CPU_TYPE STREQUAL "arm") AND WITH_SIMD)
+    set(MD5_PPM_420M_IFAST_ARI 72b59a99bcf1de24c5b27d151bde2437)
+  else()
+    set(MD5_PPM_420M_IFAST_ARI 57251da28a35b46eecb7177d82d10e0e)
+  endif()
   set(MD5_JPEG_420_ISLOW 9a68f56bc76e466aa7e52f415d0f4a5f)
   set(MD5_PPM_420M_ISLOW_2_1 9f9de8c0612f8d06869b960b05abf9c9)
   set(MD5_PPM_420M_ISLOW_15_8 b6875bc070720b899566cc06459b63b7)
@@ -843,11 +884,16 @@ endif()
 #
 # sse = validate against the expected results from the libjpeg-turbo SSE SIMD
 #       extensions
-# 32bit = validate against the expected results from the C code when running on
-#         a 32-bit FPU (or when SSE is being used for floating point math,
-#         which is generally the default with x86-64 compilers)
-# 64bit = validate against the expected results from the C code when running
-#         on a 64-bit FPU
+# no-fp-contract = validate against the expected results from the C code when
+#                  floating point expression contraction is disabled (the
+#                  default with Clang, with GCC when building for platforms
+#                  that lack fused multiply-add [FMA] instructions, or when
+#                  passing -ffp-contract=off to the compiler)
+# fp-contract = validate against the expected results from the C code when
+#               floating point expression contraction is enabled (the default
+#               with GCC when building for platforms that have fused multiply-
+#               add [FMA] instructions or when passing -ffp-contract=fast to
+#               the compiler)
 # 387 = validate against the expected results from the C code when the 387 FPU
 #       is being used for floating point math (which is generally the default
 #       with x86 compilers)
@@ -858,15 +904,20 @@ if(CPU_TYPE STREQUAL "x86_64" OR CPU_TYPE STREQUAL "i386")
   if(WITH_SIMD)
     set(DEFAULT_FLOATTEST sse)
   elseif(CPU_TYPE STREQUAL "x86_64")
-    set(DEFAULT_FLOATTEST 32bit)
+    set(DEFAULT_FLOATTEST no-fp-contract)
   elseif(CPU_TYPE STREQUAL "i386" AND MSVC)
     set(DEFAULT_FLOATTEST msvc)
+  # else we can't really set an intelligent default for i386.  The appropriate
+  # value could be 387, no-fp-contract, or fp-contract, depending on the
+  # compiler and compiler options.  We leave it to the user to set FLOATTEST
+  # manually.
   endif()
 else()
-  if(BITS EQUAL 64)
-    set(DEFAULT_FLOATTEST 64bit)
-  elseif(BITS EQUAL 32)
-    set(DEFAULT_FLOATTEST 32bit)
+  if((CPU_TYPE STREQUAL "powerpc" OR CPU_TYPE STREQUAL "arm64") AND
+    NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    set(DEFAULT_FLOATTEST fp-contract)
+  else()
+    set(DEFAULT_FLOATTEST no-fp-contract)
   endif()
 endif()
 
@@ -877,15 +928,17 @@ if(DEFINED WITH_SIMD_INT AND NOT WITH_SIMD EQUAL WITH_SIMD_INT)
 endif()
 set(WITH_SIMD_INT ${WITH_SIMD} CACHE INTERNAL "")
 set(FLOATTEST ${DEFAULT_FLOATTEST} CACHE STRING
-  "The type of floating point math used by the floating point DCT/IDCT algorithms.  This tells the testing system which numerical results it should expect from those tests.  [sse = libjpeg-turbo x86/x86-64 SIMD extensions, 32bit = generic 32-bit FPU or SSE, 64bit = generic 64-bit FPU, 387 = 387 FPU, msvc = 32-bit Visual Studio] (default = ${DEFAULT_FLOATTEST})"
+  "The type of floating point math used by the floating point DCT/IDCT algorithms.  This tells the testing system which numerical results it should expect from those tests.  [sse = libjpeg-turbo x86/x86-64 SIMD extensions, no-fp-contract = generic FPU with floating point expression contraction disabled, fp-contract = generic FPU with floating point expression contraction enabled, 387 = 387 FPU, msvc = 32-bit Visual Studio] (default = ${DEFAULT_FLOATTEST})"
   ${FORCE_FLOATTEST})
 message(STATUS "FLOATTEST = ${FLOATTEST}")
 
 if(FLOATTEST)
   string(TOUPPER ${FLOATTEST} FLOATTEST_UC)
+  string(REGEX REPLACE "-" "_" FLOATTEST_UC ${FLOATTEST_UC})
   string(TOLOWER ${FLOATTEST} FLOATTEST)
-  if(NOT FLOATTEST STREQUAL "sse" AND NOT FLOATTEST STREQUAL "32bit" AND
-    NOT FLOATTEST STREQUAL "64bit" AND NOT FLOATTEST STREQUAL "387" AND
+  if(NOT FLOATTEST STREQUAL "sse" AND
+    NOT FLOATTEST STREQUAL "no-fp-contract" AND
+    NOT FLOATTEST STREQUAL "fp-contract" AND NOT FLOATTEST STREQUAL "387" AND
     NOT FLOATTEST STREQUAL "msvc")
     message(FATAL_ERROR "\"${FLOATTEST}\" is not a valid value for FLOATTEST.")
   endif()
@@ -896,12 +949,18 @@ foreach(libtype ${TEST_LIBTYPES})
     set(suffix -static)
   endif()
   if(WITH_TURBOJPEG)
-    add_test(tjunittest-${libtype} tjunittest${suffix})
-    add_test(tjunittest-${libtype}-alloc tjunittest${suffix} -alloc)
-    add_test(tjunittest-${libtype}-yuv tjunittest${suffix} -yuv)
-    add_test(tjunittest-${libtype}-yuv-alloc tjunittest${suffix} -yuv -alloc)
-    add_test(tjunittest-${libtype}-yuv-nopad tjunittest${suffix} -yuv -noyuvpad)
-    add_test(tjunittest-${libtype}-bmp tjunittest${suffix} -bmp)
+    add_test(tjunittest-${libtype}
+      ${CMAKE_CROSSCOMPILING_EMULATOR} tjunittest${suffix})
+    add_test(tjunittest-${libtype}-alloc
+      ${CMAKE_CROSSCOMPILING_EMULATOR} tjunittest${suffix} -alloc)
+    add_test(tjunittest-${libtype}-yuv
+      ${CMAKE_CROSSCOMPILING_EMULATOR} tjunittest${suffix} -yuv)
+    add_test(tjunittest-${libtype}-yuv-alloc
+      ${CMAKE_CROSSCOMPILING_EMULATOR} tjunittest${suffix} -yuv -alloc)
+    add_test(tjunittest-${libtype}-yuv-nopad
+      ${CMAKE_CROSSCOMPILING_EMULATOR} tjunittest${suffix} -yuv -noyuvpad)
+    add_test(tjunittest-${libtype}-bmp
+      ${CMAKE_CROSSCOMPILING_EMULATOR} tjunittest${suffix} -bmp)
 
     set(MD5_PPM_GRAY_TILE 89d3ca21213d9d864b50b4e4e7de4ca6)
     set(MD5_PPM_420_8x8_TILE 847fceab15c5b7b911cb986cf0f71de3)
@@ -926,22 +985,23 @@ foreach(libtype ${TEST_LIBTYPES})
       ${CMAKE_COMMAND} -E copy_if_different ${TESTIMAGES}/testorig.ppm
         testout_tile.ppm)
     add_test(tjbench-${libtype}-tile
-      tjbench${suffix} testout_tile.ppm 95 -rgb -quiet -tile -benchtime 0.01
-        -warmup 0)
+      ${CMAKE_CROSSCOMPILING_EMULATOR} tjbench${suffix} testout_tile.ppm 95
+        -rgb -quiet -tile -benchtime 0.01 -warmup 0)
     set_tests_properties(tjbench-${libtype}-tile
       PROPERTIES DEPENDS tjbench-${libtype}-tile-cp)
 
     foreach(tile 8 16 32 64 128)
       add_test(tjbench-${libtype}-tile-gray-${tile}x${tile}-cmp
-        ${MD5CMP} ${MD5_PPM_GRAY_TILE}
+        ${CMAKE_CROSSCOMPILING_EMULATOR} ${MD5CMP} ${MD5_PPM_GRAY_TILE}
           testout_tile_GRAY_Q95_${tile}x${tile}.ppm)
       foreach(subsamp 420 422)
         add_test(tjbench-${libtype}-tile-${subsamp}-${tile}x${tile}-cmp
-          ${MD5CMP} ${MD5_PPM_${subsamp}_${tile}x${tile}_TILE}
+          ${CMAKE_CROSSCOMPILING_EMULATOR} ${MD5CMP}
+            ${MD5_PPM_${subsamp}_${tile}x${tile}_TILE}
             testout_tile_${subsamp}_Q95_${tile}x${tile}.ppm)
       endforeach()
       add_test(tjbench-${libtype}-tile-444-${tile}x${tile}-cmp
-        ${MD5CMP} ${MD5_PPM_444_TILE}
+        ${CMAKE_CROSSCOMPILING_EMULATOR} ${MD5CMP} ${MD5_PPM_444_TILE}
           testout_tile_444_Q95_${tile}x${tile}.ppm)
       foreach(subsamp gray 420 422 444)
         set_tests_properties(tjbench-${libtype}-tile-${subsamp}-${tile}x${tile}-cmp
@@ -953,19 +1013,22 @@ foreach(libtype ${TEST_LIBTYPES})
       ${CMAKE_COMMAND} -E copy_if_different ${TESTIMAGES}/testorig.ppm
         testout_tilem.ppm)
     add_test(tjbench-${libtype}-tilem
-      tjbench${suffix} testout_tilem.ppm 95 -rgb -fastupsample -quiet -tile
-        -benchtime 0.01 -warmup 0)
+      ${CMAKE_CROSSCOMPILING_EMULATOR} tjbench${suffix} testout_tilem.ppm 95
+        -rgb -fastupsample -quiet -tile -benchtime 0.01 -warmup 0)
     set_tests_properties(tjbench-${libtype}-tilem
       PROPERTIES DEPENDS tjbench-${libtype}-tilem-cp)
 
     add_test(tjbench-${libtype}-tile-420m-8x8-cmp
-      ${MD5CMP} ${MD5_PPM_420M_8x8_TILE} testout_tilem_420_Q95_8x8.ppm)
+      ${CMAKE_CROSSCOMPILING_EMULATOR} ${MD5CMP} ${MD5_PPM_420M_8x8_TILE}
+        testout_tilem_420_Q95_8x8.ppm)
     add_test(tjbench-${libtype}-tile-422m-8x8-cmp
-      ${MD5CMP} ${MD5_PPM_422M_8x8_TILE} testout_tilem_422_Q95_8x8.ppm)
+      ${CMAKE_CROSSCOMPILING_EMULATOR} ${MD5CMP} ${MD5_PPM_422M_8x8_TILE}
+        testout_tilem_422_Q95_8x8.ppm)
     foreach(tile 16 32 64 128)
       foreach(subsamp 420 422)
         add_test(tjbench-${libtype}-tile-${subsamp}m-${tile}x${tile}-cmp
-          ${MD5CMP} ${MD5_PPM_${subsamp}M_TILE}
+          ${CMAKE_CROSSCOMPILING_EMULATOR} ${MD5CMP}
+            ${MD5_PPM_${subsamp}M_TILE}
             testout_tilem_${subsamp}_Q95_${tile}x${tile}.ppm)
       endforeach()
     endforeach()
@@ -983,9 +1046,10 @@ foreach(libtype ${TEST_LIBTYPES})
 
   macro(add_bittest PROG NAME ARGS OUTFILE INFILE MD5SUM)
     add_test(${PROG}-${libtype}-${NAME}
-      ${PROG}${suffix} ${ARGS} -outfile ${OUTFILE} ${INFILE})
+      ${CMAKE_CROSSCOMPILING_EMULATOR} ${PROG}${suffix} ${ARGS}
+        -outfile ${OUTFILE} ${INFILE})
     add_test(${PROG}-${libtype}-${NAME}-cmp
-      ${MD5CMP} ${MD5SUM} ${OUTFILE})
+      ${CMAKE_CROSSCOMPILING_EMULATOR} ${MD5CMP} ${MD5SUM} ${OUTFILE})
     set_tests_properties(${PROG}-${libtype}-${NAME}-cmp PROPERTIES
       DEPENDS ${PROG}-${libtype}-${NAME})
     if(${ARGC} GREATER 6)
@@ -1006,12 +1070,14 @@ foreach(libtype ${TEST_LIBTYPES})
     ${MD5_PPM_RGB_ISLOW} cjpeg-${libtype}-rgb-islow)
 
   add_test(djpeg-${libtype}-rgb-islow-icc-cmp
-    ${MD5CMP} b06a39d730129122e85c1363ed1bbc9e testout_rgb_islow.icc)
+    ${CMAKE_CROSSCOMPILING_EMULATOR} ${MD5CMP}
+      b06a39d730129122e85c1363ed1bbc9e testout_rgb_islow.icc)
   set_tests_properties(djpeg-${libtype}-rgb-islow-icc-cmp PROPERTIES
     DEPENDS djpeg-${libtype}-rgb-islow)
 
   add_bittest(jpegtran icc "-copy;all;-icc;${TESTIMAGES}/test2.icc"
-    testout_rgb_islow2.jpg testout_rgb_islow.jpg ${MD5_JPEG_RGB_ISLOW2})
+    testout_rgb_islow2.jpg testout_rgb_islow.jpg
+    ${MD5_JPEG_RGB_ISLOW2} cjpeg-${libtype}-rgb-islow)
 
   if(NOT WITH_12BIT)
     # CC: RGB->RGB565  SAMP: fullsize  IDCT: islow  ENT: huff
@@ -1143,9 +1209,17 @@ foreach(libtype ${TEST_LIBTYPES})
 
   if(WITH_ARITH_DEC)
     # CC: RGB->YCC  SAMP: h2v2 merged  IDCT: ifast  ENT: arith
-    add_bittest(djpeg 420m-ifast-ari "-fast;-ppm"
-      testout_420m_ifast_ari.ppm ${TESTIMAGES}/testimgari.jpg
-      ${MD5_PPM_420M_IFAST_ARI})
+    if((CPU_TYPE STREQUAL "arm64" OR CPU_TYPE STREQUAL "arm") AND WITH_SIMD)
+      # Refer to the comment above the definition of MD5_PPM_420M_IFAST_ARI for
+      # an explanation of why this is necessary.
+      add_bittest(djpeg 420m-ifast-ari "-fast;-ppm"
+        testout_420m_ifast_ari.ppm ${TESTIMAGES}/testimgari.jpg
+        ${MD5_PPM_420M_IFAST_ARI})
+    else()
+      add_bittest(djpeg 420m-ifast-ari "-fast;-skip;1,20;-ppm"
+        testout_420m_ifast_ari.ppm ${TESTIMAGES}/testimgari.jpg
+        ${MD5_PPM_420M_IFAST_ARI})
+    endif()
 
     add_bittest(jpegtran 420-islow ""
       testout_420_islow.jpg ${TESTIMAGES}/testimgari.jpg
@@ -1224,7 +1298,7 @@ foreach(libtype ${TEST_LIBTYPES})
 
   # Context rows: Yes  Intra-iMCU row: No   iMCU row prefetch: No   ENT: prog huff
   add_test(cjpeg-${libtype}-420-islow-prog
-    cjpeg${suffix} -dct int -prog
+    ${CMAKE_CROSSCOMPILING_EMULATOR} cjpeg${suffix} -dct int -prog
       -outfile testout_420_islow_prog.jpg ${TESTIMAGES}/testorig.ppm)
   add_bittest(djpeg 420-islow-prog-crop62x62_71_71
     "-dct;int;-crop;62x62+71+71;-ppm"
@@ -1241,7 +1315,7 @@ foreach(libtype ${TEST_LIBTYPES})
 
   # Context rows: No   Intra-iMCU row: Yes  ENT: huff
   add_test(cjpeg-${libtype}-444-islow
-    cjpeg${suffix} -dct int -sample 1x1
+    ${CMAKE_CROSSCOMPILING_EMULATOR} cjpeg${suffix} -dct int -sample 1x1
       -outfile testout_444_islow.jpg ${TESTIMAGES}/testorig.ppm)
   add_bittest(djpeg 444-islow-skip1_6 "-dct;int;-skip;1,6;-ppm"
     testout_444_islow_skip1,6.ppm testout_444_islow.jpg
@@ -1249,7 +1323,7 @@ foreach(libtype ${TEST_LIBTYPES})
 
   # Context rows: No   Intra-iMCU row: No   ENT: prog huff
   add_test(cjpeg-${libtype}-444-islow-prog
-    cjpeg${suffix} -dct int -prog -sample 1x1
+    ${CMAKE_CROSSCOMPILING_EMULATOR} cjpeg${suffix} -dct int -prog -sample 1x1
       -outfile testout_444_islow_prog.jpg ${TESTIMAGES}/testorig.ppm)
   add_bittest(djpeg 444-islow-prog-crop98x98_13_13
     "-dct;int;-crop;98x98+13+13;-ppm"
@@ -1259,8 +1333,9 @@ foreach(libtype ${TEST_LIBTYPES})
   # Context rows: No   Intra-iMCU row: No   ENT: arith
   if(WITH_ARITH_ENC)
     add_test(cjpeg-${libtype}-444-islow-ari
-      cjpeg${suffix} -dct int -arithmetic -sample 1x1
-        -outfile testout_444_islow_ari.jpg ${TESTIMAGES}/testorig.ppm)
+      ${CMAKE_CROSSCOMPILING_EMULATOR} cjpeg${suffix} -dct int -arithmetic
+        -sample 1x1 -outfile testout_444_islow_ari.jpg
+        ${TESTIMAGES}/testorig.ppm)
     if(WITH_ARITH_DEC)
       add_bittest(djpeg 444-islow-ari-crop37x37_0_0
         "-dct;int;-crop;37x37+0+0;-ppm"
@@ -1277,6 +1352,11 @@ endforeach()
 
 add_custom_target(testclean COMMAND ${CMAKE_COMMAND} -P
   ${CMAKE_CURRENT_SOURCE_DIR}/cmakescripts/testclean.cmake)
+
+configure_file(croptest.in croptest @ONLY)
+add_custom_target(croptest
+  COMMAND echo croptest
+  COMMAND ${BASH} ${CMAKE_CURRENT_BINARY_DIR}/croptest)
 
 if(WITH_TURBOJPEG)
   configure_file(tjbenchtest.in tjbenchtest @ONLY)
