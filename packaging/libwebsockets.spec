@@ -12,7 +12,6 @@ BuildRequires: zlib-devel
 BuildRequires: pkgconfig(openssl1.1)
 BuildRequires: openssl1.1
 BuildRequires: cmake
-BuildRequires: pkgconfig(libsystemd-daemon)
 
 %define _optdeveldir /opt/usr/devel/usr/
 
