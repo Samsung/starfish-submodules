@@ -65,6 +65,12 @@ OpenSSL_client_verify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx)
 					    "certificate (verify_callback)\n");
 				X509_STORE_CTX_set_error(x509_ctx, X509_V_OK);
 				return 1;	// ok
+		} else if ((err == X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY ||
+			    err == X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE) &&
+			    wsi->tls.use_ssl & LCCSCF_ALLOW_INSECURE) {
+				lwsl_notice("accepting non-trusted certificate\n");
+				X509_STORE_CTX_set_error(x509_ctx, X509_V_OK);
+				return 1;  /* ok */
 			} else if ((err == X509_V_ERR_CERT_NOT_YET_VALID ||
 				    err == X509_V_ERR_CERT_HAS_EXPIRED) &&
 				    wsi->tls.use_ssl & LCCSCF_ALLOW_EXPIRED) {
@@ -179,6 +185,13 @@ lws_ssl_client_bio_create(struct lws *wsi)
 		// Handle the case where the hostname is an IP address.
 		if (!X509_VERIFY_PARAM_set1_ip_asc(param, hostname))
 			X509_VERIFY_PARAM_set1_host(param, hostname, 0);
+	}
+#else
+	if (!(wsi->tls.use_ssl & LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK)) {
+		lwsl_err("%s: your tls lib is too old to have "
+			 "X509_VERIFY_PARAM_set1_host, failing all client tls\n",
+			 __func__);
+		return -1;
 	}
 #endif
 
@@ -303,7 +316,7 @@ lws_tls_client_connect(struct lws *wsi)
 
 	m = lws_ssl_get_error(wsi, n);
 
-	if (m == SSL_ERROR_SYSCALL)
+	if (m == SSL_ERROR_SYSCALL || m == SSL_ERROR_SSL)
 		return LWS_SSL_CAPABLE_ERROR;
 
 	if (m == SSL_ERROR_WANT_READ || SSL_want_read(wsi->tls.ssl))

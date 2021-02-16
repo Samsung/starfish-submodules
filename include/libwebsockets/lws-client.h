@@ -38,6 +38,7 @@ enum lws_client_connect_ssl_connection_flags {
 	LCCSCF_ALLOW_SELFSIGNED			= (1 << 1),
 	LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK	= (1 << 2),
 	LCCSCF_ALLOW_EXPIRED			= (1 << 3),
+	LCCSCF_ALLOW_INSECURE			= (1 << 4),
 
 	LCCSCF_PIPELINE				= (1 << 16),
 		/**< Serialize / pipeline multiple client connections
@@ -48,8 +49,6 @@ enum lws_client_connect_ssl_connection_flags {
 		 * HTTP/2:   always possible... uses parallel streams
 		 * */
 };
-
-typedef struct lws_sequencer lws_seq_t;
 
 /** struct lws_client_connect_info - parameters to connect with when using
  *				    lws_client_connect_via_info() */
