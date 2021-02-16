@@ -29,7 +29,7 @@ lws_ev_hrtimer_cb(struct ev_loop *loop, struct ev_timer *watcher, int revents)
 	lws_usec_t us;
 
 	lws_pt_lock(pt, __func__);
-	us = __lws_sul_check(&pt->pt_sul_owner, lws_now_usecs());
+	us = __lws_sul_service_ripe(&pt->pt_sul_owner, lws_now_usecs());
 	if (us) {
 		ev_timer_set(&pt->ev.hrtimer, ((float)us) / 1000000.0, 0);
 		ev_timer_start(pt->ev.io_loop, &pt->ev.hrtimer);
@@ -49,19 +49,14 @@ lws_ev_idle_cb(struct ev_loop *loop, struct ev_idle *handle, int revents)
 	/*
 	 * is there anybody with pending stuff that needs service forcing?
 	 */
-	if (!lws_service_adjust_timeout(pt->context, 1, pt->tid)) {
+	if (!lws_service_adjust_timeout(pt->context, 1, pt->tid))
 		/* -1 timeout means just do forced service */
-		_lws_plat_service_tsi(pt->context, -1, pt->tid);
-		/* still somebody left who wants forced service? */
-		if (!lws_service_adjust_timeout(pt->context, 1, pt->tid))
-			/* yes... come back again later */
-		return;
-	}
+		_lws_plat_service_forced_tsi(pt->context, pt->tid);
 
 	/* account for hrtimer */
 
 	lws_pt_lock(pt, __func__);
-	us = __lws_sul_check(&pt->pt_sul_owner, lws_now_usecs());
+	us = __lws_sul_service_ripe(&pt->pt_sul_owner, lws_now_usecs());
 	if (us) {
 		ev_timer_set(&pt->ev.hrtimer, ((float)us) / 1000000.0, 0);
 		ev_timer_start(pt->ev.io_loop, &pt->ev.hrtimer);
@@ -180,6 +175,11 @@ elops_init_pt_ev(struct lws_context *context, void *_loop, int tsi)
 	case EVBACKEND_EPOLL:
 		backend_name = "epoll";
 		break;
+#if defined(LWS_HAVE_EVBACKEND_LINUXAIO)
+       case EVBACKEND_LINUXAIO:
+               backend_name = "Linux AIO";
+               break;
+#endif
 	case EVBACKEND_KQUEUE:
 		backend_name = "kqueue";
 		break;
