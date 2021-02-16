@@ -256,7 +256,7 @@ set(PACKAGE "libwebsockets")
 set(CPACK_PACKAGE_NAME "${PACKAGE}")
 set(CPACK_PACKAGE_VERSION_MAJOR "3")
 set(CPACK_PACKAGE_VERSION_MINOR "2")
-set(CPACK_PACKAGE_VERSION_PATCH "3")
+set(CPACK_PACKAGE_VERSION_PATCH "0")
 set(CPACK_PACKAGE_RELEASE 1)
 set(CPACK_GENERATOR "RPM")
 set(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
@@ -788,7 +788,6 @@ CHECK_FUNCTION_EXISTS(atoll LWS_HAVE_ATOLL)
 CHECK_FUNCTION_EXISTS(_atoi64 LWS_HAVE__ATOI64)
 CHECK_FUNCTION_EXISTS(_stat32i64 LWS_HAVE__STAT32I64)
 CHECK_FUNCTION_EXISTS(clock_gettime LWS_HAVE_CLOCK_GETTIME)
-CHECK_FUNCTION_EXISTS(eventfd LWS_HAVE_EVENTFD)
 
 if (NOT LWS_HAVE_GETIFADDRS)
 	if (LWS_WITHOUT_BUILTIN_GETIFADDRS)
@@ -866,13 +865,6 @@ CHECK_INCLUDE_FILE(uv-version.h LWS_HAVE_UV_VERSION_H)
   endif()
 endif()
 
-if (LWS_WITH_LIBEV)
-	CHECK_C_SOURCE_COMPILES(
-        "#include <ev.h>
-        int main(int argc, char **argv) { return EVBACKEND_LINUXAIO; }
-        " LWS_HAVE_EVBACKEND_LINUXAIO)
-endif()
-
 
 if (LWS_WITH_ZLIB AND NOT LWS_WITH_BUNDLED_ZLIB)
 	if (LWS_WITH_MINIZ)
@@ -894,25 +886,18 @@ CHECK_C_SOURCE_COMPILES("#include <stdint.h>
 		return 0;
 	}" LWS_HAS_INTPTR_T)
 
-if (LWS_HAVE_PTHREAD_H)
-	if ((CMAKE_C_COMPILER_ID MATCHES "Clang") OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
-		set(CMAKE_REQUIRED_FLAGS "-pthread -Wno-error=unused-command-line-argument")
-	else()
-		set(CMAKE_REQUIRED_FLAGS "-pthread")
-	endif()
-
-	CHECK_C_SOURCE_COMPILES("#define _GNU_SOURCE
-		#include <pthread.h>
-		int main(void) {
-			pthread_t th = 0;
-			pthread_setname_np(th, NULL);
-			return 0;
-		}" LWS_HAS_PTHREAD_SETNAME_NP)
-endif()
+set(CMAKE_REQUIRED_FLAGS "-pthread")	
+CHECK_C_SOURCE_COMPILES("#define _GNU_SOURCE 
+	#include <pthread.h> 
+	int main(void) { 
+		pthread_t th = 0;
+		pthread_setname_np(th, NULL);
+		return 0;
+	}" LWS_HAS_PTHREAD_SETNAME_NP)
 
 CHECK_C_SOURCE_COMPILES("#include <stddef.h>
-	#include <getopt.h>
-	int main(void) {
+	#include <getopt.h> 
+	int main(void) { 
 		void *p = (void *)getopt_long;
 		return p != NULL;
 	}" LWS_HAS_GETOPT_LONG)
@@ -1375,8 +1360,6 @@ endif()
 if (LWS_WITH_LIBEV AND LWS_WITH_NETWORK)
 	list(APPEND SOURCES
 		lib/event-libs/libev/libev.c)
-	# libev generates a big mess of warnings with gcc, maintainer claims gcc to blame
-	set_source_files_properties( lib/event-libs/libev/libev.c PROPERTIES COMPILE_FLAGS "-Wno-error" )
 endif()
 
 if (LWS_WITH_LEJP)
@@ -1520,7 +1503,7 @@ if (COMPILER_IS_CLANG)
 	# otherwise osx blows a bunch of openssl deprecated api errors
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-deprecated-declarations" )
 	if (UNIX AND LWS_HAVE_PTHREAD_H)
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -Wno-error=unused-command-line-argument" )
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread" )
 	endif()
 endif()
 
@@ -1680,8 +1663,7 @@ if (LWS_WITH_ZLIB)
 	message("zlib/miniz include dirs: ${ZLIB_INCLUDE_DIRS}")
 	message("zlib/miniz libraries: ${ZLIB_LIBRARIES}")
 	include_directories(${ZLIB_INCLUDE_DIRS})
-	# done later at end of link list
-	# list(APPEND LIB_LIST ${ZLIB_LIBRARIES})
+	list(APPEND LIB_LIST ${ZLIB_LIBRARIES})
 endif()
 
 if (LWS_WITH_HTTP_BROTLI)
@@ -1847,10 +1829,6 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "QNX")
 	list(APPEND LIB_LIST socket)
 endif()
 
-#
-# add libs here that need to be at the end of the link order
-#
-
 if (UNIX)
 	list(APPEND LIB_LIST m)
 endif()
@@ -1865,14 +1843,6 @@ endif()
 
 if (LWS_HAVE_LIBCAP)
 	list(APPEND LIB_LIST cap )
-endif()
-
-if (UNIX)
-	list(APPEND LIB_LIST dl)
-endif()
-
-if (LWS_WITH_ZLIB AND NOT LWS_WITH_BUNDLED_ZLIB)
-	list(APPEND LIB_LIST "${ZLIB_LIBRARIES}")
 endif()
 
 # Setup the linking for all libs.
@@ -2143,6 +2113,12 @@ if ((LWS_ROLE_H1 OR LWS_ROLE_H2) AND NOT LWS_WITHOUT_TESTAPPS)
 			target_link_libraries(websockets dl)
 		endif()
 	endif()
+
+	if (LWS_WITH_LIBEV)
+		# libev generates a big mess of warnings with gcc, maintainer claims gcc to blame
+		set_source_files_properties( lib/event-libs/libev/libev.c PROPERTIES COMPILE_FLAGS "-Wno-error" )
+	endif()
+
 
 	if (NOT LWS_WITHOUT_SERVER)
 		#

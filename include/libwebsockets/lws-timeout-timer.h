@@ -113,7 +113,7 @@ void
 lws_set_timeout_us(struct lws *wsi, enum pending_timeout reason, lws_usec_t us);
 
 #define LWS_SET_TIMER_USEC_CANCEL ((lws_usec_t)-1ll)
-#define LWS_USEC_PER_SEC ((lws_usec_t)1000000)
+#define LWS_USEC_PER_SEC (1000000ll)
 
 /**
  * lws_set_timer_usecs() - schedules a callback on the wsi in the future
@@ -194,13 +194,14 @@ lws_timed_callback_vh_protocol_us(struct lws_vhost *vh,
 				  lws_usec_t us);
 
 
+typedef struct lws_sorted_usec_list lws_sorted_usec_list_t;
 typedef void (*sul_cb_t)(lws_sorted_usec_list_t *sul);
 
-struct lws_sorted_usec_list {
+typedef struct lws_sorted_usec_list {
 	struct lws_dll2 list;	/* simplify the code by keeping this at start */
 	sul_cb_t	cb;
 	lws_usec_t	us;
-};
+} lws_sorted_usec_list_t;
 
 
 /*

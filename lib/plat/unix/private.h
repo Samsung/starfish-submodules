@@ -43,9 +43,6 @@
 #include <sys/time.h>
 #include <sys/mman.h>
 #include <sys/un.h>
-#if defined(LWS_HAVE_EVENTFD)
-#include <sys/eventfd.h>
-#endif
 
 #if defined(__APPLE__)
 #include <machine/endian.h>
@@ -171,6 +168,6 @@ delete_from_fd(const struct lws_context *context, int fd);
  * Solaris 11.X only supports POSIX 2001, MSG_NOSIGNAL appears in
  * POSIX 2008.
  */
-#if defined(__sun) && !defined(MSG_NOSIGNAL)
+#if defined(__sun) && !defined(__smartos__)
  #define MSG_NOSIGNAL 0
 #endif

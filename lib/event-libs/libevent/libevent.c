@@ -29,7 +29,7 @@ lws_event_hrtimer_cb(int fd, short event, void *p)
 	lws_usec_t us;
 
 	lws_pt_lock(pt, __func__);
-	us = __lws_sul_service_ripe(&pt->pt_sul_owner, lws_now_usecs());
+	us = __lws_sul_check(&pt->pt_sul_owner, lws_now_usecs());
 	if (us) {
 		tv.tv_sec = us / LWS_US_PER_SEC;
 		tv.tv_usec = us - (tv.tv_sec * LWS_US_PER_SEC);
@@ -52,7 +52,7 @@ lws_event_idle_timer_cb(int fd, short event, void *p)
 	 */
 	if (!lws_service_adjust_timeout(pt->context, 1, pt->tid)) {
 		/* -1 timeout means just do forced service */
-		_lws_plat_service_forced_tsi(pt->context, pt->tid);
+		_lws_plat_service_tsi(pt->context, -1, pt->tid);
 		/* still somebody left who wants forced service? */
 		if (!lws_service_adjust_timeout(pt->context, 1, pt->tid)) {
 			/* yes... come back again later */
@@ -70,7 +70,7 @@ lws_event_idle_timer_cb(int fd, short event, void *p)
 	/* account for hrtimer */
 
 	lws_pt_lock(pt, __func__);
-	us = __lws_sul_service_ripe(&pt->pt_sul_owner, lws_now_usecs());
+	us = __lws_sul_check(&pt->pt_sul_owner, lws_now_usecs());
 	if (us) {
 		tv.tv_sec = us / LWS_US_PER_SEC;
 		tv.tv_usec = us - (tv.tv_sec * LWS_US_PER_SEC);

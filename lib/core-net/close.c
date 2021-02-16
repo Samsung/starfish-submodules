@@ -345,12 +345,6 @@ __lws_close_free_wsi(struct lws *wsi, enum lws_close_status reason,
 
 just_kill_connection:
 
-#if defined(LWS_WITH_FILE_OPS) && (defined(LWS_ROLE_H1) || defined(LWS_ROLE_H2))
-       if (lwsi_role_http(wsi) && lwsi_role_server(wsi) &&
-           wsi->http.fop_fd != NULL)
-	       lws_vfs_file_close(&wsi->http.fop_fd);
-#endif
-
 #if defined(LWS_WITH_HTTP_PROXY)
 	if (wsi->http.buflist_post_body)
 		lws_buflist_destroy_all_segments(&wsi->http.buflist_post_body);
@@ -376,12 +370,9 @@ just_kill_connection:
 #if !defined(LWS_NO_CLIENT)
 	if ((lwsi_state(wsi) == LRS_WAITING_SERVER_REPLY ||
 	     lwsi_state(wsi) == LRS_WAITING_CONNECT) &&
-	     !wsi->already_did_cce && wsi->protocol) {
-		static const char _reason[] = "closed before established";
-
+	     !wsi->already_did_cce && wsi->protocol)
 		lws_inform_client_conn_fail(wsi,
-			(void *)_reason, sizeof(_reason));
-	}
+				(void *)"closed before established", 24);
 #endif
 
 	/*

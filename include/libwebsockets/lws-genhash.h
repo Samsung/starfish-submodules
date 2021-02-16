@@ -21,7 +21,7 @@
  * included from libwebsockets.h
  */
 
-/*! \defgroup generichash Generic Hash
+/*! \defgroup generic hash
  * ## Generic Hash related functions
  *
  * Lws provides generic hash / digest accessors that abstract the ones

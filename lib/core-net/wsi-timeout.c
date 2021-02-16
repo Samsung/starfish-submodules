@@ -172,7 +172,7 @@ lws_set_timeout_us(struct lws *wsi, enum pending_timeout reason, lws_usec_t us)
 	lws_pt_lock(pt, __func__);
 	__lws_sul_insert(&pt->pt_sul_owner, &wsi->sul_timeout, us);
 
-	lwsl_notice("%s: %p: %llu us, reason %d\n", __func__, wsi,
+	lwsl_debug("%s: %p: %llu us, reason %d\n", __func__, wsi,
 		   (unsigned long long)us, reason);
 
 	wsi->pending_timeout = reason;
@@ -184,8 +184,8 @@ lws_set_timeout_us(struct lws *wsi, enum pending_timeout reason, lws_usec_t us)
 int
 __lws_timed_callback_remove(struct lws_vhost *vh, struct lws_timed_vh_protocol *p)
 {
-	lws_start_foreach_llp_safe(struct lws_timed_vh_protocol **, pt,
-			      vh->timed_vh_protocol_list, next) {
+	lws_start_foreach_llp(struct lws_timed_vh_protocol **, pt,
+			      vh->timed_vh_protocol_list) {
 		if (*pt == p) {
 			*pt = p->next;
 			lws_dll2_remove(&p->sul.list);
@@ -193,7 +193,7 @@ __lws_timed_callback_remove(struct lws_vhost *vh, struct lws_timed_vh_protocol *
 
 			return 0;
 		}
-	} lws_end_foreach_llp_safe(pt);
+	} lws_end_foreach_llp(pt, next);
 
 	return 1;
 }
@@ -215,8 +215,6 @@ lws_sul_timed_callback_vh_protocol_cb(lws_sorted_usec_list_t *sul)
 		   tvp->vhost->name, tvp->protocol->name, tvp->reason);
 
 	tvp->protocol->callback(pt->fake_wsi, tvp->reason, NULL, NULL, 0);
-
-	__lws_timed_callback_remove(tvp->vhost, tvp);
 }
 
 LWS_VISIBLE LWS_EXTERN int

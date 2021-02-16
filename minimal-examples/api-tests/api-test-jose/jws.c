@@ -63,7 +63,7 @@ test_jws_none(struct lws_context *context)
 	if (lws_jws_parse_jose(&jose, map.buf[LJWS_JOSE],
 			       map.len[LJWS_JOSE],
 			       (char *)lws_concat_temp(temp, temp_len),
-			       &temp_len) < 0 || !jose.alg) {
+			       &temp_len) < 0) {
 		lwsl_err("%s: JOSE parse failed\n", __func__);
 		goto bail;
 	}
@@ -131,8 +131,7 @@ test_jws_HS256(struct lws_context *context)
 
 	/* parse the JOSE header */
 
-	if (lws_jws_parse_jose(&jose, test1, strlen(test1), temp, &temp_len) < 0 ||
-			!jose.alg) {
+	if (lws_jws_parse_jose(&jose, test1, strlen(test1), temp, &temp_len) < 0) {
 		lwsl_err("%s: JOSE parse failed\n", __func__);
 		goto bail;
 	}

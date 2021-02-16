@@ -252,7 +252,7 @@ __lws_sul_insert(lws_dll2_owner_t *own, lws_sorted_usec_list_t *sul,
 		 lws_usec_t us);
 
 lws_usec_t
-__lws_sul_service_ripe(lws_dll2_owner_t *own, lws_usec_t usnow);
+__lws_sul_check(lws_dll2_owner_t *own, lws_usec_t usnow);
 
 struct lws_timed_vh_protocol {
 	struct lws_timed_vh_protocol	*next;
@@ -272,6 +272,8 @@ typedef struct lws_dsh_obj_head {
 	int				kind;
 } lws_dsh_obj_head_t;
 
+typedef struct lws_dsh lws_dsh_t;
+
 typedef struct lws_dsh_obj {
 	lws_dll2_t			list;	/* must be first */
 	lws_dsh_t			*dsh;	/* invalid when on free list */
@@ -279,7 +281,7 @@ typedef struct lws_dsh_obj {
 	size_t				asize;
 } lws_dsh_obj_t;
 
-struct lws_dsh {
+typedef struct lws_dsh {
 	lws_dll2_t			list;
 	uint8_t				*buf;
 	lws_dsh_obj_head_t		*oha;	/* array of object heads/kind */
@@ -294,7 +296,7 @@ struct lws_dsh {
 	 *  - the buffer itself
 	 *  - the object heads array
 	 */
-};
+} lws_dsh_t;
 
 /*
  * so we can have n connections being serviced simultaneously,
@@ -689,7 +691,7 @@ struct lws {
 #endif
 
 #ifndef LWS_NO_CLIENT
-	unsigned short ocport, c_port;
+	unsigned short c_port;
 #endif
 
 	/* chars */
@@ -876,10 +878,6 @@ enum {
 	LWSRXFC_ADDITIONAL = 1,
 	LWSRXFC_TRIMMED = 2,
 };
-
-
-int
-_lws_plat_service_forced_tsi(struct lws_context *context, int tsi);
 
 LWS_EXTERN int
 lws_rxflow_cache(struct lws *wsi, unsigned char *buf, int n, int len);

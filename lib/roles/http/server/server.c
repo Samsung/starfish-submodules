@@ -130,8 +130,6 @@ done_list:
 			if (info) /* first time */
 				lwsl_err("VH %s: iface %s port %d DOESN'T EXIST\n",
 				 vhost->name, vhost->iface, vhost->listen_port);
-			else
-				return -1;
 			return (info->options & LWS_SERVER_OPTION_FAIL_UPON_UNABLE_TO_BIND) == LWS_SERVER_OPTION_FAIL_UPON_UNABLE_TO_BIND?
 				-1 : 1;
 		case LWS_ITOSA_NOT_USABLE:
@@ -139,8 +137,6 @@ done_list:
 			if (info) /* first time */
 				lwsl_err("VH %s: iface %s port %d NOT USABLE\n",
 				 vhost->name, vhost->iface, vhost->listen_port);
-			else
-				return -1;
 			return (info->options & LWS_SERVER_OPTION_FAIL_UPON_UNABLE_TO_BIND) == LWS_SERVER_OPTION_FAIL_UPON_UNABLE_TO_BIND?
 				-1 : 1;
 		}
@@ -695,10 +691,10 @@ lws_http_serve(struct lws *wsi, char *uri, const char *origin,
 			if (!wsi->http2_substream)
 				wsi->sending_chunked = 1;
 
-			wsi->protocol_interpret_idx = (char)(
+			wsi->protocol_interpret_idx =
 				lws_vhost_name_to_protocol(wsi->vhost,
 							   pvo->value) -
-				&lws_get_vhost(wsi)->protocols[0]);
+				&lws_get_vhost(wsi)->protocols[0];
 
 			lwsl_debug("want %s interpreted by %s (pcol is %s)\n", path,
 				    wsi->vhost->protocols[
@@ -2224,12 +2220,6 @@ lws_http_transaction_completed(struct lws *wsi)
 	wsi->http.access_log.sent = 0;
 #endif
 
-#if defined(LWS_WITH_FILE_OPS) && (defined(LWS_ROLE_H1) || defined(LWS_ROLE_H2))
-       if (lwsi_role_http(wsi) && lwsi_role_server(wsi) &&
-           wsi->http.fop_fd != NULL)
-	       lws_vfs_file_close(&wsi->http.fop_fd);
-#endif
-
 	if (wsi->vhost->keepalive_timeout)
 		n = PENDING_TIMEOUT_HTTP_KEEPALIVE_IDLE;
 	lws_set_timeout(wsi, n, wsi->vhost->keepalive_timeout);
@@ -2345,11 +2335,6 @@ lws_serve_http_file(struct lws *wsi, const char *file, const char *content_type,
 			return !wsi->http2_substream;
 		}
 	}
-
-	/*
-	 * Caution... wsi->http.fop_fd is live from here
-	 */
-
 	wsi->http.filelen = lws_vfs_get_length(wsi->http.fop_fd);
 	total_content_length = wsi->http.filelen;
 
@@ -2369,7 +2354,7 @@ lws_serve_http_file(struct lws *wsi, const char *file, const char *content_type,
 		lws_return_http_status(wsi,
 				HTTP_STATUS_REQ_RANGE_NOT_SATISFIABLE, NULL);
 		if (lws_http_transaction_completed(wsi))
-			goto bail; /* <0 means just hang up */
+			return -1; /* <0 means just hang up */
 
 		lws_vfs_file_close(&wsi->http.fop_fd);
 
@@ -2380,7 +2365,7 @@ lws_serve_http_file(struct lws *wsi, const char *file, const char *content_type,
 #endif
 
 	if (lws_add_http_header_status(wsi, n, &p, end))
-		goto bail;
+		return -1;
 
 	if ((wsi->http.fop_fd->flags & (LWS_FOP_FLAG_COMPR_ACCEPTABLE_GZIP |
 		       LWS_FOP_FLAG_COMPR_IS_GZIP)) ==
@@ -2388,7 +2373,7 @@ lws_serve_http_file(struct lws *wsi, const char *file, const char *content_type,
 		if (lws_add_http_header_by_token(wsi,
 			WSI_TOKEN_HTTP_CONTENT_ENCODING,
 			(unsigned char *)"gzip", 4, &p, end))
-			goto bail;
+			return -1;
 		lwsl_info("file is being provided in gzip\n");
 	}
 #if defined(LWS_WITH_HTTP_STREAM_COMPRESSION)
@@ -2417,7 +2402,7 @@ lws_serve_http_file(struct lws *wsi, const char *file, const char *content_type,
 						 (unsigned char *)content_type,
 						 (int)strlen(content_type),
 						 &p, end))
-			goto bail;
+			return -1;
 
 #if defined(LWS_WITH_RANGES)
 	if (ranges >= 2) { /* multipart byteranges */
@@ -2430,7 +2415,7 @@ lws_serve_http_file(struct lws *wsi, const char *file, const char *content_type,
 						 "multipart/byteranges; "
 						 "boundary=_lws",
 			 	 	 	 20, &p, end))
-			goto bail;
+			return -1;
 
 		/*
 		 *  our overall content length has to include
@@ -2476,14 +2461,14 @@ lws_serve_http_file(struct lws *wsi, const char *file, const char *content_type,
 						 WSI_TOKEN_HTTP_CONTENT_RANGE,
 						 (unsigned char *)cache_control,
 						 n, &p, end))
-			goto bail;
+			return -1;
 	}
 
 	wsi->http.range.inside = 0;
 
 	if (lws_add_http_header_by_token(wsi, WSI_TOKEN_HTTP_ACCEPT_RANGES,
 					 (unsigned char *)"bytes", 5, &p, end))
-		goto bail;
+		return -1;
 #endif
 
 	if (!wsi->http2_substream) {
@@ -2499,7 +2484,7 @@ lws_serve_http_file(struct lws *wsi, const char *file, const char *content_type,
 			 */
 			if (lws_add_http_header_content_length(wsi,
 						total_content_length, &p, end))
-				goto bail;
+				return -1;
 		} else {
 
 #if defined(LWS_WITH_HTTP_STREAM_COMPRESSION)
@@ -2517,7 +2502,7 @@ lws_serve_http_file(struct lws *wsi, const char *file, const char *content_type,
 						WSI_TOKEN_HTTP_TRANSFER_ENCODING,
 						(unsigned char *)"chunked", 7,
 						&p, end))
-					goto bail;
+					return -1;
 
 				/*
 				 * ...this is fun, isn't it :-)  For h1 that is
@@ -2557,24 +2542,24 @@ lws_serve_http_file(struct lws *wsi, const char *file, const char *content_type,
 		if (lws_add_http_header_by_token(wsi,
 				WSI_TOKEN_HTTP_CACHE_CONTROL,
 				(unsigned char *)cc, cclen, &p, end))
-			goto bail;
+			return -1;
 	}
 
 	if (other_headers) {
 		if ((end - p) < other_headers_len)
-			goto bail;
+			return -1;
 		memcpy(p, other_headers, other_headers_len);
 		p += other_headers_len;
 	}
 
 	if (lws_finalize_http_header(wsi, &p, end))
-		goto bail;
+		return -1;
 
 	ret = lws_write(wsi, response, p - response, LWS_WRITE_HTTP_HEADERS);
 	if (ret != (p - response)) {
 		lwsl_err("_write returned %d from %ld\n", ret,
 			 (long)(p - response));
-		goto bail;
+		return -1;
 	}
 
 	wsi->http.filepos = 0;
@@ -2582,9 +2567,8 @@ lws_serve_http_file(struct lws *wsi, const char *file, const char *content_type,
 
 	if (lws_hdr_total_length(wsi, WSI_TOKEN_HEAD_URI)) {
 		/* we do not emit the body */
-		lws_vfs_file_close(&wsi->http.fop_fd);
 		if (lws_http_transaction_completed(wsi))
-			goto bail;
+			return -1;
 
 		return 0;
 	}
@@ -2592,11 +2576,6 @@ lws_serve_http_file(struct lws *wsi, const char *file, const char *content_type,
 	lws_callback_on_writable(wsi);
 
 	return 0;
-
-bail:
-	lws_vfs_file_close(&wsi->http.fop_fd);
-
-	return -1;
 }
 #endif
 

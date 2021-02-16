@@ -33,7 +33,7 @@ lws_uv_sultimer_cb(uv_timer_t *timer
 	lws_usec_t us;
 
 	lws_pt_lock(pt, __func__);
-	us = __lws_sul_service_ripe(&pt->pt_sul_owner, lws_now_usecs());
+	us = __lws_sul_check(&pt->pt_sul_owner, lws_now_usecs());
 	if (us)
 		uv_timer_start(&pt->uv.sultimer, lws_uv_sultimer_cb,
 			       LWS_US_TO_MS(us), 0);
@@ -56,14 +56,19 @@ lws_uv_idle(uv_idle_t *handle
 	/*
 	 * is there anybody with pending stuff that needs service forcing?
 	 */
-	if (!lws_service_adjust_timeout(pt->context, 1, pt->tid))
+	if (!lws_service_adjust_timeout(pt->context, 1, pt->tid)) {
 		/* -1 timeout means just do forced service */
-		_lws_plat_service_forced_tsi(pt->context, pt->tid);
+		_lws_plat_service_tsi(pt->context, -1, pt->tid);
+		/* still somebody left who wants forced service? */
+		if (!lws_service_adjust_timeout(pt->context, 1, pt->tid))
+			/* yes... come back again later */
+		return;
+	}
 
 	/* account for sultimer */
 
 	lws_pt_lock(pt, __func__);
-	us = __lws_sul_service_ripe(&pt->pt_sul_owner, lws_now_usecs());
+	us = __lws_sul_check(&pt->pt_sul_owner, lws_now_usecs());
 	if (us)
 		uv_timer_start(&pt->uv.sultimer, lws_uv_sultimer_cb,
 			       LWS_US_TO_MS(us), 0);

@@ -78,8 +78,6 @@ struct lws_jws {
  * lws_jws_init() - initialize a jws for use
  *
  * \param jws: pointer to the jws to initialize
- * \param jwk: the jwk to use with this jws
- * \param context: the lws_context to use
  */
 LWS_VISIBLE LWS_EXTERN void
 lws_jws_init(struct lws_jws *jws, struct lws_jwk *jwk,
@@ -102,9 +100,7 @@ lws_jws_destroy(struct lws_jws *jws);
  *
  * \param map: pointers and lengths for each of the unencoded JWS elements
  * \param jwk: public key
- * \param context: lws_context
- * \param temp: scratchpad
- * \param temp_len: length of scratchpad
+ * \param content: lws_context
  *
  * Confirms the signature on a JWS.  Use if you have non-b64 plain JWS elements
  * in a map... it'll make a temp b64 version needed for comparison.  See below
@@ -130,9 +126,7 @@ lws_jws_sig_confirm_compact_b64_map(struct lws_jws_map *map_b64,
  * \param len: bytes available at \p in
  * \param map: map to take decoded non-b64 content
  * \param jwk: public key
- * \param context: lws_context
- * \param temp: scratchpad
- * \param temp_len: size of scratchpad
+ * \param content: lws_context
  *
  * Confirms the signature on a JWS.  Use if you have you have b64 compact layout
  * (jose.payload.hdr.sig) as an aggregated string... it'll make a temp plain
@@ -153,7 +147,7 @@ lws_jws_sig_confirm_compact_b64(const char *in, size_t len,
  * \param map_b64: pointers and lengths for each of the b64-encoded JWS elements
  * \param map: pointers and lengths for each of the unencoded JWS elements
  * \param jwk: public key
- * \param context: lws_context
+ * \param content: lws_context
  *
  * Confirms the signature on a JWS.  Use if you have you already have both b64
  * compact layout (jose.payload.hdr.sig) and decoded JWS elements in maps.
@@ -391,8 +385,8 @@ lws_jws_base64_enc(const char *in, size_t in_len, char *out, size_t out_max);
  * \param in: the incoming plaintext
  * \param in_len: the length of the incoming plaintext in bytes
  * \param first: nonzero if the first section
- * \param p: the buffer to store the b64url encoded data to
- * \param end: just past the end of p
+ * \param out: the buffer to store the b64url encoded data to
+ * \param out_max: the length of \p out in bytes
  *
  * Returns either -1 if problems, or the number of bytes written to \p out.
  * If the section is not the first one, '.' is prepended.

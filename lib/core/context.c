@@ -341,13 +341,11 @@ lwsl_info("context created\n");
 		else
 			context->max_http_header_pool = context->max_fds;
 
-
 	if (info->fd_limit_per_thread)
 		context->fd_limit_per_thread = info->fd_limit_per_thread;
 	else
-		if (context->count_threads)
-			context->fd_limit_per_thread = context->max_fds /
-							context->count_threads;
+		context->fd_limit_per_thread = context->max_fds /
+					       context->count_threads;
 
 #if defined(LWS_WITH_NETWORK)
 	/*
@@ -492,7 +490,10 @@ lwsl_info("context created\n");
 #if defined(LWS_WITH_PEER_LIMITS)
 			lws_free_set_NULL(context->pl_hash_table);
 #endif
-			goto fail_clean_pipes;
+			lws_free_set_NULL(context->pt[0].fds);
+			lws_plat_context_late_destroy(context);
+			lws_free_set_NULL(context);
+			return NULL;
 		}
 
 	lws_context_init_extensions(info, context);
@@ -536,18 +537,6 @@ lwsl_info("context created\n");
 #endif
 
 	return context;
-
-#if defined(LWS_WITH_NETWORK)
-fail_clean_pipes:
-	for (n = 0; n < context->count_threads; n++)
-		lws_destroy_event_pipe(context->pt[n].pipe_wsi);
-
-	lws_free_set_NULL(context->pt[0].fds);
-	lws_plat_context_late_destroy(context);
-	lws_free_set_NULL(context);
-
-	return NULL;
-#endif
 
 bail:
 	lws_context_destroy(context);

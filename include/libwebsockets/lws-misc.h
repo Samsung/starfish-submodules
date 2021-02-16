@@ -846,7 +846,6 @@ LWS_VISIBLE LWS_EXTERN int
 lws_is_ssl(struct lws *wsi);
 /**
  * lws_is_cgi() - find out if this wsi is running a cgi process
- *
  * \param wsi: lws connection
  */
 LWS_VISIBLE LWS_EXTERN int
@@ -855,8 +854,9 @@ lws_is_cgi(struct lws *wsi);
 /**
  * lws_open() - platform-specific wrapper for open that prepares the fd
  *
- * \param __file: the filepath to open
- * \param __oflag: option flags
+ * \param file: the filepath to open
+ * \param oflag: option flags
+ * \param mode: optional mode of any created file
  *
  * This is a wrapper around platform open() that sets options on the fd
  * according to lws policy.  Currently that is FD_CLOEXEC to stop the opened
@@ -894,19 +894,19 @@ typedef struct lws_humanize_unit {
 	uint64_t factor;
 } lws_humanize_unit_t;
 
-LWS_VISIBLE LWS_EXTERN const lws_humanize_unit_t humanize_schema_si[7];
-LWS_VISIBLE LWS_EXTERN const lws_humanize_unit_t humanize_schema_si_bytes[7];
-LWS_VISIBLE LWS_EXTERN const lws_humanize_unit_t humanize_schema_us[8];
+LWS_VISIBLE LWS_EXTERN const lws_humanize_unit_t humanize_schema_si[];
+LWS_VISIBLE LWS_EXTERN const lws_humanize_unit_t humanize_schema_si_bytes[];
+LWS_VISIBLE LWS_EXTERN const lws_humanize_unit_t humanize_schema_us[];
 
 /**
- * lws_humanize() - Convert possibly large number to human-readable uints
+ * lws_humanize() - Convert possibly large number to himan-readable uints
  *
  * \param buf: result string buffer
  * \param len: remaining length in \p buf
  * \param value: the uint64_t value to represent
  * \param schema: and array of scaling factors and units
  *
- * This produces a concise string representation of \p value, referencing the
+ * This produces a concise string representation of \p value, referening the
  * schema \p schema of scaling factors and units to find the smallest way to
  * render it.
  *
