@@ -1,6 +1,6 @@
 Name:       libwebsockets
 Summary:    WebSocket Library
-Version:    3.2.0
+Version:    3.2.3
 Release:    1
 Group:      System/Libraries
 License:    LGPLv2 with exceptions

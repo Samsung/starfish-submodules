@@ -152,7 +152,7 @@ lws_callback_ws_proxy(struct lws *wsi, enum lws_callback_reasons reason,
 					__func__);
 			return -1;
 		}
-		pkt = lws_malloc(sizeof(*pkt) + LWS_PRE + len, __func__);
+		pkt = lws_zalloc(sizeof(*pkt) + LWS_PRE + len, __func__);
 		if (!pkt)
 			return -1;
 
@@ -199,7 +199,7 @@ lws_callback_ws_proxy(struct lws *wsi, enum lws_callback_reasons reason,
 		return -1;
 
 	case LWS_CALLBACK_RECEIVE:
-		pkt = lws_malloc(sizeof(*pkt) + LWS_PRE + len, __func__);
+		pkt = lws_zalloc(sizeof(*pkt) + LWS_PRE + len, __func__);
 		if (!pkt)
 			return -1;
 
@@ -315,7 +315,7 @@ lws_callback_http_dummy(struct lws *wsi, enum lws_callback_reasons reason,
 				lwsl_debug("AUX_BF__CGI forcing close\n");
 				return -1;
 			}
-			if (!n)
+			if (!n && wsi->http.cgi && wsi->http.cgi->stdwsi[LWS_STDOUT])
 				lws_rx_flow_control(
 					wsi->http.cgi->stdwsi[LWS_STDOUT], 1);
 

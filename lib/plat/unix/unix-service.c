@@ -28,14 +28,48 @@ lws_poll_listen_fd(struct lws_pollfd *fd)
 	return poll(fd, 1, 0);
 }
 
-LWS_EXTERN int
+int
+_lws_plat_service_forced_tsi(struct lws_context *context, int tsi)
+{
+	struct lws_context_per_thread *pt = &context->pt[tsi];
+	int m, n;
+
+	lws_service_flag_pending(context, tsi);
+
+	/* any socket with events to service? */
+	for (n = 0; n < (int)pt->fds_count; n++) {
+		if (!pt->fds[n].revents)
+			continue;
+
+		m = lws_service_fd_tsi(context, &pt->fds[n], tsi);
+		if (m < 0) {
+			lwsl_err("%s: lws_service_fd_tsi returned %d\n",
+				 __func__, m);
+			return -1;
+		}
+		/* if something closed, retry this slot */
+		if (m)
+			n--;
+	}
+
+	lws_service_do_ripe_rxflow(pt);
+
+	return 0;
+}
+
+#define LWS_POLL_WAIT_LIMIT 2000000000
+
+int
 _lws_plat_service_tsi(struct lws_context *context, int timeout_ms, int tsi)
 {
 	volatile struct lws_foreign_thread_pollfd *ftp, *next;
 	volatile struct lws_context_per_thread *vpt;
 	struct lws_context_per_thread *pt;
-	lws_usec_t timeout_us;
-	int n = -1, m, c;
+	lws_usec_t timeout_us, us;
+	int n = -1;
+#if (defined(LWS_ROLE_WS) && !defined(LWS_WITHOUT_EXTENSIONS)) || defined(LWS_WITH_TLS)
+	int m;
+#endif
 
 	/* stay dead once we are dead */
 
@@ -48,10 +82,10 @@ _lws_plat_service_tsi(struct lws_context *context, int timeout_ms, int tsi)
 	lws_stats_bump(pt, LWSSTATS_C_SERVICE_ENTRY, 1);
 
 	if (timeout_ms < 0)
-		goto faked_service;
-
-	/* force a default timeout of 23 days */
-	timeout_ms = 2000000000;
+		timeout_ms = 0;
+	else
+		/* force a default timeout of 23 days */
+		timeout_ms = LWS_POLL_WAIT_LIMIT;
 	timeout_us = ((lws_usec_t)timeout_ms) * LWS_US_PER_MS;
 
 	if (context->event_loop_ops->run_pt)
@@ -69,46 +103,55 @@ _lws_plat_service_tsi(struct lws_context *context, int timeout_ms, int tsi)
 		pt->service_tid_detected = 1;
 	}
 
+	us = lws_now_usecs();
+	lws_pt_lock(pt, __func__);
+	/*
+	 * service ripe scheduled events, and limit wait to next expected one
+	 */
+	us = __lws_sul_service_ripe(&pt->pt_sul_owner, us);
+	if (us && us < timeout_us)
+		timeout_us = us;
+
+	lws_pt_unlock(pt);
+
 	/*
 	 * is there anybody with pending stuff that needs service forcing?
 	 */
-	if (!lws_service_adjust_timeout(context, 1, tsi)) {
-		/* -1 timeout means just do forced service */
-		_lws_plat_service_tsi(context, -1, pt->tid);
-		/* still somebody left who wants forced service? */
-		if (!lws_service_adjust_timeout(context, 1, pt->tid))
-			/* yes... come back again quickly */
-			timeout_us = 0;
-	}
+	if (!lws_service_adjust_timeout(context, 1, tsi))
+		timeout_us = 0;
 
-	if (timeout_us) {
-		lws_usec_t us;
+	/* ensure we don't wrap at 2^31 with poll()'s signed int ms */
 
-		lws_pt_lock(pt, __func__);
-		/* don't stay in poll wait longer than next hr timeout */
-		us = __lws_sul_check(&pt->pt_sul_owner, lws_now_usecs());
-		if (us && us < timeout_us)
-			timeout_us = us;
-
-		lws_pt_unlock(pt);
-	}
+	timeout_us /= LWS_US_PER_MS; /* ms now */
+	if (timeout_us > LWS_POLL_WAIT_LIMIT)
+		timeout_us = LWS_POLL_WAIT_LIMIT;
 
 	vpt->inside_poll = 1;
 	lws_memory_barrier();
-	n = poll(pt->fds, pt->fds_count, timeout_us / LWS_US_PER_MS);
+	n = poll(pt->fds, pt->fds_count, timeout_us /* ms now */ );
 	vpt->inside_poll = 0;
 	lws_memory_barrier();
 
-	/* Collision will be rare and brief.  Just spin until it completes */
+	#if defined(LWS_WITH_DETAILED_LATENCY)
+	/*
+	 * so we can track how long it took before we actually read a
+	 * POLLIN that was signalled when we last exited poll()
+	 */
+	if (context->detailed_latency_cb)
+		pt->ust_left_poll = lws_now_usecs();
+#endif
+
+	/* Collision will be rare and brief.  Spin until it completes */
 	while (vpt->foreign_spinlock)
 		;
 
 	/*
-	 * At this point we are not inside a foreign thread pollfd change,
-	 * and we have marked ourselves as outside the poll() wait.  So we
-	 * are the only guys that can modify the lws_foreign_thread_pollfd
-	 * list on the pt.  Drain the list and apply the changes to the
-	 * affected pollfds in the correct order.
+	 * At this point we are not inside a foreign thread pollfd
+	 * change, and we have marked ourselves as outside the poll()
+	 * wait.  So we are the only guys that can modify the
+	 * lws_foreign_thread_pollfd list on the pt.  Drain the list
+	 * and apply the changes to the affected pollfds in the correct
+	 * order.
 	 */
 
 	lws_pt_lock(pt, __func__);
@@ -124,7 +167,8 @@ _lws_plat_service_tsi(struct lws_context *context, int timeout_ms, int tsi)
 		if (lws_socket_is_valid(pfd->fd)) {
 			wsi = wsi_from_fd(context, pfd->fd);
 			if (wsi)
-				__lws_change_pollfd(wsi, ftp->_and, ftp->_or);
+				__lws_change_pollfd(wsi, ftp->_and,
+						    ftp->_or);
 		}
 		lws_free((void *)ftp);
 		ftp = next;
@@ -134,7 +178,9 @@ _lws_plat_service_tsi(struct lws_context *context, int timeout_ms, int tsi)
 
 	lws_pt_unlock(pt);
 
+#if (defined(LWS_ROLE_WS) && !defined(LWS_WITHOUT_EXTENSIONS)) || defined(LWS_WITH_TLS)
 	m = 0;
+#endif
 #if defined(LWS_ROLE_WS) && !defined(LWS_WITHOUT_EXTENSIONS)
 	m |= !!pt->ws.rx_draining_ext_list;
 #endif
@@ -155,37 +201,8 @@ _lws_plat_service_tsi(struct lws_context *context, int timeout_ms, int tsi)
 		return 0;
 	}
 
-faked_service:
-	m = lws_service_flag_pending(context, tsi);
-	if (m)
-		c = -1; /* unknown limit */
-	else
-		if (n < 0) {
-			if (LWS_ERRNO != LWS_EINTR)
-				return -1;
-			return 0;
-		} else
-			c = n;
-
-	/* any socket with events to service? */
-	for (n = 0; n < (int)pt->fds_count && c; n++) {
-		if (!pt->fds[n].revents)
-			continue;
-
-		c--;
-
-		m = lws_service_fd_tsi(context, &pt->fds[n], tsi);
-		if (m < 0) {
-			lwsl_err("%s: lws_service_fd_tsi returned %d\n",
-				 __func__, m);
-			return -1;
-		}
-		/* if something closed, retry this slot */
-		if (m)
-			n--;
-	}
-
-	lws_service_do_ripe_rxflow(pt);
+	if (_lws_plat_service_forced_tsi(context, tsi))
+		return -1;
 
 	return 0;
 }

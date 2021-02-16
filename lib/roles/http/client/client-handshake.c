@@ -32,6 +32,8 @@ lws_getaddrinfo46(struct lws *wsi, const char *ads, struct addrinfo **result)
 	memset(&hints, 0, sizeof(hints));
 	*result = NULL;
 
+	hints.ai_socktype = SOCK_STREAM;
+
 #ifdef LWS_WITH_IPV6
 	if (wsi->ipv6) {
 
@@ -43,7 +45,6 @@ lws_getaddrinfo46(struct lws *wsi, const char *ads, struct addrinfo **result)
 #endif
 	{
 		hints.ai_family = PF_UNSPEC;
-		hints.ai_socktype = SOCK_STREAM;
 	}
 
 	return getaddrinfo(ads, NULL, &hints, result);
@@ -242,7 +243,7 @@ lws_client_connect_2(struct lws *wsi)
 	struct sockaddr_un sau;
 	char unix_skt = 0;
 #endif
-	int n, port = 0;
+	int n, m, port = 0;
 	const char *cce = "", *iface;
 	const struct sockaddr *psa;
 	const char *meth = NULL;
@@ -446,10 +447,14 @@ create_new_conn:
 	 * Priority 1: connect to http proxy */
 
 	if (wsi->vhost->http.http_proxy_port) {
+
+		lwsl_info("%s: going via proxy\n", __func__);
+
 		plen = lws_snprintf((char *)pt->serv_buf, 256,
 			"CONNECT %s:%u HTTP/1.0\x0d\x0a"
+			"Host: %s:%u\x0d\x0a"
 			"User-agent: libwebsockets\x0d\x0a",
-			ads, wsi->c_port);
+			ads, wsi->ocport, ads, wsi->ocport);
 
 		if (wsi->vhost->proxy_basic_auth_token[0])
 			plen += lws_snprintf((char *)pt->serv_buf + plen, 256,
@@ -682,10 +687,10 @@ ads_known:
 		else
 			iface = lws_hdr_simple_ptr(wsi, _WSI_TOKEN_CLIENT_IFACE);
 
-		if (iface) {
-			n = lws_socket_bind(wsi->vhost, wsi->desc.sockfd, 0,
+		if (iface && *iface) {
+			m = lws_socket_bind(wsi->vhost, wsi->desc.sockfd, 0,
 					    iface, wsi->ipv6);
-			if (n < 0) {
+			if (m < 0) {
 				cce = "unable to bind socket";
 				goto failed;
 			}
@@ -873,7 +878,7 @@ lws_client_reset(struct lws **pwsi, int ssl, const char *address, int port,
 
 	wsi->desc.sockfd = LWS_SOCK_INVALID;
 	lwsi_set_state(wsi, LRS_UNCONNECTED);
-	wsi->protocol = NULL;
+	// wsi->protocol = NULL;
 	wsi->pending_timeout = NO_PENDING_TIMEOUT;
 	wsi->c_port = port;
 	wsi->hdr_parsing_completed = 0;
