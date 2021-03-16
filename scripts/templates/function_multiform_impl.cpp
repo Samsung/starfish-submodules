@@ -37,22 +37,42 @@ static bool {{ '%s%sWeak'|format(fn.name, fn.id) }}Checker(ExecutionStateRef* st
 static ValueRef* {{ function.name }}Function(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression)
 {
     size_t argCount = argc;
+    {% set hasCondition = [] %}
     // NOTE Some of conditions below never be reached
     {% for fn in function.operations %}
+        {% set cond = 'false' %}
         {% if fn.conditions|length > 0 %}
             {% set sigfn = ' && %s%sChecker(state, thisValue, argc, argv, isNewExpression)'|format(fn.name, fn.id) %}
-        {% else %}
-            {% set sigfn = '' %}
-        {% endif %}
 {% call util_macro.ifdef(fn.flags) %}
     if (argCount >= {{fn.min_passed_count}}{{sigfn}}) {
         {{ 'return %s%sFunction(state, thisValue, argc, argv, isNewExpression);'|format(fn.name, fn.id) }}
     }
 {% endcall %}
+        {% else %}
+            {% set cond = 'true' %}
+        {% endif %}
+        {% set hasCondition = hasCondition.append(cond) %}
+    {% endfor %}
+    {% set hasStrongCondition = [] %}
+    {% for fn in function.operations %}
+        {% set cond = 'false' %}
+        {% if fn.conditions|length > 0 and fn.strong_condition_count != fn.conditions|length %}
+            {% if fn.strong_condition_count > 0 %}
+                {% set sigfn = ' && %s%sWeakChecker(state, thisValue, argc, argv, isNewExpression)'|format(fn.name, fn.id) %}
+{% call util_macro.ifdef(fn.flags) %}
+    if (argCount >= {{fn.min_passed_count}}{{sigfn}}) {
+        {{ 'return %s%sFunction(state, thisValue, argc, argv, isNewExpression);'|format(fn.name, fn.id) }}
+    }
+{% endcall %}
+            {% else %}
+                {% set cond = 'true' %}
+            {% endif %}
+        {% endif %}
+        {% set hasStrongCondition = hasStrongCondition.append(cond) %}
     {% endfor %}
     {% for fn in function.operations %}
-        {% if fn.conditions|length > 0 and fn.strong_condition_count != fn.conditions|length %}
-            {% set sigfn = ' && %s%sWeakChecker(state, thisValue, argc, argv, isNewExpression)'|format(fn.name, fn.id) if fn.strong_condition_count > 0 else '' %}
+        {% if hasCondition[loop.index-1] == 'true' or hasStrongCondition[loop.index-1] == 'true' %}
+            {% set sigfn = '' %}
 {% call util_macro.ifdef(fn.flags) %}
     if (argCount >= {{fn.min_passed_count}}{{sigfn}}) {
         {{ 'return %s%sFunction(state, thisValue, argc, argv, isNewExpression);'|format(fn.name, fn.id) }}
