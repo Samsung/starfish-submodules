@@ -112,7 +112,8 @@ if (is_android || is_chromeos) {
   if (!defined(default_android_keystore_path)) {
     default_android_keystore_path = "//build/android/chromium-debug.keystore"
     default_android_keystore_name = "chromiumdebugkey"
-    default_android_keystore_password = "chromium"
+    # @starfish
+    default_android_keystore_password = ""
   }
 
   # google_play_services_package contains the path where individual client

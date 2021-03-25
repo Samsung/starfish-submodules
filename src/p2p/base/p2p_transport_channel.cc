@@ -452,7 +452,8 @@ webrtc::IceTransportState P2PTransportChannel::ComputeIceTransportState()
 void P2PTransportChannel::SetIceParameters(const IceParameters& ice_params) {
   RTC_DCHECK_RUN_ON(network_thread_);
   RTC_LOG(LS_INFO) << "Set ICE ufrag: " << ice_params.ufrag
-                   << " pwd: " << ice_params.pwd << " on transport "
+                   << " on transport "
+                   // @starfish
                    << transport_name();
   ice_parameters_ = ice_params;
   // Note: Candidate gathering will restart when MaybeStartGathering is next
@@ -758,8 +759,7 @@ void P2PTransportChannel::MaybeStartGathering() {
   if (ice_parameters_.ufrag.empty() || ice_parameters_.pwd.empty()) {
     RTC_LOG(LS_ERROR)
         << "Cannot gather candidates because ICE parameters are empty"
-           " ufrag: " << ice_parameters_.ufrag
-        << " pwd: " << ice_parameters_.pwd;
+           " ufrag: " << ice_parameters_.ufrag; //@starfish
     return;
   }
   // Start gathering if we never started before, or if an ICE restart occurred.

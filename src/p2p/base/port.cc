@@ -486,8 +486,7 @@ bool Port::GetStunMessage(const char* data,
     if (!stun_msg->ValidateMessageIntegrity(data, size, password_)) {
       RTC_LOG(LS_ERROR) << ToString()
                         << ": Received STUN request with bad M-I from "
-                        << addr.ToSensitiveString()
-                        << ", password_=" << password_;
+                        << addr.ToSensitiveString(); //@starfish
       SendBindingErrorResponse(stun_msg.get(), addr, STUN_ERROR_UNAUTHORIZED,
                                STUN_ERROR_REASON_UNAUTHORIZED);
       return true;
