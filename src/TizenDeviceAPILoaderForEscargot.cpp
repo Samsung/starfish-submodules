@@ -658,7 +658,7 @@ ExtensionManagerInstance::ExtensionManagerInstance(ContextRef* context)
     ObjectRef::NativeDataAccessorPropertyData* nativeData##name =              \
         new NativeDataAccessorPropertyDataForEntryPoint(                       \
             true, true, true,                                                  \
-            [](ExecutionStateRef* state, ObjectRef* self,                      \
+            [](ExecutionStateRef* state, ObjectRef* self, ValueRef* receiver,  \
                ObjectRef::NativeDataAccessorPropertyData* data) -> ValueRef* { \
                 ExtensionManagerInstance* extensionManagerInstance =           \
                     get(state->context());                                     \
@@ -678,7 +678,7 @@ ExtensionManagerInstance::ExtensionManagerInstance(ContextRef* context)
                     myData->m_data;                                            \
                 return myData->m_data;                                         \
             },                                                                 \
-            [](ExecutionStateRef* state, ObjectRef* self,                      \
+            [](ExecutionStateRef* state, ObjectRef* self, ValueRef* receiver,  \
                ObjectRef::NativeDataAccessorPropertyData* data,                \
                ValueRef* setterInputData) -> bool {                            \
                 NativeDataAccessorPropertyDataForEntryPoint* myData =          \
