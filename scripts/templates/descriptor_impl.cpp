@@ -63,15 +63,15 @@ static ExposableObjectGetOwnPropertyCallbackResult {{ name }}GetOwnPropertyCallb
     ObjectRef* scriptObject = jsSelf;
     {% call raises_exception(exception, 4) %}
     {% if igetter and ngetter %}
-    uint32_t idx = key->toArrayIndex(state);
-    if (idx == ValueRef::InvalidArrayIndexValue) {
+    uint32_t idx = key->toIndex32(state);
+    if (idx == ValueRef::InvalidIndex32Value) {
         {{- handle_getter(ngetter, 'NamedGetter')|indent(4, False) }}
     } else if (idx < self->length()) {
         {{- handle_getter(igetter, 'IndexedGetter')|indent(4, False) }}
     }
     {% elif igetter %}
-    uint32_t idx = key->toArrayIndex(state);
-    if (idx != ValueRef::InvalidArrayIndexValue && idx < self->length()) {
+    uint32_t idx = key->toIndex32(state);
+    if (idx != ValueRef::InvalidIndex32Value && idx < self->length()) {
         {{- handle_getter(igetter, 'IndexedGetter')|indent(4, False) }}
     }
     {% elif ngetter %}
@@ -101,15 +101,15 @@ static bool {{ name }}DefineOwnPropertyCallback(ExecutionStateRef* state, Object
     {% call raises_exception(exception, 4) %}
     {% if isetter and nsetter %}
     {{ util_macro.handle_arg(setarg, names)|trim }}
-    uint32_t idx = key->toArrayIndex(state);
-    if (idx == ValueRef::InvalidArrayIndexValue) {
+    uint32_t idx = key->toIndex32(state);
+    if (idx == ValueRef::InvalidIndex32Value) {
         {{ 'result = %s'|format(nassing_exp)|indent(8) }}
     } else if (idx < self->length()) {
         {{ 'result = %s'|format(iassing_exp)|indent(8) }}
     }
     {% elif isetter %}
-    uint32_t idx = key->toArrayIndex(state);
-    if (idx != ValueRef::InvalidArrayIndexValue) {
+    uint32_t idx = key->toIndex32(state);
+    if (idx != ValueRef::InvalidIndex32Value) {
         {{ util_macro.handle_arg(setarg, names)|trim|indent(4) }}
         {{ 'result = %s'|format(iassing_exp)|indent(8) }}
     }
@@ -136,15 +136,15 @@ static bool {{ name }}DeleteOwnPropertyCallback(ExecutionStateRef* state, Object
     bool result = false;
     {% call raises_exception(exception, 4) %}
     {% if ideleter and ndeleter %}
-    uint32_t idx = key->toArrayIndex(state);
-    if (idx == ValueRef::InvalidArrayIndexValue) {
+    uint32_t idx = key->toIndex32(state);
+    if (idx == ValueRef::InvalidIndex32Value) {
         {{ 'result = self->%s(toBrowserString(state, key));'|format(ndeleter_name)|indent(4, False) }}
     } else if (idx < self->length()) {
         {{ 'result = self->%s(idx);'|format(ideleter_name)|indent(4, False) }}
     }
     {% elif ideleter %}
-    uint32_t idx = key->toArrayIndex(state);
-    if (idx != ValueRef::InvalidArrayIndexValue && idx < self->length()) {
+    uint32_t idx = key->toIndex32(state);
+    if (idx != ValueRef::InvalidIndex32Value && idx < self->length()) {
         {{ 'result = self->%s(idx);'|format(ideleter_name)|indent(4, False) }}
     }
     {% elif ndeleter %}
