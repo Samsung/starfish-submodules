@@ -208,7 +208,7 @@ ObjectRef* WebWidgetAPIInstance::createWebWidgetAPIObject(
                                            nullptr) {
                                        bundle* b = bundle_create();
                                        ObjectRef* obj = arg->asObject();
-                                       obj->enumerateObjectOwnProperies(
+                                       obj->enumerateObjectOwnProperties(
                                            state, [&](ExecutionStateRef* state,
                                                       ValueRef* propertyName,
                                                       bool isWritable,
