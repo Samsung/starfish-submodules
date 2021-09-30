@@ -272,168 +272,57 @@ static ObjectRef* createPrototype(ExecutionStateRef* state)
     return prototype;
 }
 
-static ValueRef* nextEntries(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
-    IterationSource<{{ keyType }}, {{ valueType }}>* obj = (IterationSource<{{ keyType }}, {{ valueType }}>*)((ObjectRef*)thisValue)->extraData();
-    STARFISH_ASSERT(obj);
-    {{ keyType }} k;
-    {{ valueType }} v;
-    bool hasValue = obj->next(state, k, v);
-    ObjectRef* ret = ObjectRef::create(state);
-    ValueRef* value;
-    if (hasValue) {
-        ArrayObjectRef* arrayObj = ArrayObjectRef::create(state);
-        if (!k.hasValue()) {
-            arrayObj->set(state, ValueRef::create(0), ValueRef::createNull());
-        } else {
-        {% if isStringTypeKey %}
-            arrayObj->set(state, ValueRef::create(0), ValueRef::create(createScriptString(k.getValue())));
-        {% else %}
-            arrayObj->set(state, ValueRef::create(0), k.getValue()->scriptValue());
-        {% endif %}
-        }
-        if (!v.hasValue()) {
-            arrayObj->set(state, ValueRef::create(1), ValueRef::createNull());
-        } else {
-        {% if isStringTypeValue %}
-            arrayObj->set(state, ValueRef::create(1), ValueRef::create(createScriptString(v.getValue())));
-        {% else %}
-            arrayObj->set(state, ValueRef::create(1), v.getValue()->scriptValue());
-        {% endif %}
-        }
-        value = arrayObj;
-    } else {
-        value = ValueRef::createUndefined();
-    }
-
-    ret->defineDataProperty(state,
-        StringRef::createFromASCII("value"),
-        value,
-        true, true, true);
-    ret->defineDataProperty(state,
-        StringRef::createFromASCII("done"),
-        ValueRef::create(!hasValue),
-        true, true, true);
-    return ret;
-}
-
 static ValueRef* entriesFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
     ContextRef* context = state->context();
-    IteratorObjectRef* ret = IteratorObjectRef::create(state);
-    ObjectRef* prototype = createPrototype(state);
+    IterationSource<Nullable<String*>, Nullable<String*>>* iterationSource = originalObj->startIteration(state);
+    GenericIteratorObjectRef* genericIter = GenericIteratorObjectRef::create(state, [](ExecutionStateRef* state, void* data) -> std::pair<ValueRef*, bool> {
+            IterationSource<Nullable<String*>, Nullable<String*>>* iterationSource = static_cast<IterationSource<Nullable<String*>, Nullable<String*>>*> (data);
+            Nullable<String*> key, value;
+            if (iterationSource->next(state, key, value) && key.hasValue() && value.hasValue()) {
+                ArrayObjectRef* arrayObj = ArrayObjectRef::create(state);
+                arrayObj->set(state, ValueRef::create(0), ValueRef::create(toJSString(key.value())));
+                arrayObj->set(state, ValueRef::create(1), ValueRef::create(toJSString(value.value())));
+                return std::make_pair(arrayObj, false);
+            }
+            return std::make_pair(ValueRef::createUndefined(), true);
+    }, iterationSource);
 
-    ret->setExtraData(originalObj->startIteration(state));
-    ret->setPrototype(state, prototype);
-
-    FunctionObjectRef* nextFn = FunctionObjectRef::create(state,
-        FunctionObjectRef::NativeFunctionInfo(AtomicStringRef::create(context, "next"), nextEntries, 0, true, false));
-    prototype->defineDataProperty(state,
-            StringRef::createFromASCII("next"),
-            nextFn,
-            true, true, true);
-    return ret;
-}
-
-static ValueRef* nextKeys(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
-    IterationSource<{{ keyType }}, {{ valueType }}>* obj = (IterationSource<{{ keyType }}, {{ valueType }}>*)((ObjectRef*)thisValue)->extraData();
-    STARFISH_ASSERT(obj);
-    {{ keyType }} k;
-    {{ valueType }} v;
-    bool hasValue = obj->next(state, k, v);
-    ObjectRef* ret = ObjectRef::create(state);
-    ValueRef* value;
-    if (hasValue) {
-        if (!k.hasValue()) {
-            value = ValueRef::createNull();
-        } else {
-        {% if isStringTypeKey %}
-            value = createScriptString(k.getValue());
-        {% else %}
-            value = k.getValue()->scriptValue();
-        {% endif %}
-        }
-    } else {
-        value = ValueRef::createUndefined();
-    }
-
-    ret->defineDataProperty(state,
-        StringRef::createFromASCII("value"),
-        value,
-        true, true, true);
-    ret->defineDataProperty(state,
-        StringRef::createFromASCII("done"),
-        ValueRef::create(!hasValue),
-        true, true, true);
-    return ret;
+    return genericIter;
 }
 
 static ValueRef* keysFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
     ContextRef* context = state->context();
-    IteratorObjectRef* ret = IteratorObjectRef::create(state);
-    ObjectRef* prototype = createPrototype(state);
-    ret->setExtraData(originalObj->startIteration(state));
-    ret->setPrototype(state, prototype);
+    IterationSource<Nullable<String*>, Nullable<String*>>* iterationSource = originalObj->startIteration(state);
+    GenericIteratorObjectRef* genericIter = GenericIteratorObjectRef::create(state, [](ExecutionStateRef* state, void* data) -> std::pair<ValueRef*, bool> {
+            IterationSource<Nullable<String*>, Nullable<String*>>* iterationSource = static_cast<IterationSource<Nullable<String*>, Nullable<String*>>*> (data);
+            Nullable<String*> key, value;
+            if (iterationSource->next(state, key, value) && key.hasValue()) {
+                return std::make_pair(ValueRef::create(toJSString(key.value())), false);
+            }
+            return std::make_pair(ValueRef::createUndefined(), true);
 
-    FunctionObjectRef* nextFn = FunctionObjectRef::create(state,
-        FunctionObjectRef::NativeFunctionInfo(AtomicStringRef::create(context, "next"), nextKeys, 0, true, false));
+    }, iterationSource);
 
-    prototype->defineDataProperty(state,
-            StringRef::createFromASCII("next"),
-            nextFn,
-            true, true, true);
-    return ret;
-}
-
-static ValueRef* nextValues(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
-    IterationSource<{{ keyType }}, {{ valueType }}>* obj = (IterationSource<{{ keyType }}, {{ valueType }}>*)((ObjectRef*)thisValue)->extraData();
-    STARFISH_ASSERT(obj);
-    {{ keyType }} k;
-    {{ valueType }} v;
-    bool hasValue = obj->next(state, k, v);
-    ObjectRef* ret = ObjectRef::create(state);
-    ValueRef* value;
-    if (hasValue) {
-        if (!v.hasValue()) {
-            value = ValueRef::createNull();
-        } else {
-        {% if isStringTypeKey %}
-            value = createScriptString(v.getValue());
-        {% else %}
-            value = v.getValue()->scriptValue();
-        {% endif %}
-        }
-    } else {
-        value = ValueRef::createUndefined();
-    }
-
-    ret->defineDataProperty(state,
-        StringRef::createFromASCII("value"),
-        value,
-        true, true, true);
-    ret->defineDataProperty(state,
-        StringRef::createFromASCII("done"),
-        ValueRef::create(!hasValue),
-        true, true, true);
-    return ret;
+    return genericIter;
 }
 
 static ValueRef* valuesFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
     ContextRef* context = state->context();
-    IteratorObjectRef* ret = IteratorObjectRef::create(state);
-    ObjectRef* prototype = createPrototype(state);
-    ret->setExtraData(originalObj->startIteration(state));
-    ret->setPrototype(state, prototype);
+    IterationSource<Nullable<String*>, Nullable<String*>>* iterationSource = originalObj->startIteration(state);
+    GenericIteratorObjectRef* genericIter = GenericIteratorObjectRef::create(state, [](ExecutionStateRef* state, void* data) -> std::pair<ValueRef*, bool> {
+            IterationSource<Nullable<String*>, Nullable<String*>>* iterationSource = static_cast<IterationSource<Nullable<String*>, Nullable<String*>>*> (data);
+            Nullable<String*> key, value;
+            if (iterationSource->next(state, key, value) && value.hasValue()) {
+                return std::make_pair(ValueRef::create(toJSString(value.value())), false);
+            }
+            return std::make_pair(ValueRef::createUndefined(), true);
 
-    FunctionObjectRef* nextFn = FunctionObjectRef::create(state,
-        FunctionObjectRef::NativeFunctionInfo(AtomicStringRef::create(context, "next"), nextValues, 0, true, false));
+    }, iterationSource);
 
-    prototype->defineDataProperty(state,
-            StringRef::createFromASCII("next"),
-            nextFn,
-            true, true, true);
-    return ret;
+    return genericIter;
 }
 
 static ValueRef* forEachFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {

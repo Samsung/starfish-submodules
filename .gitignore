@@ -4,3 +4,4 @@ lextab.*
 parsetab.*
 *.pyc
 *.out
+.vscode
