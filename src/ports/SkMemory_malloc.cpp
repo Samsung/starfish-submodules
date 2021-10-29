@@ -93,5 +93,8 @@ void* sk_calloc(size_t size) {
 void* sk_calloc_throw(size_t size) {
     return throw_on_failure(size, sk_calloc(size));
 }
+void* sk_malloc_throw(size_t count, size_t elemSize) {
+    return sk_malloc_throw(count * elemSize);
+}
 #endif
 
