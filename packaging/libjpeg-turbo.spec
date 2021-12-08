@@ -1,7 +1,7 @@
 %define libver  8.2.2
 
 Name:           libjpeg-turbo
-Version:        2.0.6
+Version:        2.1.2
 Release:        0
 Summary:        A MMX/SSE2 accelerated library for manipulating JPEG image files
 License:        BSD License (BSD 3-clause, Historic Permission Notice and Disclaimer, libjpeg License)
@@ -103,6 +103,7 @@ rm -rf %{buildroot}%{_datadir}/doc/
 %{_libdir}/pkgconfig/libjpeg.pc
 %{_libdir}/libturbojpeg.so
 %{_libdir}/libjpeg.so
+%{_libdir}/cmake/%{name}/*.cmake
 %doc coderules.txt jconfig.txt libjpeg.txt structure.txt example.txt
 
 %changelog
