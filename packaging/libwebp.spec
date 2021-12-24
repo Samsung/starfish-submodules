@@ -25,7 +25,7 @@ Group:		Development/Libraries
 Requires:	%{name} = %{version}-%{release}
 
 %description devel
-libwebp-devel contains the Libraries and header files you'll need to develop libwebp applications.
+libwebp-devel contains the libraries and header files you'll need to develop libwebp applications.
 libwebp is an WebP image codec libraries.
 
 %package doc
@@ -48,7 +48,6 @@ libwebp tools.
 cp %{SOURCE1} .
 
 %build
-# WEBP_USE_THREAD is added for using multi-thread(pthread)
 export CFLAGS="$CFLAGS -D__TIZEN__"
 %cmake .
 make %{?_smp_mflags}
