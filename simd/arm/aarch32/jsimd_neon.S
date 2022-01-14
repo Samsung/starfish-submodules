@@ -1198,3 +1198,159 @@ generate_jsimd_rgb_ycc_convert_neon extxrgb, 32, 1, 2, 3
 
 .purgem do_load
 .purgem do_store
+
+#if _USE_PRODUCT_TV
+asm_function jsimd_pick_color
+
+@    RGB_BUFFER  	.req r0
+@    RGB_RET     	.req r1
+@    OUTPUT_WIDTH   .req r2
+
+    push            {r3, r4, r5, lr}
+    vpush           {d8-d15}
+    MOV r5, #0
+    VDUP.32 d0, r5
+    VDUP.32 d1, r5
+    VDUP.32 d2, r5
+    VDUP.32 d3, r5
+    VDUP.32 d4, r5
+    VDUP.32 d5, r5
+    VDUP.32 d6, r5
+    VDUP.32 d7, r5
+    VDUP.32 d8, r5
+
+    CMP   r2,#0x8
+    BCC   UNDER_8
+
+    CMP   r2,#0x10
+    BCC   UNDER_16
+
+    VLD3.8 {d0, d2, d4}, [r0]!
+    VLD3.8 {d1, d3, d5}, [r0]!
+
+    SUB r2, r2, #16
+    VPADDL.U8  q0,q0
+    VPADDL.U8  q1,q1
+    VPADDL.U8  q2,q2
+
+PROCESS_LOOP:
+
+    CMP r2, #0x10
+    BCC LOOP_BREAK
+
+    SUB r2, r2, #16
+    CMP r2, #0
+    BLT LOOP_BREAK
+
+    VLD3.8 {d6, d8, d10}, [r0]!
+    VLD3.8 {d7, d9, d11}, [r0]!
+
+    VPADAL.U8  q0,q3
+    VPADAL.U8  q1,q4
+    VPADAL.U8  q2,q5
+
+    B PROCESS_LOOP
+
+LOOP_BREAK:
+
+    VPADDL.U16 q0, q0
+    VPADDL.U16 q1, q1
+    VPADDL.U16 q2, q2
+
+    VPADDL.U32 q0, q0
+    VPADDL.U32 q1, q1
+    VPADDL.U32 q2, q2
+
+    VADD.I64 d0, d0, d1
+    VADD.I64 d2, d2, d3
+    VADD.I64 d4, d4, d5
+
+PROCESS_REST:
+    CMP r2, #8
+    BLT PROCESS_U_8 @ignore less than 8 pixels as of now
+
+    VLD3.8 {d6, d7, d8}, [r0]!
+    VPADDL.U8  d6, d6
+    VPADDL.U8  d7, d7
+    VPADDL.U8  d8, d8
+
+    VPADDL.U16 d6, d6
+    VPADDL.U16 d7, d7
+    VPADDL.U16 d8, d8
+
+    VPADDL.U32 d6, d6
+    VPADDL.U32 d7, d7
+    VPADDL.U32 d8, d8
+
+    VADD.I64 d0, d0, d6
+    VADD.I64 d2, d2, d7
+    VADD.I64 d4, d4, d8
+
+    SUB r2, r2, #8
+
+PROCESS_U_8:
+    CMP r2, #4
+    BLT PROCESS_U_4
+
+    VLD3.8 {d6[0], d7[0], d8[0]}, [r0]!
+    VLD3.8 {d6[1], d7[1], d8[1]}, [r0]!
+    VLD3.8 {d6[2], d7[2], d8[2]}, [r0]!
+    VLD3.8 {d6[3], d7[3], d8[3]}, [r0]!
+
+    VPADDL.U8  d6, d6
+    VPADDL.U8  d7, d7
+    VPADDL.U8  d8, d8
+
+    VPADDL.U16  d6, d6
+    VPADDL.U16  d7, d7
+    VPADDL.U16  d8, d8
+
+    VADD.I64 d0, d0, d6
+    VADD.I64 d2, d2, d7
+    VADD.I64 d4, d4, d8
+
+    SUB r2, r2, #4
+
+PROCESS_U_4:
+@    CMP r2, #2
+@    BLT PROCESS_U_2
+
+    B STORE
+
+UNDER_16:
+
+    VLD3.8 {d0, d2, d4}, [r0]!
+    VPADDL.U8  d0, d0
+    VPADDL.U8  d2, d2
+    VPADDL.U8  d4, d4
+
+    VPADDL.U16 d0, d0
+    VPADDL.U16 d2, d2
+    VPADDL.U16 d4, d4
+
+    VPADDL.U32 d0, d0
+    VPADDL.U32 d2, d2
+    VPADDL.U32 d4, d4
+
+    B STORE
+
+STORE:
+    VMOV.U32  r3, d0[0]
+    LDR r4, [r1]
+    ADD r4, r4, r3
+    STR r4, [r1]
+
+    VMOV.U32 r3, d2[0]
+    LDR r4, [r1, #4]
+    ADD r4, r4, r3
+    STR r4, [r1, #4]
+
+    VMOV.U32 r3, d4[0]
+    LDR r4, [r1, #8]
+    ADD r4, r4, r3
+    STR r4, [r1, #8]
+
+UNDER_8:
+    vpop            {d8-d15}
+    pop             {r3, r4, r5, pc}
+#endif
