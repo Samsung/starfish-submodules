@@ -3,7 +3,7 @@
 {%- call util_macro.ifdef(constant.flags) %}
 static ValueRef* {{ constant.name }}Unimplemented(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression)
 {
-    STARFISH_BINDING_ASSERT_UNIMPLEMENTED("Unimplemented constant \"{{ constant.name }}\" in {{ name }}\n");
+    STARFISH_UNIMPLEMENTED("Unimplemented constant \"{{ constant.name }}\" in {{ name }}");
     return ValueRef::createUndefined();
 }
 {%- endcall %}
