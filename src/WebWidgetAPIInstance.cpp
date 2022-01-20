@@ -121,16 +121,17 @@ void WebWidgetAPIInstance::invokeReceiveContentListener(
         &b, receiveContentListener());
 
     if (sbresult.error.hasValue()) {
-        STARFISH_LOG_ERROR("Uncaught %s\n",
-                           sbresult.resultOrErrorToString(ctx)
-                               ->toStdUTF8String()
-                               .data());
+        STARFISH_LOG_ERROR(
+            "Uncaught %s",
+            sbresult.resultOrErrorToString(ctx)->toStdUTF8String().data());
         for (size_t i = 0; i < sbresult.stackTraceData.size(); i++) {
-            STARFISH_LOG_ERROR(
-                "at %s(%d:%d)\n",
-                sbresult.stackTraceData[i].src->toStdUTF8String().data(),
-                (int)sbresult.stackTraceData[i].loc.line,
-                (int)sbresult.stackTraceData[i].loc.column);
+            STARFISH_LOG_ERROR("at %s(%d:%d)",
+                               sbresult
+                                   .stac
+                               "aceData[i].src->toStdUTF8String().data(),
+                               (int)sbresult.stackTraceData[i]
+                                   .loc.line,
+                               (int)sbresult.stackTraceData[i].loc.column);
         }
     }
 }
@@ -143,7 +144,6 @@ ObjectRef* WebWidgetAPIInstance::createWebWidgetAPIObject(
     return Evaluator::execute(
                context,
                [](ExecutionStateRef* state) -> ValueRef* {
-
                    Escargot::ContextRef* context = state->context();
                    StringRef* fnString =
                        StringRef::createFromASCII("WebWidgetContentManager");
@@ -174,7 +174,7 @@ ObjectRef* WebWidgetAPIInstance::createWebWidgetAPIObject(
                                   size_t argc, ValueRef** argv,
                                   bool isNewExpression) -> ValueRef* {
                                    WIDGET_APP_API_LOG_INFO(
-                                       "Call setContentInfoOfContext\n");
+                                       "Call setContentInfoOfContext");
                                    if (argc != 1) {
                                        return ValueRef::create(false);
                                    }
@@ -227,7 +227,7 @@ ObjectRef* WebWidgetAPIInstance::createWebWidgetAPIObject(
                                                            ->toStdUTF8String()
                                                            .data());
                                                    WIDGET_APP_API_LOG_INFO(
-                                                       "key : %s, data : %s\n",
+                                                       "key : %s, data : %s",
                                                        propertyName
                                                            ->toString(state)
                                                            ->toStdUTF8String()
@@ -265,7 +265,7 @@ ObjectRef* WebWidgetAPIInstance::createWebWidgetAPIObject(
                        ValueRef::create(setContentInfoOfContextStringFn),
                        false /* writable */, false /* enumerable */,
                        false /* configurable */
-                       );
+                   );
 
                    StringRef* getContentInfoOfContextString =
                        StringRef::createFromASCII("getContentInfoOfContext");
@@ -279,7 +279,7 @@ ObjectRef* WebWidgetAPIInstance::createWebWidgetAPIObject(
                                   size_t argc, ValueRef** argv,
                                   bool isNewExpression) -> ValueRef* {
                                    WIDGET_APP_API_LOG_INFO(
-                                       "Call getContentInfoOfContext\n");
+                                       "Call getContentInfoOfContext");
 
                                    ::Starfish::Window* window =
                                        (::Starfish::Window*)state->context()
@@ -339,7 +339,7 @@ ObjectRef* WebWidgetAPIInstance::createWebWidgetAPIObject(
                        ValueRef::create(getContentInfoOfContextStringFn),
                        false /* writable */, false /* enumerable */,
                        false /* configurable */
-                       );
+                   );
 
                    StringRef* setReceiveContentListenerString =
                        StringRef::createFromASCII("setReceiveContentListener");
@@ -401,7 +401,7 @@ ObjectRef* WebWidgetAPIInstance::createWebWidgetAPIObject(
                        ValueRef::create(setReceiveContentListenerFn),
                        false /* writable */, false /* enumerable */,
                        false /* configurable */
-                       );
+                   );
 
                    StringRef* unsetReceiveContentListenerString =
                        StringRef::createFromASCII(
@@ -435,7 +435,7 @@ ObjectRef* WebWidgetAPIInstance::createWebWidgetAPIObject(
                        ValueRef::create(unsetReceiveContentListenerFn),
                        false /* writable */, false /* enumerable */,
                        false /* configurable */
-                       );
+                   );
 
                    ObjectRef* webWidgetAPIObject = ObjectRef::create(state);
                    webWidgetAPIObject->setPrototype(
@@ -462,6 +462,6 @@ starfishWebWidgetAPINotifyReceiveContent(LWE::WebView* instance,
             data);
     }
 }
-}
+} // namespace DeviceAPI
 
 #endif

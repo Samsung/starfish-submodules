@@ -25,7 +25,7 @@ namespace xwalk {
         const char kExtensionPrefix[] = "lib";
         const char kExtensionSuffix[] = ".so";
         const char kExtensionMetadataSuffix[] = ".json";
-    }
+    } // namespace
 
     ExtensionManager::ExtensionManager()
     {
@@ -146,8 +146,9 @@ void ExtensionManager::RegisterExtensionsByMetadata(
         }
 
         std::vector<std::string>& entry_points = extension->entry_points();
-        DEVICEAPI_LOG_INFO("    # of entryPoints: %zu\n", entry_points.size());
-        for (auto iter = entry_points.begin(); iter != entry_points.end(); ++iter) {
+        DEVICEAPI_LOG_INFO("    # of entryPoints: %zu", entry_points.size());
+        for (auto iter = entry_points.begin(); iter != entry_points.end();
+             ++iter) {
             if (extension_symbols_.find(*iter) != extension_symbols_.end()) {
                 DEVICEAPI_LOG_WARN(
                     "Ignoring extension with entry_point already registred. "
@@ -155,10 +156,11 @@ void ExtensionManager::RegisterExtensionsByMetadata(
                     (*iter).c_str());
                 return false;
             }
-            DEVICEAPI_LOG_INFO("    entryPoint: %s\n", (*iter).c_str());
+            DEVICEAPI_LOG_INFO("    entryPoint: %s", (*iter).c_str());
         }
 
-        for (auto iter = entry_points.begin(); iter != entry_points.end(); ++iter) {
+        for (auto iter = entry_points.begin(); iter != entry_points.end();
+             ++iter) {
             extension_symbols_.insert(*iter);
         }
 

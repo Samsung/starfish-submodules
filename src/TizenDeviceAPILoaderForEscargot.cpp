@@ -99,7 +99,7 @@ wrt::xwalk::Extension* ExtensionManagerInstance::getExtension(
 
     auto it = extensions.find(apiName);
     if (it == extensions.end()) {
-        DEVICEAPI_LOG_INFO("Creating a new extension: %s\n", apiName);
+        DEVICEAPI_LOG_INFO("Creating a new extension: %s", apiName);
         char library_path[512];
         if (strcmp(apiName, "tizen") == 0) {
             snprintf(library_path, 512,
@@ -219,7 +219,7 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject(
                ValueRef** argv, bool isNewExpression) -> ValueRef* {
                 DEVICEAPI_LOG_ERROR("extension.postMessage UNIMPLEMENTED");
                 printArguments(state->context(), argc, argv);
-                STARFISH_RELEASE_ASSERT_UNIMPLEMENTED();
+                STARFISH_UNIMPLEMENTED();
                 return ValueRef::createUndefined();
             },
             0, true, true));
@@ -368,7 +368,7 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject(
                 DEVICEAPI_LOG_ERROR(
                     "extension.sendRuntimeMessage UNIMPLEMENTED");
                 printArguments(state->context(), argc, argv);
-                STARFISH_RELEASE_ASSERT_UNIMPLEMENTED();
+                STARFISH_UNIMPLEMENTED();
                 return ValueRef::createUndefined();
             },
             0, true, true));
@@ -386,7 +386,7 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject(
                 DEVICEAPI_LOG_ERROR(
                     "extension.sendRuntimeAsyncMessage UNIMPLEMENTED");
                 printArguments(state->context(), argc, argv);
-                STARFISH_RELEASE_ASSERT_UNIMPLEMENTED();
+                STARFISH_UNIMPLEMENTED();
                 return ValueRef::createUndefined();
             },
             0, true, true));
@@ -404,7 +404,7 @@ ObjectRef* ExtensionManagerInstance::createExtensionObject(
                 DEVICEAPI_LOG_ERROR(
                     "extension.sendRuntimeSyncMessage UNIMPLEMENTED");
                 printArguments(state->context(), argc, argv);
-                STARFISH_RELEASE_ASSERT_UNIMPLEMENTED();
+                STARFISH_UNIMPLEMENTED();
                 return ValueRef::createUndefined();
             },
             0, true, true));
@@ -530,13 +530,14 @@ ExtensionManagerInstance::getExtensionInstanceFromCallingContext(
         return nullptr;
     }
 
-    ObjectRef* obj = Evaluator::execute(m_context,
-                                        [](ExecutionStateRef* state,
-                                           ValueRef* thisValue) -> ValueRef* {
-                                            return thisValue->toObject(state);
-                                        },
-                                        thisValue)
-                         .result->asObject();
+    ObjectRef* obj =
+        Evaluator::execute(
+            m_context,
+            [](ExecutionStateRef* state, ValueRef* thisValue) -> ValueRef* {
+                return thisValue->toObject(state);
+            },
+            thisValue)
+            .result->asObject();
 
     auto it = m_extensionInstances.find(obj);
     if (it == m_extensionInstances.end()) {
@@ -643,8 +644,9 @@ ExtensionManagerInstance::ExtensionManagerInstance(ContextRef* context)
                         extensionManagerInstance->VALUE_NAME_STRCAT(           \
                             m_##name) = ValueRef::create(apiObject);           \
                         thisValue->toObject(state)->defineDataProperty(        \
-                            state, ValueRef::create(                           \
-                                       StringRef::createFromUTF8("" #name)),   \
+                            state,                                             \
+                            ValueRef::create(                                  \
+                                StringRef::createFromUTF8("" #name)),          \
                             ValueRef::create(apiObject), false, true, false);  \
                         return ValueRef::create(apiObject);                    \
                     },                                                         \
@@ -701,8 +703,9 @@ ExtensionManagerInstance::ExtensionManagerInstance(ContextRef* context)
                         ObjectRef* widgetAPIObj =
                             ww->createWebWidgetAPIObject(state->context());
                         tizenObject->defineDataProperty(
-                            state, ValueRef::create(
-                                       StringRef::createFromASCII("webWidget")),
+                            state,
+                            ValueRef::create(
+                                StringRef::createFromASCII("webWidget")),
                             ValueRef::create(widgetAPIObj), false, true, false);
 #endif
 
@@ -861,7 +864,6 @@ ExtensionManagerInstance::ExtensionManagerInstance(ContextRef* context)
 #endif
 
             return ValueRef::createUndefined();
-
         },
         this);
 
@@ -917,6 +919,6 @@ void close(ContextRef* context)
                        context);
     delete ExtensionManagerInstance::get(context);
 }
-}
+} // namespace DeviceAPI
 
 #endif

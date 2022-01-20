@@ -163,7 +163,7 @@ namespace xwalk {
         , post_message_listener_(NULL)
         , post_data_listener_(NULL)
     {
-        DEVICEAPI_LOG_INFO("Enter: name: %s\n", extension->name().data());
+        DEVICEAPI_LOG_INFO("Enter: name: %s", extension->name().data());
         ExtensionAdapter::GetInstance()->RegisterInstance(this);
         XW_CreatedInstanceCallback callback =
             extension_->created_instance_callback_;
@@ -325,7 +325,7 @@ void ESPostMessageListener::PostMessageToJS(const std::string& msg)
                 },
                 params);
             if (result.error.hasValue()) {
-                DEVICEAPI_LOG_ERROR("Uncaught %s\n",
+                DEVICEAPI_LOG_ERROR("Uncaught %s",
                                     result.resultOrErrorToString(context)
                                         ->toStdUTF8String()
                                         .c_str());
@@ -365,7 +365,7 @@ void ESPostDataListener::PostDataToJS(const std::string& msg, uint8_t* buffer,
         });
     if (result.error.hasValue()) {
         DEVICEAPI_LOG_ERROR(
-            "Uncaught %s\n",
+            "Uncaught %s",
             result.resultOrErrorToString(context_)->toStdUTF8String().c_str());
     }
 }
