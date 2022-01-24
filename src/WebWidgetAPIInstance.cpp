@@ -127,8 +127,7 @@ void WebWidgetAPIInstance::invokeReceiveContentListener(
         for (size_t i = 0; i < sbresult.stackTraceData.size(); i++) {
             STARFISH_LOG_ERROR("at %s(%d:%d)",
                                sbresult
-                                   .stac
-                               "aceData[i].src->toStdUTF8String().data(),
+                                   .stackTraceData[i].src->toStdUTF8String().data(),
                                (int)sbresult.stackTraceData[i]
                                    .loc.line,
                                (int)sbresult.stackTraceData[i].loc.column);
