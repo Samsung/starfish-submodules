@@ -1,25 +1,29 @@
 /*
- * libwebsockets - peer limits tracking
+ * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2010-2017 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2020 Andy Green <andy@warmcat.com>
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
 
-#include "core/private.h"
+#include <libwebsockets.h>
+#include "private-lib-core.h"
 
 /* requires context->lock */
 static void
@@ -35,9 +39,24 @@ __lws_peer_remove_from_peer_wait_list(struct lws_context *context,
 			*p = df->peer_wait_list;
 			df->peer_wait_list = NULL;
 
+			if (!context->peer_wait_list)
+				lws_sul_cancel(&context->pt[0].sul_peer_limits);
+
 			return;
 		}
 	} lws_end_foreach_llp(p, peer_wait_list);
+}
+
+void
+lws_sul_peer_limits_cb(lws_sorted_usec_list_t *sul)
+{
+	struct lws_context_per_thread *pt = lws_container_of(sul,
+			struct lws_context_per_thread, sul_peer_limits);
+
+	lws_peer_cull_peer_wait_list(pt->context);
+
+	lws_sul_schedule(pt->context, 0, &pt->context->pt[0].sul_peer_limits,
+			 lws_sul_peer_limits_cb, 10 * LWS_US_PER_SEC);
 }
 
 /* requires context->lock */
@@ -49,6 +68,10 @@ __lws_peer_add_to_peer_wait_list(struct lws_context *context,
 
 	peer->peer_wait_list = context->peer_wait_list;
 	context->peer_wait_list = peer;
+
+	if (!context->pt[0].sul_peer_limits.list.owner)
+		lws_sul_schedule(context, 0, &context->pt[0].sul_peer_limits,
+				lws_sul_peer_limits_cb, 10 * LWS_US_PER_SEC);
 }
 
 
@@ -56,46 +79,39 @@ struct lws_peer *
 lws_get_or_create_peer(struct lws_vhost *vhost, lws_sockfd_type sockfd)
 {
 	struct lws_context *context = vhost->context;
-	socklen_t rlen = 0;
-	void *q;
-	uint8_t *q8;
 	struct lws_peer *peer;
+	lws_sockaddr46 sa46;
+	socklen_t rlen = 0;
 	uint32_t hash = 0;
-	int n, af = AF_INET;
-	struct sockaddr_storage addr;
+	uint8_t *q8;
+	void *q;
+	int n;
 
 	if (vhost->options & LWS_SERVER_OPTION_UNIX_SOCK)
 		return NULL;
 
-#ifdef LWS_WITH_IPV6
-	if (LWS_IPV6_ENABLED(vhost)) {
-		af = AF_INET6;
-	}
-#endif
-	rlen = sizeof(addr);
-	if (getpeername(sockfd, (struct sockaddr*)&addr, &rlen))
+	rlen = sizeof(sa46);
+	if (getpeername(sockfd, (struct sockaddr*)&sa46, &rlen))
 		/* eg, udp doesn't have to have a peer */
 		return NULL;
 
 #ifdef LWS_WITH_IPV6
-	if (af == AF_INET)
+	if (sa46.sa4.sin_family == AF_INET6) {
+		q = &sa46.sa6.sin6_addr;
+		rlen = sizeof(sa46.sa6.sin6_addr);
+	} else
 #endif
 	{
-		struct sockaddr_in *s = (struct sockaddr_in *)&addr;
-		q = &s->sin_addr;
-		rlen = sizeof(s->sin_addr);
+		q = &sa46.sa4.sin_addr;
+		rlen = sizeof(sa46.sa4.sin_addr);
 	}
-#ifdef LWS_WITH_IPV6
-	else {
-		struct sockaddr_in6 *s = (struct sockaddr_in6 *)&addr;
-		q = &s->sin6_addr;
-		rlen = sizeof(s->sin6_addr);
-	}
-#endif
 
 	q8 = q;
 	for (n = 0; n < (int)rlen; n++)
-		hash = (((hash << 4) | (hash >> 28)) * n) ^ q8[n];
+		hash = (uint32_t)((((hash << 4) | (hash >> 28)) * (uint32_t)n) ^ q8[n]);
+
+	if (!context->pl_hash_elements)
+		return NULL;
 
 	hash = hash % context->pl_hash_elements;
 
@@ -103,9 +119,21 @@ lws_get_or_create_peer(struct lws_vhost *vhost, lws_sockfd_type sockfd)
 
 	lws_start_foreach_ll(struct lws_peer *, peerx,
 			     context->pl_hash_table[hash]) {
-		if (peerx->af == af && !memcmp(q, peerx->addr, rlen)) {
-			lws_context_unlock(context); /* === */
-			return peerx;
+		if (peerx->sa46.sa4.sin_family == sa46.sa4.sin_family) {
+#if defined(LWS_WITH_IPV6)
+			if (sa46.sa4.sin_family == AF_INET6 &&
+			    !memcmp(q, &peerx->sa46.sa6.sin6_addr, rlen))
+				goto hit;
+#endif
+			if (sa46.sa4.sin_family == AF_INET &&
+			    !memcmp(q, &peerx->sa46.sa4.sin_addr, rlen)) {
+#if defined(LWS_WITH_IPV6)
+hit:
+#endif
+				lws_context_unlock(context); /* === */
+
+				return peerx;
+			}
 		}
 	} lws_end_foreach_ll(peerx, next);
 
@@ -121,9 +149,8 @@ lws_get_or_create_peer(struct lws_vhost *vhost, lws_sockfd_type sockfd)
 	context->count_peers++;
 	peer->next = context->pl_hash_table[hash];
 	peer->hash = hash;
-	peer->af = af;
+	peer->sa46 = sa46;
 	context->pl_hash_table[hash] = peer;
-	memcpy(peer->addr, q, rlen);
 	time(&peer->time_created);
 	/*
 	 * On creation, the peer has no wsi attached, so is created on the
@@ -214,14 +241,15 @@ lws_peer_dump_from_wsi(struct lws *wsi)
 	peer = wsi->peer;
 
 #if defined(LWS_ROLE_H1) || defined(LWS_ROLE_H2)
-	lwsl_notice("%s: wsi %p: created %llu: wsi: %d/%d, ah %d/%d\n",
-			__func__,
-			wsi, (unsigned long long)peer->time_created,
+	lwsl_notice("%s: %s: created %llu: wsi: %d/%d, ah %d/%d\n",
+			__func__, lws_wsi_tag(wsi),
+			(unsigned long long)peer->time_created,
 			peer->count_wsi, peer->total_wsi,
 			peer->http.count_ah, peer->http.total_ah);
 #else
-	lwsl_notice("%s: wsi %p: created %llu: wsi: %d/%d\n", __func__,
-			wsi, (unsigned long long)peer->time_created,
+	lwsl_notice("%s: %s: created %llu: wsi: %d/%d\n", __func__,
+			lws_wsi_tag(wsi),
+			(unsigned long long)peer->time_created,
 			peer->count_wsi, peer->total_wsi);
 #endif
 }

@@ -1,27 +1,34 @@
 /*
- * lws protocol handler plugin for "Dead Drop"
+ * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2010 - 2018 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2020 Andy Green <andy@warmcat.com>
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
 
 #if !defined (LWS_PLUGIN_STATIC)
+#if !defined(LWS_DLL)
 #define LWS_DLL
+#endif
+#if !defined(LWS_INTERNAL)
 #define LWS_INTERNAL
+#endif
 #include <libwebsockets.h>
 #endif
 
@@ -126,11 +133,12 @@ static int
 scan_upload_dir(struct vhd_deaddrop *vhd)
 {
 	char filepath[256], subdir[3][128], *p;
-	int m, sp = 0, initial, found = 0;
 	struct lwsac *lwsac_head = NULL;
 	lws_list_ptr sorted_head = NULL;
+	int i, sp = 0, found = 0;
 	struct dir_entry *dire;
 	struct dirent *de;
+	size_t initial, m;
 	struct stat s;
 	DIR *dir[3];
 
@@ -147,25 +155,33 @@ scan_upload_dir(struct vhd_deaddrop *vhd)
 		de = readdir(dir[sp]);
 		if (!de) {
 			closedir(dir[sp]);
+#if !defined(__COVERITY__)
 			if (!sp)
+#endif
 				break;
+#if !defined(__COVERITY__)
 			sp--;
 			continue;
+#endif
 		}
 
 		p = filepath;
 
-		for (m = 0; m <= sp; m++)
-			p += lws_snprintf(p, (filepath + sizeof(filepath)) - p,
-					  "%s/", subdir[m]);
+		for (i = 0; i <= sp; i++)
+			p += lws_snprintf(p, lws_ptr_diff_size_t((filepath + sizeof(filepath)), p),
+					  "%s/", subdir[i]);
 
-		lws_snprintf(p, (filepath + sizeof(filepath)) - p, "%s",
+		lws_snprintf(p, lws_ptr_diff_size_t((filepath + sizeof(filepath)), p), "%s",
 				  de->d_name);
 
 		/* ignore temp files */
 		if (de->d_name[strlen(de->d_name) - 1] == '~')
 			continue;
-
+#if defined(__COVERITY__)
+		s.st_size = 0;
+		s.st_mtime = 0;
+#else
+		/* coverity[toctou] */
 		if (stat(filepath, &s))
 			continue;
 
@@ -189,6 +205,7 @@ scan_upload_dir(struct vhd_deaddrop *vhd)
 			}
 			continue;
 		}
+#endif
 
 		m = strlen(filepath + initial) + 1;
 		dire = lwsac_use(&lwsac_head, sizeof(*dire) + m, 0);
@@ -199,11 +216,13 @@ scan_upload_dir(struct vhd_deaddrop *vhd)
 		}
 
 		dire->next = NULL;
-		dire->size = s.st_size;
+		dire->size = (unsigned long long)s.st_size;
 		dire->mtime = s.st_mtime;
 		dire->user[0] = '\0';
+#if !defined(__COVERITY__)
 		if (sp)
 			lws_strncpy(dire->user, subdir[1], sizeof(dire->user));
+#endif
 
 		found++;
 
@@ -243,10 +262,11 @@ bail:
 
 static int
 file_upload_cb(void *data, const char *name, const char *filename,
-	       char *buf, int len, enum lws_spa_fileupload_states state)
+	       char *buf, int _len, enum lws_spa_fileupload_states state)
 {
 	struct pss_deaddrop *pss = (struct pss_deaddrop *)data;
 	char filename2[256];
+	size_t len = (size_t)_len;
 	int n;
 
 	(void)n;
@@ -286,13 +306,13 @@ file_upload_cb(void *data, const char *name, const char *filename,
 	case LWS_UFS_FINAL_CONTENT:
 	case LWS_UFS_CONTENT:
 		if (len) {
-			pss->file_length += len;
+			pss->file_length += (unsigned int)len;
 
 			/* if the file length is too big, drop it */
 			if (pss->file_length > pss->vhd->max_size) {
 				pss->response_code =
 					HTTP_STATUS_REQ_ENTITY_TOO_LARGE;
-				close((int)(long long)pss->fd);
+				close((int)(lws_intptr_t)pss->fd);
 				pss->fd = LWS_INVALID_FILE;
 				unlink(pss->filename);
 
@@ -300,9 +320,9 @@ file_upload_cb(void *data, const char *name, const char *filename,
 			}
 
 			if (pss->fd != LWS_INVALID_FILE) {
-				n = write((int)(long long)pss->fd, buf, len);
+				n = (int)write((int)(lws_intptr_t)pss->fd, buf, (unsigned int)len);
 				lwsl_debug("%s: write %d says %d\n", __func__,
-					   len, n);
+					   (int)len, n);
 				lws_set_timeout(pss->wsi, PENDING_TIMEOUT_HTTP_CONTENT, 30);
 			}
 		}
@@ -310,7 +330,7 @@ file_upload_cb(void *data, const char *name, const char *filename,
 			break;
 
 		if (pss->fd != LWS_INVALID_FILE)
-			close((int)(long long)pss->fd);
+			close((int)(lws_intptr_t)pss->fd);
 
 		/* the temp filename without the ~ */
 		lws_strncpy(filename2, pss->filename, sizeof(filename2));
@@ -343,12 +363,12 @@ format_result(struct pss_deaddrop *pss)
 	start = p;
 	end = p + sizeof(pss->result) - LWS_PRE - 1;
 
-	p += lws_snprintf((char *)p, end -p,
+	p += lws_snprintf((char *)p, lws_ptr_diff_size_t(end, p),
 			"<!DOCTYPE html><html lang=\"en\"><head>"
 			"<meta charset=utf-8 http-equiv=\"Content-Language\" "
 			"content=\"en\"/>"
 			"</head>");
-	p += lws_snprintf((char *)p, end - p, "</body></html>");
+	p += lws_snprintf((char *)p, lws_ptr_diff_size_t(end, p), "</body></html>");
 
 	return (int)lws_ptr_diff(p, start);
 }
@@ -378,6 +398,8 @@ callback_deaddrop(struct lws *wsi, enum lws_callback_reasons reason,
 		vhd = (struct vhd_deaddrop *)
 			lws_protocol_vh_priv_get(lws_get_vhost(wsi),
 						 lws_get_protocol(wsi));
+		if (!vhd)
+			return 0;
 
 		vhd->context = lws_get_context(wsi);
 		vhd->vh = lws_get_vhost(wsi);
@@ -385,10 +407,10 @@ callback_deaddrop(struct lws *wsi, enum lws_callback_reasons reason,
 		vhd->max_size = 20 * 1024 * 1024; /* default without pvo */
 
 		if (!lws_pvo_get_str(in, "max-size", &cp))
-			vhd->max_size = atoll(cp);
+			vhd->max_size = (unsigned long long)atoll(cp);
 		if (lws_pvo_get_str(in, "upload-dir", &vhd->upload_dir)) {
-			lwsl_err("%s: requires 'upload-dir' pvo\n", __func__);
-			return -1;
+			lwsl_warn("%s: requires 'upload-dir' pvo\n", __func__);
+			return 0;
 		}
 
 		scan_upload_dir(vhd);
@@ -399,7 +421,8 @@ callback_deaddrop(struct lws *wsi, enum lws_callback_reasons reason,
 		break;
 
 	case LWS_CALLBACK_PROTOCOL_DESTROY:
-		lwsac_free(&vhd->lwsac_head);
+		if (vhd)
+			lwsac_free(&vhd->lwsac_head);
 		break;
 
 	/* WS-related */
@@ -446,10 +469,10 @@ callback_deaddrop(struct lws *wsi, enum lws_callback_reasons reason,
 
 		cp = strchr((const char *)in, '/');
 		if (cp) {
-			n = ((void *)cp - in) - 8;
+			n = (int)(((void *)cp - in)) - 8;
 
 			if ((int)strlen(pss->user) != n ||
-			    memcmp(pss->user, ((const char *)in) + 8, n)) {
+			    memcmp(pss->user, ((const char *)in) + 8, (unsigned int)n)) {
 				lwsl_notice("%s: del: auth mismatch "
 					    " '%s' '%s' (%d)\n",
 					    __func__, pss->user,
@@ -482,7 +505,7 @@ callback_deaddrop(struct lws *wsi, enum lws_callback_reasons reason,
 
 		was = 0;
 		if (pss->first) {
-			p += lws_snprintf((char *)p, lws_ptr_diff(end, p),
+			p += lws_snprintf((char *)p, lws_ptr_diff_size_t(end, p),
 					  "{\"max_size\":%llu, \"files\": [",
 					  vhd->max_size);
 			was = 1;
@@ -490,7 +513,7 @@ callback_deaddrop(struct lws *wsi, enum lws_callback_reasons reason,
 
 		m = 5;
 		while (m-- && pss->dire) {
-			p += lws_snprintf((char *)p, lws_ptr_diff(end, p),
+			p += lws_snprintf((char *)p, lws_ptr_diff_size_t(end, p),
 					  "%c{\"name\":\"%s\", "
 					  "\"size\":%llu,"
 					  "\"mtime\":%llu,"
@@ -506,7 +529,7 @@ callback_deaddrop(struct lws *wsi, enum lws_callback_reasons reason,
 		}
 
 		if (!pss->dire) {
-			p += lws_snprintf((char *)p, lws_ptr_diff(end, p),
+			p += lws_snprintf((char *)p, lws_ptr_diff_size_t(end, p),
 					  "]}");
 			if (pss->lwsac_head) {
 				lwsac_unreference(&pss->lwsac_head);
@@ -514,8 +537,8 @@ callback_deaddrop(struct lws *wsi, enum lws_callback_reasons reason,
 			}
 		}
 
-		n = lws_write(wsi, start, lws_ptr_diff(p, start),
-			      lws_write_ws_flags(LWS_WRITE_TEXT, was,
+		n = lws_write(wsi, start, lws_ptr_diff_size_t(p, start),
+				(enum lws_write_protocol)lws_write_ws_flags(LWS_WRITE_TEXT, was,
 						 !pss->dire));
 		if (n < 0) {
 			lwsl_notice("%s: ws write failed\n", __func__);
@@ -595,7 +618,8 @@ callback_deaddrop(struct lws *wsi, enum lws_callback_reasons reason,
 		if (!pss->sent_headers) {
 			n = format_result(pss);
 
-			if (lws_add_http_header_status(wsi, pss->response_code,
+			if (lws_add_http_header_status(wsi,
+					(unsigned int)pss->response_code,
 						       &p, end))
 				goto bail;
 
@@ -604,13 +628,13 @@ callback_deaddrop(struct lws *wsi, enum lws_callback_reasons reason,
 					(unsigned char *)"text/html", 9,
 					&p, end))
 				goto bail;
-			if (lws_add_http_header_content_length(wsi, n, &p, end))
+			if (lws_add_http_header_content_length(wsi, (lws_filepos_t)n, &p, end))
 				goto bail;
 			if (lws_finalize_http_header(wsi, &p, end))
 				goto bail;
 
 			/* first send the headers ... */
-			n = lws_write(wsi, start, lws_ptr_diff(p, start),
+			n = lws_write(wsi, start, lws_ptr_diff_size_t(p, start),
 				      LWS_WRITE_HTTP_HEADERS |
 				      LWS_WRITE_H2_STREAM_END);
 			if (n < 0)
@@ -623,7 +647,7 @@ callback_deaddrop(struct lws *wsi, enum lws_callback_reasons reason,
 
 		if (!pss->sent_body) {
 			n = format_result(pss);
-			n = lws_write(wsi, (unsigned char *)start, n,
+			n = lws_write(wsi, (unsigned char *)start, (unsigned int)n,
 				      LWS_WRITE_HTTP_FINAL);
 
 			pss->sent_body = 1;
@@ -671,32 +695,22 @@ try_to_reuse:
 
 #if !defined (LWS_PLUGIN_STATIC)
 
-static const struct lws_protocols protocols[] = {
+LWS_VISIBLE const struct lws_protocols deaddrop_protocols[] = {
 	LWS_PLUGIN_PROTOCOL_DEADDROP
 };
 
-LWS_EXTERN LWS_VISIBLE int
-init_protocol_deaddrop(struct lws_context *context,
-		       struct lws_plugin_capability *c)
-{
-	if (c->api_magic != LWS_PLUGIN_API_MAGIC) {
-		lwsl_err("Plugin API %d, library API %d", LWS_PLUGIN_API_MAGIC,
-			 c->api_magic);
-		return 1;
-	}
+LWS_VISIBLE const lws_plugin_protocol_t deaddrop = {
+	.hdr = {
+		"deaddrop",
+		"lws_protocol_plugin",
+		LWS_BUILD_HASH,
+		LWS_PLUGIN_API_MAGIC
+	},
 
-	c->protocols = protocols;
-	c->count_protocols = LWS_ARRAY_SIZE(protocols);
-	c->extensions = NULL;
-	c->count_extensions = 0;
-
-	return 0;
-}
-
-LWS_EXTERN LWS_VISIBLE int
-destroy_protocol_deaddrop(struct lws_context *context)
-{
-	return 0;
-}
+	.protocols = deaddrop_protocols,
+	.count_protocols = LWS_ARRAY_SIZE(deaddrop_protocols),
+	.extensions = NULL,
+	.count_extensions = 0,
+};
 
 #endif

@@ -19,8 +19,12 @@
  */
 
 #if !defined (LWS_PLUGIN_STATIC)
+#if !defined(LWS_DLL)
 #define LWS_DLL
+#endif
+#if !defined(LWS_INTERNAL)
 #define LWS_INTERNAL
+#endif
 #include <libwebsockets.h>
 #endif
 
@@ -98,6 +102,10 @@ callback_lws_status(struct lws *wsi, enum lws_callback_reasons reason,
 		vhd = lws_protocol_vh_priv_zalloc(lws_get_vhost(wsi),
 				lws_get_protocol(wsi),
 				sizeof(struct per_vhost_data__lws_status));
+		if (!vhd) {
+			lwsl_notice("%s: PROTOCOL_INIT failed\n", __func__);
+			return 0;
+		}
 		vhd->context = lws_get_context(wsi);
 		vhd->protocol = lws_get_protocol(wsi);
 		vhd->vhost = lws_get_vhost(wsi);
@@ -120,8 +128,10 @@ callback_lws_status(struct lws *wsi, enum lws_callback_reasons reason,
 		time(&pss->time_est);
 		pss->wsi = wsi;
 
+#if defined(LWS_WITH_HTTP_UNCOMMON_HEADERS)
 		if (lws_hdr_copy(wsi, pss->user_agent, sizeof(pss->user_agent),
 			     WSI_TOKEN_HTTP_USER_AGENT) < 0) /* too big */
+#endif
 			strcpy(pss->user_agent, "unknown");
 		trigger_resend(vhd);
 		break;
@@ -130,7 +140,7 @@ callback_lws_status(struct lws *wsi, enum lws_callback_reasons reason,
 		switch (pss->walk) {
 		case WALK_INITIAL:
 			n = LWS_WRITE_TEXT | LWS_WRITE_NO_FIN;
-			p += lws_snprintf(p, end - p,
+			p += lws_snprintf(p, lws_ptr_diff_size_t(end, p),
 				      "{ \"version\":\"%s\","
 				      " \"wss_over_h2\":\"%d\","
 				      " \"hostname\":\"%s\","
@@ -169,7 +179,7 @@ callback_lws_status(struct lws *wsi, enum lws_callback_reasons reason,
 
 			strcpy(ip, "unknown");
 			lws_get_peer_simple(pss->walk_next->wsi, ip, sizeof(ip));
-			p += lws_snprintf(p, end - p,
+			p += lws_snprintf(p, lws_ptr_diff_size_t(end, p),
 					"{\"peer\":\"%s\",\"time\":\"%ld\","
 					"\"ua\":\"%s\"}",
 					ip, (unsigned long)pss->walk_next->time_est,
@@ -194,7 +204,7 @@ walk_final:
 			return 0;
 		}
 
-		m = lws_write(wsi, (unsigned char *)start, p - start, n);
+		m = lws_write(wsi, (unsigned char *)start, lws_ptr_diff_size_t(p, start), (unsigned int)n);
 		if (m < 0) {
 			lwsl_err("ERROR %d writing to di socket\n", m);
 			return -1;
@@ -239,33 +249,22 @@ walk_final:
 
 #if !defined (LWS_PLUGIN_STATIC)
 
-static const struct lws_protocols protocols[] = {
+LWS_VISIBLE const struct lws_protocols lws_status_protocols[] = {
 	LWS_PLUGIN_PROTOCOL_LWS_STATUS
 };
 
+LWS_VISIBLE const lws_plugin_protocol_t lws_status = {
+	.hdr = {
+		"lws status",
+		"lws_protocol_plugin",
+		LWS_BUILD_HASH,
+		LWS_PLUGIN_API_MAGIC
+	},
 
-LWS_EXTERN LWS_VISIBLE int
-init_protocol_lws_status(struct lws_context *context,
-			     struct lws_plugin_capability *c)
-{
-	if (c->api_magic != LWS_PLUGIN_API_MAGIC) {
-		lwsl_err("Plugin API %d, library API %d", LWS_PLUGIN_API_MAGIC,
-			 c->api_magic);
-		return 1;
-	}
-
-	c->protocols = protocols;
-	c->count_protocols = LWS_ARRAY_SIZE(protocols);
-	c->extensions = NULL;
-	c->count_extensions = 0;
-
-	return 0;
-}
-
-LWS_EXTERN LWS_VISIBLE int
-destroy_protocol_lws_status(struct lws_context *context)
-{
-	return 0;
-}
+	.protocols = lws_status_protocols,
+	.count_protocols = LWS_ARRAY_SIZE(lws_status_protocols),
+	.extensions = NULL,
+	.count_extensions = 0,
+};
 
 #endif

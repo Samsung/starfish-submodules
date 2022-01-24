@@ -1,25 +1,28 @@
 /*
  * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2010 - 2018 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2019 Andy Green <andy@warmcat.com>
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
 
-#include "core/private.h"
+#include "private-lib-core.h"
 
 /* compression methods listed in order of preference */
 
@@ -49,12 +52,12 @@ lws_http_compression_validate(struct lws *wsi)
 
 	for (n = 0; n < LWS_ARRAY_SIZE(lcs_available); n++)
 		if (strstr(a, lcs_available[n]->encoding_name))
-			wsi->http.comp_accept_mask |= 1 << n;
+			wsi->http.comp_accept_mask = (uint8_t)(wsi->http.comp_accept_mask | (1 << n));
 
 	return 0;
 }
 
-LWS_VISIBLE int
+int
 lws_http_compression_apply(struct lws *wsi, const char *name,
 			   unsigned char **p, unsigned char *end, char decomp)
 {
@@ -88,15 +91,15 @@ lws_http_compression_apply(struct lws *wsi, const char *name,
 	wsi->http.comp_ctx.may_have_more = 0;
 	wsi->http.comp_ctx.final_on_input_side = 0;
 	wsi->http.comp_ctx.chunking = 0;
-	wsi->http.comp_ctx.is_decompression = decomp;
+	wsi->http.comp_ctx.is_decompression = !!decomp;
 
 	if (lws_add_http_header_by_token(wsi, WSI_TOKEN_HTTP_CONTENT_ENCODING,
 			(unsigned char *)lcs_available[n]->encoding_name,
-			strlen(lcs_available[n]->encoding_name), p, end))
+			(int)strlen(lcs_available[n]->encoding_name), p, end))
 		return -1;
 
-	lwsl_info("%s: wsi %p: applied %s content-encoding\n", __func__,
-		    wsi, lcs_available[n]->encoding_name);
+	lwsl_info("%s: %s: applied %s content-encoding\n", __func__,
+		    lws_wsi_tag(wsi), lcs_available[n]->encoding_name);
 
 	return 0;
 }
@@ -148,10 +151,10 @@ lws_http_compression_transform(struct lws *wsi, unsigned char *buf,
 		 * to a non-final for now.
 		 */
 		ctx->final_on_input_side = 1;
-		*wp = LWS_WRITE_HTTP | ((*wp) & ~0x1f);
+		*wp = (unsigned int)(LWS_WRITE_HTTP | ((*wp) & ~0x1fu));
 	}
 
-	if (ctx->buflist_comp || ctx->may_have_more) {
+	if (ctx->buflist_comp) {
 		/*
 		 * we can't send this new stuff when we have old stuff
 		 * buffered and not compressed yet.  Add it to the tail
@@ -161,22 +164,22 @@ lws_http_compression_transform(struct lws *wsi, unsigned char *buf,
 			if (lws_buflist_append_segment(
 					&ctx->buflist_comp, buf, len) < 0)
 				return -1;
-			lwsl_debug("%s: %p: adding %d to comp buflist\n",
-				   __func__,wsi, (int)len);
+			lwsl_debug("%s: %s: adding %d to comp buflist\n",
+				   __func__, lws_wsi_tag(wsi), (int)len);
 		}
 
 		len = lws_buflist_next_segment_len(&ctx->buflist_comp, &buf);
 		ilen_iused = len;
 		use = 1;
-		lwsl_debug("%s: %p: trying comp buflist %d\n", __func__, wsi,
-			   (int)len);
+		lwsl_debug("%s: %s: trying comp buflist %d\n", __func__,
+				lws_wsi_tag(wsi), (int)len);
 	}
 
 	if (!buf && ilen_iused)
 		return 0;
 
-	lwsl_debug("%s: %p: pre-process: ilen_iused %d, olen_oused %d\n",
-		   __func__, wsi, (int)ilen_iused, (int)*olen_oused);
+	lwsl_debug("%s: %s: pre-process: ilen_iused %d, olen_oused %d\n",
+		   __func__, lws_wsi_tag(wsi), (int)ilen_iused, (int)*olen_oused);
 
 	n = wsi->http.lcs->process(ctx, buf, &ilen_iused, *outbuf, olen_oused);
 
@@ -187,9 +190,10 @@ lws_http_compression_transform(struct lws *wsi, unsigned char *buf,
 	}
 
 	if (!ctx->may_have_more && ctx->final_on_input_side)
-		*wp = LWS_WRITE_HTTP_FINAL | ((*wp) & ~0x1f);
 
-	lwsl_debug("%s: %p: more %d, ilen_iused %d\n", __func__, wsi,
+		*wp = (unsigned int)(LWS_WRITE_HTTP_FINAL | ((*wp) & ~0x1fu));
+
+	lwsl_debug("%s: %s: more %d, ilen_iused %d\n", __func__, lws_wsi_tag(wsi),
 		   ctx->may_have_more, (int)ilen_iused);
 
 	if (use && ilen_iused) {
@@ -199,9 +203,9 @@ lws_http_compression_transform(struct lws *wsi, unsigned char *buf,
 		 * transform
 		 */
 		lws_buflist_use_segment(&ctx->buflist_comp, ilen_iused);
-		lwsl_debug("%s: %p: marking %d of comp buflist as used "
-			   "(ctx->buflist_comp %p)\n", __func__, wsi,
-			   (int)len, ctx->buflist_comp);
+		lwsl_debug("%s: %s: marking %d of comp buflist as used "
+			   "(ctx->buflist_comp %p)\n", __func__,
+			   lws_wsi_tag(wsi), (int)len, ctx->buflist_comp);
 	}
 
 	if (!use && ilen_iused != len) {

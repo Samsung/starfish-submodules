@@ -1,29 +1,29 @@
 /*
- * libwebsockets - JSON Web Encryption support
+ * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2018 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2020 Andy Green <andy@warmcat.com>
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
- *
- *
- * JWE code related to rsa + aescbc
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
-#include "core/private.h"
-#include "jose/jwe/private.h"
+
+#include "private-lib-core.h"
+#include "private-lib-jose-jwe.h"
 
 /*
  * Requirements on entry:
@@ -46,7 +46,8 @@ int
 lws_jwe_encrypt_rsa_aes_cbc_hs(struct lws_jwe *jwe,
 			       char *temp, int *temp_len)
 {
-	int n, hlen = lws_genhmac_size(jwe->jose.enc_alg->hmac_type), ot = *temp_len;
+	int n, hlen = (int)lws_genhmac_size(jwe->jose.enc_alg->hmac_type),
+	    ot = *temp_len;
 	char ekey[LWS_GENHASH_LARGEST];
 	struct lws_genrsa_ctx rsactx;
 
@@ -63,13 +64,13 @@ lws_jwe_encrypt_rsa_aes_cbc_hs(struct lws_jwe *jwe,
 	 * Create a b64 version of the JOSE header, needed as aad
 	 */
 	if (lws_jws_encode_b64_element(&jwe->jws.map_b64, LJWE_JOSE,
-				       temp + (ot - *temp_len), temp_len,
+				       temp, temp_len,
 				       jwe->jws.map.buf[LJWE_JOSE],
 				       jwe->jws.map.len[LJWE_JOSE]))
 		return -1;
 
 	if (lws_jws_alloc_element(&jwe->jws.map, LJWE_ATAG, temp + (ot - *temp_len),
-				  temp_len, hlen / 2, 0))
+				  temp_len, (unsigned int)hlen / 2, 0))
 		return -1;
 
 	if (lws_jws_alloc_element(&jwe->jws.map, LJWE_IV, temp + (ot - *temp_len),
@@ -90,7 +91,7 @@ lws_jwe_encrypt_rsa_aes_cbc_hs(struct lws_jwe *jwe,
 
 	n = lws_jwe_encrypt_cbc_hs(jwe, (uint8_t *)jwe->jws.map.buf[LJWE_EKEY],
 				     (uint8_t *)jwe->jws.map_b64.buf[LJWE_JOSE],
-				     jwe->jws.map_b64.len[LJWE_JOSE]);
+				     (int)jwe->jws.map_b64.len[LJWE_JOSE]);
 	if (n < 0) {
 		lwsl_err("%s: lws_jwe_encrypt_cbc_hs failed\n", __func__);
 		return -1;
@@ -108,17 +109,17 @@ lws_jwe_encrypt_rsa_aes_cbc_hs(struct lws_jwe *jwe,
 	/* encrypt the CEK using RSA, mbedtls can't handle both in and out are
 	 * the EKEY, so copy the unencrypted ekey out temporarily */
 
-	memcpy(ekey, jwe->jws.map.buf[LJWE_EKEY], hlen);
+	memcpy(ekey, jwe->jws.map.buf[LJWE_EKEY], (unsigned int)hlen);
 
-	n = lws_genrsa_public_encrypt(&rsactx, (uint8_t *)ekey, hlen,
+	n = lws_genrsa_public_encrypt(&rsactx, (uint8_t *)ekey, (unsigned int)hlen,
 				      (uint8_t *)jwe->jws.map.buf[LJWE_EKEY]);
 	lws_genrsa_destroy(&rsactx);
-	lws_explicit_bzero(ekey, hlen); /* cleanse the temp CEK copy */
+	lws_explicit_bzero(ekey, (unsigned int)hlen); /* cleanse the temp CEK copy */
 	if (n < 0) {
 		lwsl_err("%s: encrypt cek fail\n", __func__);
 		return -1;
 	}
-	jwe->jws.map.len[LJWE_EKEY] = n; /* update to encrypted EKEY size */
+	jwe->jws.map.len[LJWE_EKEY] = (unsigned int)n; /* update to encrypted EKEY size */
 
 	/*
 	 * We end up with IV, ATAG, set, EKEY encrypted and CTXT is ciphertext,
@@ -171,7 +172,7 @@ lws_jwe_auth_and_decrypt_rsa_aes_cbc_hs(struct lws_jwe *jwe)
 
 	n = lws_jwe_auth_and_decrypt_cbc_hs(jwe, enc_cek,
 			     (uint8_t *)jwe->jws.map_b64.buf[LJWE_JOSE],
-			     jwe->jws.map_b64.len[LJWE_JOSE]);
+			     (int)jwe->jws.map_b64.len[LJWE_JOSE]);
 	if (n < 0) {
 		lwsl_err("%s: lws_jwe_auth_and_decrypt_cbc_hs failed\n",
 			 __func__);
@@ -191,5 +192,5 @@ lws_jwe_auth_and_decrypt_rsa_aes_cbc_hs(struct lws_jwe *jwe)
 	jwe->jws.map.len[LJWE_CTXT] -= n;
 #endif
 
-	return jwe->jws.map.len[LJWE_CTXT];
+	return (int)jwe->jws.map.len[LJWE_CTXT];
 }

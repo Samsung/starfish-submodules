@@ -3,22 +3,23 @@
  *
  * Copyright (C) 2010 - 2019 Andy Green <andy@warmcat.com>
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
- *
- * included from libwebsockets.h
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
 
 enum lws_tls_cert_info {
@@ -41,6 +42,19 @@ enum lws_tls_cert_info {
 	 * same tls backend, ie, OpenSSL or mbedTLS.  The different backends
 	 * produce different, incompatible representations for the same cert.
 	 */
+	LWS_TLS_CERT_INFO_DER_RAW,
+	/**< the certificate's raw DER representation.  If it's too big,
+	 * -1 is returned and the size will be returned in buf->ns.len.
+	 * If the certificate cannot be found -1 is returned and 0 in
+	 * buf->ns.len. */
+	LWS_TLS_CERT_INFO_AUTHORITY_KEY_ID,
+	/**< If the cert has one, the key ID responsible for the signature */
+	LWS_TLS_CERT_INFO_AUTHORITY_KEY_ID_ISSUER,
+	/**< If the cert has one, the issuer responsible for the signature */
+	LWS_TLS_CERT_INFO_AUTHORITY_KEY_ID_SERIAL,
+	/**< If the cert has one, serial number responsible for the signature */
+	LWS_TLS_CERT_INFO_SUBJECT_KEY_ID,
+	/**< If the cert has one, the cert's subject key ID */
 };
 
 union lws_tls_cert_info_results {
@@ -92,7 +106,7 @@ lws_x509_create(struct lws_x509_cert **x509);
  * IMPORTANT for compatibility with mbedtls, the last used byte of \p pem
  * must be '\0' and the \p len must include it.
  *
- * Returns 0 if all went OK.
+ * Returns 0 if all went OK, or nonzero for failure.
  */
 LWS_VISIBLE LWS_EXTERN int
 lws_x509_parse_from_pem(struct lws_x509_cert *x509, const void *pem, size_t len);
@@ -134,6 +148,7 @@ lws_x509_public_to_jwk(struct lws_jwk *jwk, struct lws_x509_cert *x509,
  * lws_x509_jwk_privkey_pem() - Copy a private key PEM into a jwk that has the
  *				public part already
  *
+ * \param cx: lws_context (for random)
  * \param jwk: pointer to the jwk to initialize and set to the public key
  * \param pem: pointer to PEM private key in memory
  * \param len: length of PEM private key in memory
@@ -149,8 +164,8 @@ lws_x509_public_to_jwk(struct lws_jwk *jwk, struct lws_x509_cert *x509,
  * The caller should take care to zero down passphrase if used.
  */
 LWS_VISIBLE LWS_EXTERN int
-lws_x509_jwk_privkey_pem(struct lws_jwk *jwk, void *pem, size_t len,
-			 const char *passphrase);
+lws_x509_jwk_privkey_pem(struct lws_context *cx, struct lws_jwk *jwk,
+			 void *pem, size_t len, const char *passphrase);
 
 /**
  * lws_x509_destroy() - Destroy a previously allocated lws_x509_cert object
@@ -177,8 +192,8 @@ lws_x509_info(struct lws_x509_cert *x509, enum lws_tls_cert_info type,
  * lws_tls_peer_cert_info() lets you get hold of information from the peer
  * certificate.
  *
- * Return 0 if there is a result in \p buf, or -1 indicating there was no cert
- * or another problem.
+ * Return 0 if there is a result in \p buf, or nonzero indicating there was no
+ * cert, or another problem.
  *
  * This function works the same no matter if the TLS backend is OpenSSL or
  * mbedTLS.
@@ -198,8 +213,8 @@ lws_tls_peer_cert_info(struct lws *wsi, enum lws_tls_cert_info type,
  * lws_tls_vhost_cert_info() lets you get hold of information from the vhost
  * certificate.
  *
- * Return 0 if there is a result in \p buf, or -1 indicating there was no cert
- * or another problem.
+ * Return 0 if there is a result in \p buf, or nonzero indicating there was no
+ * cert, or another problem.
  *
  * This function works the same no matter if the TLS backend is OpenSSL or
  * mbedTLS.
@@ -217,8 +232,8 @@ lws_tls_vhost_cert_info(struct lws_vhost *vhost, enum lws_tls_cert_info type,
  * \param san_b: second SAN written into the certificate
  *
  *
- * Returns 0 if created and attached to the vhost.  Returns -1 if problems and
- * frees all allocations before returning.
+ * Returns 0 if created and attached to the vhost.  Returns nonzero if problems,
+ * and frees all allocations before returning.
  *
  * On success, any allocations are destroyed at vhost destruction automatically.
  */

@@ -1,27 +1,34 @@
 /*
- * libwebsockets - plugin for raw proxying
+ * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2010-2018 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2019 Andy Green <andy@warmcat.com>
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
 
 #if !defined (LWS_PLUGIN_STATIC)
+#if !defined(LWS_DLL)
 #define LWS_DLL
+#endif
+#if !defined(LWS_INTERNAL)
 #define LWS_INTERNAL
+#endif
 #include <libwebsockets.h>
 #endif
 
@@ -155,7 +162,7 @@ flow_control(struct conn *conn, int side, int enable)
 	if (lws_rx_flow_control(conn->wsi[side], enable))
 		return 1;
 
-	conn->rx_enabled[side] = enable;
+	conn->rx_enabled[side] = (char)enable;
 	lwsl_info("%s: %s side: %s\n", __func__, side ? "ONW" : "ACC",
 		  enable ? "rx enabled" : "rx flow controlled");
 
@@ -184,11 +191,13 @@ callback_raw_proxy(struct lws *wsi, enum lws_callback_reasons reason,
 	case LWS_CALLBACK_PROTOCOL_INIT:
 		vhd = lws_protocol_vh_priv_zalloc(lws_get_vhost(wsi),
 				lws_get_protocol(wsi), sizeof(struct raw_vhd));
+		if (!vhd)
+			return 0;
 		if (lws_pvo_get_str(in, "onward", &cp)) {
-			lwsl_err("%s: vh %s: pvo 'onward' required\n", __func__,
+			lwsl_warn("%s: vh %s: pvo 'onward' required\n", __func__,
 				 lws_get_vhost_name(lws_get_vhost(wsi)));
 
-			return -1;
+			return 0;
 		}
 		lws_tokenize_init(&ts, cp, LWS_TOKENIZE_F_DOT_NONTERM |
 					   LWS_TOKENIZE_F_MINUS_NONTERM |
@@ -220,7 +229,7 @@ callback_raw_proxy(struct lws *wsi, enum lws_callback_reasons reason,
 				e = lws_tokenize(&ts);
 				if (e != LWS_TOKZE_INTEGER)
 					goto bad_onward;
-				vhd->port = atoi(ts.token);
+				vhd->port = (uint16_t)atoi(ts.token);
 				e = lws_tokenize(&ts);
 			}
 			if (e != LWS_TOKZE_ENDED)
@@ -249,10 +258,12 @@ bad_onward:
 		break;
 
         case LWS_CALLBACK_RAW_PROXY_CLI_ADOPT:
-		lwsl_debug("LWS_CALLBACK_RAW_CLI_ADOPT: pss %p\n", pss);
+		lwsl_debug("%s: %p: LWS_CALLBACK_RAW_CLI_ADOPT: pss %p\n", __func__, wsi, pss);
 		if (conn || !pss)
 			break;
 		conn = pss->conn = lws_get_opaque_user_data(wsi);
+		if (!conn)
+			break;
 		conn->established[ONW] = 1;
 		/* they start enabled */
 		conn->rx_enabled[ACC] = 1;
@@ -293,7 +304,7 @@ bad_onward:
 			lwsl_notice("OOM: dropping\n");
 			return -1;
 		}
-		pkt.len = len;
+		pkt.len = (uint32_t)len;
 		pkt.ticket = conn->ticket_next++;
 
 		memcpy(pkt.payload, in, len);
@@ -442,12 +453,15 @@ bad_onward:
 			return -1;
 		}
 
+		if (!len)
+			return 0;
+
 		pkt.payload = malloc(len);
 		if (!pkt.payload) {
 			lwsl_notice("OOM: dropping\n");
 			return -1;
 		}
-		pkt.len = len;
+		pkt.len = (uint32_t)len;
 		pkt.ticket = conn->ticket_next++;
 
 		memcpy(pkt.payload, in, len);
@@ -550,33 +564,23 @@ bad_onward:
 
 #if !defined (LWS_PLUGIN_STATIC)
 
-static const struct lws_protocols protocols[] = {
+LWS_VISIBLE const struct lws_protocols lws_raw_proxy_protocols[] = {
 	LWS_PLUGIN_PROTOCOL_RAW_PROXY
 };
 
-LWS_EXTERN LWS_VISIBLE int
-init_protocol_lws_raw_proxy(struct lws_context *context,
-			    struct lws_plugin_capability *c)
-{
-	if (c->api_magic != LWS_PLUGIN_API_MAGIC) {
-		lwsl_err("Plugin API %d, library API %d", LWS_PLUGIN_API_MAGIC,
-			 c->api_magic);
-		return 1;
-	}
+LWS_VISIBLE const lws_plugin_protocol_t lws_raw_proxy = {
+	.hdr = {
+		"raw proxy",
+		"lws_protocol_plugin",
+		LWS_BUILD_HASH,
+		LWS_PLUGIN_API_MAGIC
+	},
 
-	c->protocols = protocols;
-	c->count_protocols = LWS_ARRAY_SIZE(protocols);
-	c->extensions = NULL;
-	c->count_extensions = 0;
-
-	return 0;
-}
-
-LWS_EXTERN LWS_VISIBLE int
-destroy_protocol_lws_raw_proxy(struct lws_context *context)
-{
-	return 0;
-}
+	.protocols = lws_raw_proxy_protocols,
+	.count_protocols = LWS_ARRAY_SIZE(lws_raw_proxy_protocols),
+	.extensions = NULL,
+	.count_extensions = 0,
+};
 #endif
 
 

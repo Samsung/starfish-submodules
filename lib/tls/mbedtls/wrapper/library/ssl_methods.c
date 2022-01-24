@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "private-lib-core.h"
+
 #include "ssl_methods.h"
 #include "ssl_pm.h"
 
@@ -34,24 +36,28 @@ IMPLEMENT_TLS_METHOD(TLS_ANY_VERSION, 0, TLS_method_func, TLS_client_method);
 
 IMPLEMENT_TLS_METHOD(TLS1_2_VERSION, 0, TLS_method_func, TLSv1_2_client_method);
 
+#if 0
 IMPLEMENT_TLS_METHOD(TLS1_1_VERSION, 0, TLS_method_func, TLSv1_1_client_method);
 
 IMPLEMENT_TLS_METHOD(TLS1_VERSION, 0, TLS_method_func, TLSv1_client_method);
 
 IMPLEMENT_SSL_METHOD(SSL3_VERSION, 0, TLS_method_func, SSLv3_client_method);
+#endif
 
 /**
  * TLS or SSL server method collection
  */
 IMPLEMENT_TLS_METHOD(TLS_ANY_VERSION, 1, TLS_method_func, TLS_server_method);
 
-IMPLEMENT_TLS_METHOD(TLS1_1_VERSION, 1, TLS_method_func, TLSv1_1_server_method);
-
 IMPLEMENT_TLS_METHOD(TLS1_2_VERSION, 1, TLS_method_func, TLSv1_2_server_method);
+
+#if 0
+IMPLEMENT_TLS_METHOD(TLS1_1_VERSION, 1, TLS_method_func, TLSv1_1_server_method);
 
 IMPLEMENT_TLS_METHOD(TLS1_VERSION, 0, TLS_method_func, TLSv1_server_method);
 
 IMPLEMENT_SSL_METHOD(SSL3_VERSION, 1, TLS_method_func, SSLv3_server_method);
+#endif
 
 /**
  * TLS or SSL method collection
@@ -60,11 +66,13 @@ IMPLEMENT_TLS_METHOD(TLS_ANY_VERSION, -1, TLS_method_func, TLS_method);
 
 IMPLEMENT_SSL_METHOD(TLS1_2_VERSION, -1, TLS_method_func, TLSv1_2_method);
 
+#if 0
 IMPLEMENT_SSL_METHOD(TLS1_1_VERSION, -1, TLS_method_func, TLSv1_1_method);
 
 IMPLEMENT_SSL_METHOD(TLS1_VERSION, -1, TLS_method_func, TLSv1_method);
 
 IMPLEMENT_SSL_METHOD(SSL3_VERSION, -1, TLS_method_func, SSLv3_method);
+#endif
 
 /**
  * @brief get X509 object method

@@ -16,7 +16,7 @@ You inherit all the well-maintained lws core functionality around:
 
  - connection lifecycle sequencing in a valgrind-clean way
 
- - proxy support, HTTP and Socks5
+ - client connection proxy support, for HTTP and Socks5
 
  - tls support working equally on mbedTLS and OpenSSL and derivatives without any code in the role
 
@@ -54,7 +54,7 @@ If the role is disabled in cmake, nothing in its directory is built.
 
 ### Role ops struct
 
-The role is defined by `struct lws_role_ops` in `lib/roles/private.h`,
+The role is defined by `struct lws_role_ops` in `lib/roles/private-lib-roles.h`,
 each role instantiates one of these and fills in the appropriate ops
 callbacks to perform its job.  By convention that lives in
 `./lib/roles/**role name**/ops-**role_name**.c`.
@@ -64,15 +64,15 @@ callbacks to perform its job.  By convention that lives in
 Truly private declarations for the role can go in the role directory as you like.
 However when the declarations must be accessible to other things in lws build, eg,
 the role adds members to `struct lws` when enabled, they should be in the role
-directory in a file `private.h`.
+directory in a file `private-lib-roles-myrole.h`.
 
-Search for "bring in role private declarations" in `./lib/roles/private.h
+Search for "bring in role private declarations" in `./lib/roles/private-lib-roles.h
 and add your private role file there following the style used for the other roles,
 eg,
 
 ```
 #if defined(LWS_ROLE_WS)
- #include "roles/ws/private.h"
+ #include "roles/ws/private-lib-roles-ws.h"
 #else
  #define lwsi_role_ws(wsi) (0)
 #endif
@@ -158,4 +158,13 @@ The core support for wsis in lws has some generic concepts
 
  - You set the initial binding, role flags and state using `lws_role_transition()`.  Afterwards
    you can adjust the state using `lwsi_set_state()`.
+
+### Role ops compression
+
+Since the role ops struct is typically only sparsely filled, rather than have 20 function
+pointers most of which may be NULL, there is a separate array of a union of function
+pointers that is just long enough for functions that exist in the role, and a nybble index
+table with a nybble for each possible op, either 0 indicating that the operation is not
+provided in this role, or 1 - 15 indicating the position of the function pointer in the
+array.
 

@@ -1,23 +1,27 @@
 /*
- * libwebsockets - lws-plugin-ssh-base - kex-25519.c
+ * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2017 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2019 Andy Green <andy@warmcat.com>
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
+
 #include "libwebsockets.h"
 #include "lws-ssh.h"
 
@@ -71,7 +75,7 @@ lws_gen_server_key_ed25519(struct lws_context *context, uint8_t *buf256,
 
 	lwsl_notice("%s: Generated key len %ld\n", __func__, (long)(p - buf256));
 
-	return p - buf256;
+	return (size_t)(p - buf256);
 }
 
 static int
@@ -96,10 +100,10 @@ lws_mpint_rfc4251(uint8_t *dest, const uint8_t *src, int bytes, int uns)
 	if (uns && (*src) & 0x80)
 		bytes++;
 
-	*dest++ = bytes >> 24;
-	*dest++ = bytes >> 16;
-	*dest++ = bytes >> 8;
-	*dest++ = bytes;
+	*dest++ = (uint8_t)(bytes >> 24);
+	*dest++ = (uint8_t)(bytes >> 16);
+	*dest++ = (uint8_t)(bytes >> 8);
+	*dest++ = (uint8_t)(bytes);
 
 	if (uns && (*src) & 0x80) {
 		*dest++ = 0;
@@ -146,7 +150,7 @@ ed25519_key_parse(uint8_t *p, size_t len, char *type, size_t type_len,
 		return 6;
 
 	publ = lws_g32(&p); /* length of pubkey block */
-	if ((size_t)((p - op) + publ) >= len)
+	if ((size_t)((uint32_t)(p - op) + publ) >= len)
 		return 7;
 
 	l = lws_g32(&p); /* key type length */
@@ -165,7 +169,7 @@ ed25519_key_parse(uint8_t *p, size_t len, char *type, size_t type_len,
 	p += l;
 
 	publ = lws_g32(&p); /* length of private key block */
-	if ((size_t)((p - op) + publ) != len)
+	if ((size_t)((uint32_t)(p - op) + publ) != len)
 		return 11;
 
 	l = lws_g32(&p); /* checkint 1 */
@@ -239,7 +243,7 @@ kex_ecdh_dv(uint8_t *dest, int dest_len, const uint8_t *kbi, int kbi_len,
 		if (lws_genhash_init(&ctx, LWS_GENHASH_TYPE_SHA256))
 			return 1;
 
-		if (lws_genhash_update(&ctx, kbi, kbi_len))
+		if (lws_genhash_update(&ctx, kbi, (unsigned int)kbi_len))
 			goto hash_failed;
 		if (lws_genhash_update(&ctx, H, LWS_SIZE_SHA256))
 			goto hash_failed;
@@ -260,7 +264,7 @@ kex_ecdh_dv(uint8_t *dest, int dest_len, const uint8_t *kbi, int kbi_len,
 		if (m > (dest_len - n))
 			m = dest_len - n;
 
-		memcpy(dest, pool, m);
+		memcpy(dest, pool, (unsigned int)m);
 		n += m;
 		dest += m;
 	}
@@ -321,7 +325,7 @@ kex_ecdh(struct per_session_data__sshd *pss, uint8_t *reply, uint32_t *plen)
 		return 1;
 	}
 
-	r = ed25519_key_parse(servkey, r, keyt, sizeof(keyt),
+	r = ed25519_key_parse(servkey, (unsigned int)r, keyt, sizeof(keyt),
 			      pss->K_S /* public key */, pri_key);
 	if (r) {
 		lwsl_notice("%s: server key parse failed: %d\n", __func__, r);
@@ -383,7 +387,7 @@ kex_ecdh(struct per_session_data__sshd *pss, uint8_t *reply, uint32_t *plen)
 	 * integer k.  This conversion follows the network byte order. This
 	 * step differs from RFC5656.
 	 */
-	kbi_len = lws_mpint_rfc4251(kbi, pss->K, LWS_SIZE_EC25519, 1);
+	kbi_len = (uint32_t)lws_mpint_rfc4251(kbi, pss->K, LWS_SIZE_EC25519, 1);
 
 	/*
 	 * The exchange hash H is computed as the hash of the concatenation of
@@ -425,7 +429,7 @@ kex_ecdh(struct per_session_data__sshd *pss, uint8_t *reply, uint32_t *plen)
 	 * name length: name
 	 * key length: key
 	 * ---> */
-	lws_p32((uint8_t *)&be, 8 + (int)strlen(keyt) + LWS_SIZE_EC25519);
+	lws_p32((uint8_t *)&be, (uint32_t)(8 + (int)strlen(keyt) + LWS_SIZE_EC25519));
 	if (lws_genhash_update(&ctx, (void *)&be, 4))
 		goto hash_probs;
 
@@ -480,9 +484,9 @@ kex_ecdh(struct per_session_data__sshd *pss, uint8_t *reply, uint32_t *plen)
 
 	lp = p;
 	p +=4;
-	lws_sized_blob(&p, keyt, (int)strlen(keyt));
+	lws_sized_blob(&p, keyt, (uint32_t)strlen(keyt));
 	lws_sized_blob(&p, pss->K_S, LWS_SIZE_EC25519);
-	lws_p32(lp, lws_ptr_diff(p, lp) - 4);
+	lws_p32(lp, (uint32_t)(lws_ptr_diff(p, lp) - 4));
 
 	/* Q_S (exchange value sent by the server) */
 	
@@ -492,14 +496,14 @@ kex_ecdh(struct per_session_data__sshd *pss, uint8_t *reply, uint32_t *plen)
 
 	lp = p;
 	p +=4;
-	lws_sized_blob(&p, keyt, (int)strlen(keyt));
+	lws_sized_blob(&p, keyt, (uint32_t)strlen(keyt));
 	lws_sized_blob(&p, payload_sig, 64);
-	lws_p32(lp, lws_ptr_diff(p, lp) - 4);
+	lws_p32(lp, (uint32_t)(lws_ptr_diff(p, lp) - 4));
 
 	/* end of message */
 
 	lws_pad_set_length(pss, reply, &p, &pss->active_keys_stc);
-	*plen = lws_ptr_diff(p, reply);
+	*plen = (uint32_t)lws_ptr_diff(p, reply);
 
 	if (!pss->active_keys_stc.valid)
 		memcpy(pss->session_id, temp, LWS_SIZE_EC25519);
@@ -529,9 +533,11 @@ kex_ecdh(struct per_session_data__sshd *pss, uint8_t *reply, uint32_t *plen)
 	 */
 	for (c = 0; c < 3; c++) {
 		kex_ecdh_dv(kex->keys_next_cts.key[c], LWS_SIZE_CHACHA256_KEY,
-			    kbi, kbi_len, temp, 'A' + (c * 2), pss->session_id);
+			    kbi, (int)kbi_len, temp, (char)('A' + (c * 2)),
+			    pss->session_id);
 		kex_ecdh_dv(kex->keys_next_stc.key[c], LWS_SIZE_CHACHA256_KEY,
-			    kbi, kbi_len, temp, 'B' + (c * 2), pss->session_id);
+			    kbi, (int)kbi_len, temp, (char)('B' + (c * 2)),
+			    pss->session_id);
 	}
 
 	lws_explicit_bzero(temp, sizeof(temp));

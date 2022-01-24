@@ -1,22 +1,14 @@
 /*
- * Lightweight Embedded JSON Parser
+ * lejp test app
  *
- * Copyright (C) 2013-2017 Andy Green <andy@warmcat.com>
+ * Written in 2010-2019 by Andy Green <andy@warmcat.com>
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
+ * This file is made available under the Creative Commons CC0 1.0
+ * Universal Public Domain Dedication.
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
- *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
+ * This demonstrates a minimal http server that performs a form GET with a couple
+ * of parameters.  It dumps the parameters to the console log and redirects
+ * to another page.
  */
 
 #include <libwebsockets.h>
@@ -60,14 +52,14 @@ cb(struct lejp_ctx *ctx, char reason)
 	*p = '\0';
 
 	if (reason & LEJP_FLAG_CB_IS_VALUE) {
-		p += lws_snprintf(p, p - end, "   value '%s' ", ctx->buf);
+		p += lws_snprintf(p, lws_ptr_diff_size_t(end, p), "   value '%s' ", ctx->buf);
 		if (ctx->ipos) {
 			int n;
 
-			p += lws_snprintf(p, p - end, "(array indexes: ");
+			p += lws_snprintf(p, lws_ptr_diff_size_t(end, p), "(array indexes: ");
 			for (n = 0; n < ctx->ipos; n++)
-				p += lws_snprintf(p, p - end, "%d ", ctx->i[n]);
-			p += lws_snprintf(p, p - end, ") ");
+				p += lws_snprintf(p, lws_ptr_diff_size_t(end, p), "%d ", ctx->i[n]);
+			p += lws_snprintf(p, lws_ptr_diff_size_t(end, p), ") ");
 		}
 		lwsl_notice("%s (%s)\r\n", buf,
 		       reason_names[(unsigned int)
@@ -96,7 +88,7 @@ cb(struct lejp_ctx *ctx, char reason)
 int
 main(int argc, char *argv[])
 {
-	int fd, n = 1, ret = 1, m;
+	int fd, n = 1, ret = 1, m = 0;
 	struct lejp_ctx ctx;
 	char buf[128];
 
@@ -110,7 +102,7 @@ main(int argc, char *argv[])
 	fd = 0;
 
 	while (n > 0) {
-		n = read(fd, buf, sizeof(buf));
+		n = (int)read(fd, buf, sizeof(buf));
 		if (n <= 0)
 			continue;
 
@@ -120,7 +112,7 @@ main(int argc, char *argv[])
 			goto bail;
 		}
 	}
-	lwsl_notice("okay\n");
+	lwsl_notice("okay (%d)\n", m);
 	ret = 0;
 bail:
 	lejp_destruct(&ctx);

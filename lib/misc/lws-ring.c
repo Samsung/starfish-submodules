@@ -1,27 +1,30 @@
 /*
- * libwebsockets - lws-ring multi-tail abstract ringbuffer api
+ * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2017 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2019 Andy Green <andy@warmcat.com>
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
 
-#include "core/private.h"
+#include "private-lib-core.h"
 
-LWS_VISIBLE LWS_EXTERN struct lws_ring *
+struct lws_ring *
 lws_ring_create(size_t element_len, size_t count,
 		void (*destroy_element)(void *))
 {
@@ -46,7 +49,7 @@ lws_ring_create(size_t element_len, size_t count,
 	return ring;
 }
 
-LWS_VISIBLE LWS_EXTERN void
+void
 lws_ring_destroy(struct lws_ring *ring)
 {
 	if (ring->destroy_element)
@@ -63,7 +66,7 @@ lws_ring_destroy(struct lws_ring *ring)
 	lws_free(ring);
 }
 
-LWS_VISIBLE LWS_EXTERN size_t
+size_t
 lws_ring_get_count_free_elements(struct lws_ring *ring)
 {
 	int f;
@@ -78,22 +81,22 @@ lws_ring_get_count_free_elements(struct lws_ring *ring)
 	 * |*****ht*********|
 	 */
 	if (ring->head == ring->oldest_tail)
-		f = ring->buflen - ring->element_len;
+		f = (int)(ring->buflen - ring->element_len);
 	else
 		if (ring->head < ring->oldest_tail)
-			f = (ring->oldest_tail - ring->head) -
-			    ring->element_len;
+			f = (int)((ring->oldest_tail - ring->head) -
+			    ring->element_len);
 		else
-			f = (ring->buflen - ring->head) + ring->oldest_tail -
-			    ring->element_len;
+			f = (int)((ring->buflen - ring->head) + ring->oldest_tail -
+			    ring->element_len);
 
 	if (f < 2)
 		return 0;
 
-	return f / ring->element_len;
+	return (unsigned int)f / ring->element_len;
 }
 
-LWS_VISIBLE LWS_EXTERN size_t
+size_t
 lws_ring_get_count_waiting_elements(struct lws_ring *ring, uint32_t *tail)
 {	int f;
 
@@ -112,14 +115,14 @@ lws_ring_get_count_waiting_elements(struct lws_ring *ring, uint32_t *tail)
 		f = 0;
 	else
 		if (ring->head > *tail)
-			f = (ring->head - *tail);
+			f = (int)(ring->head - *tail);
 		else
-			f = (ring->buflen - *tail) + ring->head;
+			f = (int)((ring->buflen - *tail) + ring->head);
 
-	return f / ring->element_len;
+	return (unsigned int)f / ring->element_len;
 }
 
-LWS_VISIBLE LWS_EXTERN int
+int
 lws_ring_next_linear_insert_range(struct lws_ring *ring, void **start,
 				  size_t *bytes)
 {
@@ -131,7 +134,7 @@ lws_ring_next_linear_insert_range(struct lws_ring *ring, void **start,
 	if (!n)
 		return 1;
 
-	if (ring->head + n > ring->buflen) {
+	if (ring->head + (unsigned int)n > ring->buflen) {
 		*start = (void *)(((uint8_t *)ring->buf) + ring->head);
 		*bytes = ring->buflen - ring->head;
 
@@ -139,22 +142,23 @@ lws_ring_next_linear_insert_range(struct lws_ring *ring, void **start,
 	}
 
 	*start = (void *)(((uint8_t *)ring->buf) + ring->head);
-	*bytes = n;
+	*bytes = (unsigned int)n;
 
 	return 0;
 }
 
-LWS_VISIBLE LWS_EXTERN void
+void
 lws_ring_bump_head(struct lws_ring *ring, size_t bytes)
 {
 	ring->head = (ring->head + (uint32_t)bytes) % ring->buflen;
 }
 
-LWS_VISIBLE LWS_EXTERN size_t
+size_t
 lws_ring_insert(struct lws_ring *ring, const void *src, size_t max_count)
 {
 	const uint8_t *osrc = src;
-	int m, n;
+	size_t m;
+	int n;
 
 	/* n is how many bytes the whole fifo can take */
 	n = (int)(lws_ring_get_count_free_elements(ring) * ring->element_len);
@@ -167,7 +171,7 @@ lws_ring_insert(struct lws_ring *ring, const void *src, size_t max_count)
 	 * n is legal to insert, but as an optimization we can cut the
 	 * insert into one or two memcpys, depending on if it wraps
 	 */
-	if (ring->head + n > ring->buflen) {
+	if (ring->head + (unsigned int)n > ring->buflen) {
 
 		/*
 		 * He does wrap.  The first memcpy should take us up to
@@ -182,16 +186,16 @@ lws_ring_insert(struct lws_ring *ring, const void *src, size_t max_count)
 		/* adapt the second memcpy for what we already did */
 
 		src = ((uint8_t *)src) + m;
-		n -= m;
+		n = n - (int)m;
 	}
 
-	memcpy(((uint8_t *)ring->buf) + ring->head, src, n);
-	ring->head = (ring->head + n) % ring->buflen;
+	memcpy(((uint8_t *)ring->buf) + ring->head, src, (size_t)n);
+	ring->head = (ring->head + (unsigned int)n) % ring->buflen;
 
-	return (((uint8_t *)src + n) - osrc) / ring->element_len;
+	return (unsigned long)(((uint8_t *)src + (unsigned int)n) - osrc) / ring->element_len;
 }
 
-LWS_VISIBLE LWS_EXTERN size_t
+size_t
 lws_ring_consume(struct lws_ring *ring, uint32_t *tail, void *dest,
 		 size_t max_count)
 {
@@ -214,21 +218,21 @@ lws_ring_consume(struct lws_ring *ring, uint32_t *tail, void *dest,
 		n = (int)(max_count * ring->element_len);
 
 	if (!dest) {
-		*tail = ((*tail) + n) % ring->buflen;
+		*tail = ((*tail) + (unsigned int)n) % ring->buflen;
 		if (!orig_tail) /* single tail */
 			lws_ring_update_oldest_tail(ring, *tail);
 
-		return n / ring->element_len;
+		return (unsigned int)n / ring->element_len;
 	}
-	if (*tail + n > ring->buflen) {
+	if (*tail + (unsigned int)n > ring->buflen) {
 
 		/*
 		 * He does wrap.  The first memcpy should take us up to
 		 * the end of the buffer
 		 */
 
-		m = ring->buflen - *tail;
-		memcpy(dest, ((uint8_t *)ring->buf) + *tail, m);
+		m = (int32_t)(ring->buflen - *tail);
+		memcpy(dest, ((uint8_t *)ring->buf) + *tail, (size_t)m);
 		/* we know it will wrap exactly back to zero */
 		*tail = 0;
 
@@ -238,16 +242,16 @@ lws_ring_consume(struct lws_ring *ring, uint32_t *tail, void *dest,
 		n -= m;
 	}
 
-	memcpy(dest, ((uint8_t *)ring->buf) + *tail, n);
+	memcpy(dest, ((uint8_t *)ring->buf) + *tail, (size_t)n);
 
-	*tail = ((*tail) + n) % ring->buflen;
+	*tail = ((*tail) + (unsigned int)n) % ring->buflen;
 	if (!orig_tail) /* single tail */
 		lws_ring_update_oldest_tail(ring, *tail);
 
-	return (((uint8_t *)dest + n) - odest) / ring->element_len;
+	return (unsigned int)(((uint8_t *)dest + n) - odest) / (unsigned int)ring->element_len;
 }
 
-LWS_VISIBLE LWS_EXTERN const void *
+const void *
 lws_ring_get_element(struct lws_ring *ring, uint32_t *tail)
 {
 	if (!tail)
@@ -259,7 +263,7 @@ lws_ring_get_element(struct lws_ring *ring, uint32_t *tail)
 	return ((uint8_t *)ring->buf) + *tail;
 }
 
-LWS_VISIBLE LWS_EXTERN void
+void
 lws_ring_update_oldest_tail(struct lws_ring *ring, uint32_t tail)
 {
 	if (!ring->destroy_element) {
@@ -274,21 +278,21 @@ lws_ring_update_oldest_tail(struct lws_ring *ring, uint32_t tail)
 	}
 }
 
-LWS_VISIBLE LWS_EXTERN uint32_t
+uint32_t
 lws_ring_get_oldest_tail(struct lws_ring *ring)
 {
 	return ring->oldest_tail;
 }
 
-LWS_VISIBLE LWS_EXTERN void
+void
 lws_ring_dump(struct lws_ring *ring, uint32_t *tail)
 {
 	if (tail == NULL)
 		tail = &ring->oldest_tail;
 	lwsl_notice("ring %p: buflen %u, elem_len %u, head %u, oldest_tail %u\n"
 		    "     free_elems: %u; for tail %u, waiting elements: %u\n",
-		    ring, ring->buflen, ring->element_len, ring->head,
-		    ring->oldest_tail,
-		    (int)lws_ring_get_count_free_elements(ring), *tail,
+		    ring, (int)ring->buflen, (int)ring->element_len,
+		    (int)ring->head, (int)ring->oldest_tail,
+		    (int)lws_ring_get_count_free_elements(ring), (int)*tail,
 		    (int)lws_ring_get_count_waiting_elements(ring, tail));
 }
