@@ -1,22 +1,25 @@
-/*
+ /*
  * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2010 - 2018 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2019 Andy Green <andy@warmcat.com>
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  *
  *  Included from lib/private-lib-core.h if no explicit platform
  */
@@ -55,6 +58,8 @@
 #endif
 #if defined(__linux__)
 #include <endian.h>
+#include <linux/if_packet.h>
+#include <net/if.h>
 #endif
 #if defined(__QNX__)
 	#include <gulliver.h>
@@ -68,6 +73,15 @@
 		#define LITTLE_ENDIAN 1234  /* to show byte order (taken from gcc); for suppres warning that LITTLE_ENDIAN is not defined. */
 		#define BIG_ENDIAN __BIGENDIAN__
 	#endif
+#endif
+
+#if defined(LWS_HAVE_PTHREAD_H)
+#include <pthread.h>
+typedef pthread_mutex_t lws_mutex_t;
+#define lws_mutex_init(x)	pthread_mutex_init(&(x), NULL)
+#define lws_mutex_destroy(x)	pthread_mutex_destroy(&(x))
+#define lws_mutex_lock(x)	pthread_mutex_lock(&(x))
+#define lws_mutex_unlock(x)	pthread_mutex_unlock(&(x))
 #endif
 
 #if defined(__sun) && defined(__GNUC__)
@@ -147,6 +161,10 @@ wsi_from_fd(const struct lws_context *context, int fd);
 int
 insert_wsi(const struct lws_context *context, struct lws *wsi);
 
+struct lws_dhcpc_ifstate;
+int
+lws_plat_ifconfig(int fd, struct lws_dhcpc_ifstate *is);
+
 void
 delete_from_fd(const struct lws_context *context, int fd);
 
@@ -157,6 +175,7 @@ delete_from_fd(const struct lws_context *context, int fd);
 #endif
 
 #define compatible_close(x) close(x)
+#define compatible_file_close(fd) close(fd)
 #define lws_plat_socket_offset() (0)
 
 /*
@@ -164,6 +183,8 @@ delete_from_fd(const struct lws_context *context, int fd);
  * but happily have something equivalent in the SO_NOSIGPIPE flag.
  */
 #ifdef __APPLE__
+/* iOS SDK 12+ seems to define it, undef it for compatibility both ways */
+#undef MSG_NOSIGNAL
 #define MSG_NOSIGNAL SO_NOSIGPIPE
 #endif
 
@@ -174,3 +195,10 @@ delete_from_fd(const struct lws_context *context, int fd);
 #if defined(__sun) && !defined(MSG_NOSIGNAL)
  #define MSG_NOSIGNAL 0
 #endif
+
+int
+lws_plat_rawudp_broadcast(uint8_t *p, const uint8_t *canned, size_t canned_len,
+			  size_t n, int fd, const char *iface);
+
+int
+lws_plat_if_up(const char *ifname, int fd, int up);

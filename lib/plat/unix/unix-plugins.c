@@ -1,177 +1,127 @@
 /*
  * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2010-2018 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2020 Andy Green <andy@warmcat.com>
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
 
+#if !defined(_GNU_SOURCE)
 #define _GNU_SOURCE
+#endif
 #include "private-lib-core.h"
 
 #include <pwd.h>
 #include <grp.h>
-
-#ifdef LWS_WITH_PLUGINS
 #include <dlfcn.h>
-#endif
-#include <dirent.h>
 
-static int filter(const struct dirent *ent)
+const lws_plugin_header_t *
+lws_plat_dlopen(struct lws_plugin **pplugin, const char *libpath,
+		const char *sofilename, const char *_class,
+		each_plugin_cb_t each, void *each_user)
 {
-	if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
-		return 0;
-
-	return 1;
-}
-
-int
-lws_plat_plugins_init(struct lws_context * context, const char * const *d)
-{
-	struct lws_plugin_capability lcaps;
-	struct lws_plugin *plugin;
-	lws_plugin_init_func initfunc;
-	struct dirent **namelist;
-	int n, i, m, ret = 0;
-	char path[256];
+	const lws_plugin_header_t *hdr;
+	struct lws_plugin *pin;
+	char sym[96];
 	void *l;
-
-#if defined(LWS_WITH_PLUGINS) && (UV_VERSION_MAJOR > 0)
-	if (lws_check_opt(context->options, LWS_SERVER_OPTION_LIBUV))
-		return lws_uv_plugins_init(context, d);
-#endif
-
-	lwsl_notice("  Plugins:\n");
-
-	while (d && *d) {
-		n = scandir(*d, &namelist, filter, alphasort);
-		if (n < 0) {
-			lwsl_err("Scandir on %s failed\n", *d);
-			return 1;
-		}
-
-		for (i = 0; i < n; i++) {
-			if (strlen(namelist[i]->d_name) < 7)
-				goto inval;
-
-			lwsl_notice("   %s\n", namelist[i]->d_name);
-
-			lws_snprintf(path, sizeof(path) - 1, "%s/%s", *d,
-				 namelist[i]->d_name);
-			l = dlopen(path, RTLD_NOW);
-			if (!l) {
-				lwsl_err("Error loading DSO: %s\n", dlerror());
-				while (i++ < n)
-					free(namelist[i]);
-				goto bail;
-			}
-			/* we could open it, can we get his init function? */
-			m = lws_snprintf(path, sizeof(path) - 1, "init_%s",
-				     namelist[i]->d_name + 3 /* snip lib... */);
-			path[m - 3] = '\0'; /* snip the .so */
-			initfunc = dlsym(l, path);
-			if (!initfunc) {
-				lwsl_err("Failed to get init on %s: %s",
-						namelist[i]->d_name, dlerror());
-				dlclose(l);
-			}
-			lcaps.api_magic = LWS_PLUGIN_API_MAGIC;
-			m = initfunc(context, &lcaps);
-			if (m) {
-				lwsl_err("Initializing %s failed %d\n",
-					namelist[i]->d_name, m);
-				dlclose(l);
-				goto skip;
-			}
-
-			plugin = lws_malloc(sizeof(*plugin), "plugin");
-			if (!plugin) {
-				lwsl_err("OOM\n");
-				goto bail;
-			}
-			plugin->list = context->plugin_list;
-			context->plugin_list = plugin;
-			lws_strncpy(plugin->name, namelist[i]->d_name,
-				    sizeof(plugin->name));
-			plugin->l = l;
-			plugin->caps = lcaps;
-			context->plugin_protocol_count += lcaps.count_protocols;
-			context->plugin_extension_count += lcaps.count_extensions;
-
-			free(namelist[i]);
-			continue;
-
-	skip:
-			dlclose(l);
-	inval:
-			free(namelist[i]);
-		}
-		free(namelist);
-		d++;
-	}
-
-	return 0;
-
-bail:
-	free(namelist);
-
-	return ret;
-}
-
-int
-lws_plat_plugins_destroy(struct lws_context * context)
-{
-	struct lws_plugin *plugin = context->plugin_list, *p;
-	lws_plugin_destroy_func func;
-	char path[256];
 	int m;
 
-#if defined(LWS_WITH_PLUGINS) && (UV_VERSION_MAJOR > 0)
-	if (lws_check_opt(context->options, LWS_SERVER_OPTION_LIBUV))
-		return lws_uv_plugins_destroy(context);
-#endif
+	if (strlen(sofilename) < 6)
+		/* [lib]...[.so] */
+		return NULL;
 
-	if (!plugin)
-		return 0;
+	lwsl_info("   trying %s\n", libpath);
 
-	lwsl_notice("%s\n", __func__);
+	l = dlopen(libpath, RTLD_NOW);
+	if (!l) {
+		lwsl_info("%s: Error loading DSO: %s\n", __func__, dlerror());
 
-	while (plugin) {
-		p = plugin;
-		m = lws_snprintf(path, sizeof(path) - 1, "destroy_%s",
-				 plugin->name + 3);
-		path[m - 3] = '\0';
-		func = dlsym(plugin->l, path);
-		if (!func) {
-			lwsl_err("Failed to get destroy on %s: %s",
-					plugin->name, dlerror());
-			goto next;
-		}
-		m = func(context);
-		if (m)
-			lwsl_err("Initializing %s failed %d\n",
-				plugin->name, m);
-next:
-		dlclose(p->l);
-		plugin = p->list;
-		p->list = NULL;
-		free(p);
+		return NULL;
 	}
 
-	context->plugin_list = NULL;
+	/* we could open it... can we get his export struct? */
+	m = lws_snprintf(sym, sizeof(sym) - 1, "%s", sofilename);
+	if (m < 4)
+		goto bail;
+	if (!strcmp(&sym[m - 3], ".so"))
+		sym[m - 3] = '\0'; /* snip the .so */
 
-	return 0;
+	hdr = (const lws_plugin_header_t *)dlsym(l, sym);
+	if (!hdr) {
+		lwsl_info("%s: Failed to get export '%s' from %s: %s\n",
+			 __func__, sym, libpath, dlerror());
+		goto bail;
+	}
+
+	if (hdr->api_magic != LWS_PLUGIN_API_MAGIC) {
+		lwsl_info("%s: plugin %s has outdated api %d (vs %d)\n",
+			 __func__, libpath, hdr->api_magic,
+			 LWS_PLUGIN_API_MAGIC);
+		goto bail;
+	}
+
+	if (strcmp(hdr->lws_build_hash, LWS_BUILD_HASH))
+		goto bail;
+
+	if (strcmp(hdr->_class, _class))
+		goto bail;
+
+	/*
+	 * We don't already have one of these, right?
+	 */
+
+	pin = *pplugin;
+	while (pin) {
+		if (!strcmp(pin->hdr->name, hdr->name))
+			goto bail;
+		pin = pin->list;
+	}
+
+	/*
+	 * OK let's bring it in
+	 */
+
+	pin = lws_malloc(sizeof(*pin), __func__);
+	if (!pin)
+		goto bail;
+
+	pin->list = *pplugin;
+	*pplugin = pin;
+
+	pin->u.l = l;
+	pin->hdr = hdr;
+
+	if (each)
+		each(pin, each_user);
+
+	lwsl_notice("   %s\n", libpath);
+
+	return hdr;
+
+bail:
+	dlclose(l);
+
+	return NULL;
+}
+
+int
+lws_plat_destroy_dl(struct lws_plugin *p)
+{
+	return dlclose(p->u.l);
 }

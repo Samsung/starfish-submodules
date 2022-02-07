@@ -1,22 +1,25 @@
 /*
  * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2010-2019 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2019 Andy Green <andy@warmcat.com>
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
 
 /** @file */
@@ -38,11 +41,15 @@ extern "C" {
 
 #include "lws_config.h"
 
+#if defined(LWS_SUPPRESS_DEPRECATED_API_WARNINGS)
+#define OPENSSL_USE_DEPRECATED
+#endif
+
 /* place for one-shot opaque forward references */
 
-typedef struct lws_sequencer lws_seq_t; /* opaque */
-typedef struct lws_sorted_usec_list lws_sorted_usec_list_t; /* opaque */
-typedef struct lws_dsh lws_dsh_t;
+typedef struct lws_context * lws_ctx_t;
+struct lws_sequencer;
+struct lws_dsh;
 
 /*
  * CARE: everything using cmake defines needs to be below here
@@ -85,25 +92,44 @@ typedef unsigned long long lws_intptr_t;
 #define O_RDONLY	_O_RDONLY
 #endif
 
+typedef int uid_t;
+typedef int gid_t;
+typedef unsigned short sa_family_t;
+#if !defined(LWS_HAVE_SUSECONDS_T)
+typedef unsigned int useconds_t;
+typedef int suseconds_t;
+#endif
+
 #define LWS_INLINE __inline
 #define LWS_VISIBLE
 #define LWS_WARN_UNUSED_RESULT
 #define LWS_WARN_DEPRECATED
 #define LWS_FORMAT(string_index)
 
-#if !defined(LWS_EXTERN)
+#if !defined(LWS_EXTERN) && defined(LWS_BUILDING_SHARED)
 #ifdef LWS_DLL
 #ifdef LWS_INTERNAL
 #define LWS_EXTERN extern __declspec(dllexport)
 #else
 #define LWS_EXTERN extern __declspec(dllimport)
 #endif
-#else
-#define LWS_EXTERN
 #endif
 #endif
 
+#if !defined(LWS_INTERNAL) && !defined(LWS_EXTERN)
+#define LWS_EXTERN
+#define LWS_VISIBLE
+#endif
+
+#if !defined(LWS_EXTERN)
+#define LWS_EXTERN
+#endif
+
+#if defined(__MINGW32__)
+#define LWS_INVALID_FILE -1
+#else
 #define LWS_INVALID_FILE INVALID_HANDLE_VALUE
+#endif
 #define LWS_SOCK_INVALID (INVALID_SOCKET)
 #define LWS_O_RDONLY _O_RDONLY
 #define LWS_O_WRONLY _O_WRONLY
@@ -131,14 +157,14 @@ typedef unsigned long long lws_intptr_t;
 #define LWS_O_CREAT O_CREAT
 #define LWS_O_TRUNC O_TRUNC
 
-#if !defined(LWS_PLAT_OPTEE) && !defined(OPTEE_TA) && !defined(LWS_WITH_ESP32)
+#if !defined(LWS_PLAT_OPTEE) && !defined(OPTEE_TA) && !defined(LWS_PLAT_FREERTOS)
 #include <poll.h>
 #include <netdb.h>
 #define LWS_INVALID_FILE -1
 #define LWS_SOCK_INVALID (-1)
 #else
 #define getdtablesize() (30)
-#if defined(LWS_WITH_ESP32)
+#if defined(LWS_PLAT_FREERTOS)
 #define LWS_INVALID_FILE NULL
 #define LWS_SOCK_INVALID (-1)
 #else
@@ -147,6 +173,9 @@ typedef unsigned long long lws_intptr_t;
 #endif
 #endif
 
+#if defined(__FreeBSD__)
+#include <sys/signal.h>
+#endif
 #if defined(__GNUC__)
 
 /* warn_unused_result attribute only supported by GCC 3.4 or later */
@@ -156,41 +185,44 @@ typedef unsigned long long lws_intptr_t;
 #define LWS_WARN_UNUSED_RESULT
 #endif
 
+#if defined(LWS_BUILDING_SHARED)
+/* this is only set when we're building lws itself shared */
 #define LWS_VISIBLE __attribute__((visibility("default")))
+#define LWS_EXTERN extern
+
+#else /* not shared */
+#if defined(WIN32) || defined(_WIN32) || defined(__MINGW32__)
+#define LWS_VISIBLE
+#define LWS_EXTERN extern
+#else
+/*
+ * If we explicitly say hidden here, symbols exist as T but
+ * cannot be imported at link-time.
+ */
+#define LWS_VISIBLE
+#define LWS_EXTERN
+#endif
+
+#endif /* not shared */
+
 #define LWS_WARN_DEPRECATED __attribute__ ((deprecated))
 #define LWS_FORMAT(string_index) __attribute__ ((format(printf, string_index, string_index+1)))
-#else
+#else /* not GNUC */
+
 #define LWS_VISIBLE
 #define LWS_WARN_UNUSED_RESULT
 #define LWS_WARN_DEPRECATED
 #define LWS_FORMAT(string_index)
+#if !defined(LWS_EXTERN)
+#define LWS_EXTERN extern
 #endif
+#endif
+
 
 #if defined(__ANDROID__)
 #include <netinet/in.h>
 #include <unistd.h>
 #endif
-
-#endif
-
-#if defined(LWS_WITH_LIBEV)
-#include <ev.h>
-#endif /* LWS_WITH_LIBEV */
-#ifdef LWS_WITH_LIBUV
-#include <uv.h>
-#ifdef LWS_HAVE_UV_VERSION_H
-#include <uv-version.h>
-#endif
-#ifdef LWS_HAVE_NEW_UV_VERSION_H
-#include <uv/version.h>
-#endif
-#endif /* LWS_WITH_LIBUV */
-#if defined(LWS_WITH_LIBEVENT)
-#include <event2/event.h>
-#endif /* LWS_WITH_LIBEVENT */
-
-#ifndef LWS_EXTERN
-#define LWS_EXTERN extern
 #endif
 
 #ifdef _WIN32
@@ -199,6 +231,18 @@ typedef unsigned long long lws_intptr_t;
 #if !defined(LWS_PLAT_OPTEE)
 #include <sys/time.h>
 #include <unistd.h>
+#endif
+#endif
+
+#if defined(LWS_WITH_LIBUV_INTERNAL)
+#include <uv.h>
+
+#ifdef LWS_HAVE_UV_VERSION_H
+#include <uv-version.h>
+#endif
+
+#ifdef LWS_HAVE_NEW_UV_VERSION_H
+#include <uv/version.h>
 #endif
 #endif
 
@@ -235,7 +279,7 @@ typedef unsigned long long lws_intptr_t;
 #endif /* not USE_OLD_CYASSL */
 #else
 #if defined(LWS_WITH_MBEDTLS)
-#if defined(LWS_WITH_ESP32)
+#if defined(LWS_PLAT_FREERTOS)
 /* this filepath is passed to us but without quotes or <> */
 #if !defined(LWS_AMAZON_RTOS)
 /* AMAZON RTOS has its own setting via MTK_MBEDTLS_CONFIG_FILE */
@@ -243,9 +287,16 @@ typedef unsigned long long lws_intptr_t;
 #define MBEDTLS_CONFIG_FILE <mbedtls/esp_config.h>
 #endif
 #endif
+#if defined(LWS_WITH_TLS)
 #include <mbedtls/ssl.h>
 #include <mbedtls/entropy.h>
 #include <mbedtls/ctr_drbg.h>
+
+#if !defined(MBEDTLS_PRIVATE)
+#define MBEDTLS_PRIVATE(_q) _q
+#endif
+
+#endif
 #else
 #include <openssl/ssl.h>
 #if !defined(LWS_WITH_MBEDTLS)
@@ -312,6 +363,7 @@ lws_pthread_mutex_unlock(pthread_mutex_t *lock)
 #ifndef lws_container_of
 #define lws_container_of(P,T,M)	((T *)((char *)(P) - offsetof(T, M)))
 #endif
+#define LWS_ALIGN_TO(x, bou) x += ((bou) - ((x) % (bou))) % (bou)
 
 struct lws;
 
@@ -335,22 +387,24 @@ struct lws;
 #if defined(_WIN32)
 #if !defined(LWS_WIN32_HANDLE_TYPES)
 typedef SOCKET lws_sockfd_type;
+#if defined(__MINGW32__)
+typedef int lws_filefd_type;
+#else
 typedef HANDLE lws_filefd_type;
 #endif
+#endif
 
-struct lws_pollfd {
-	lws_sockfd_type fd; /**< file descriptor */
-	SHORT events; /**< which events to respond to */
-	SHORT revents; /**< which events happened */
-};
-#define LWS_POLLHUP (FD_CLOSE)
-#define LWS_POLLIN (FD_READ | FD_ACCEPT)
-#define LWS_POLLOUT (FD_WRITE)
+
+#define lws_pollfd pollfd
+#define LWS_POLLHUP	(POLLHUP)
+#define LWS_POLLIN	(POLLRDNORM | POLLRDBAND)
+#define LWS_POLLOUT	(POLLWRNORM)
+
 #else
 
 
-#if defined(LWS_WITH_ESP32)
-#include <libwebsockets/lws-esp32.h>
+#if defined(LWS_PLAT_FREERTOS)
+#include <libwebsockets/lws-freertos.h>
 #else
 typedef int lws_sockfd_type;
 typedef int lws_filefd_type;
@@ -518,52 +572,84 @@ struct lws_pollargs {
 
 struct lws_extension; /* needed even with ws exts disabled for create context */
 struct lws_token_limits;
+struct lws_protocols;
 struct lws_context;
 struct lws_tokens;
 struct lws_vhost;
 struct lws;
 
+#include <libwebsockets/lws-dll2.h>
+#include <libwebsockets/lws-map.h>
+
+#include <libwebsockets/lws-fault-injection.h>
+#include <libwebsockets/lws-timeout-timer.h>
+#include <libwebsockets/lws-cache-ttl.h>
+#if defined(LWS_WITH_SYS_SMD)
+#include <libwebsockets/lws-smd.h>
+#endif
+#include <libwebsockets/lws-state.h>
+#include <libwebsockets/lws-retry.h>
+#include <libwebsockets/lws-adopt.h>
+#include <libwebsockets/lws-network-helper.h>
+#include <libwebsockets/lws-metrics.h>
 #include <libwebsockets/lws-system.h>
 #include <libwebsockets/lws-ws-close.h>
 #include <libwebsockets/lws-callbacks.h>
 #include <libwebsockets/lws-ws-state.h>
 #include <libwebsockets/lws-ws-ext.h>
 #include <libwebsockets/lws-protocols-plugins.h>
-#include <libwebsockets/lws-plugin-generic-sessions.h>
+
 #include <libwebsockets/lws-context-vhost.h>
+
+#if defined(LWS_WITH_CONMON)
+#include <libwebsockets/lws-conmon.h>
+#endif
+
+#if defined(LWS_ROLE_MQTT)
+#include <libwebsockets/lws-mqtt.h>
+#endif
 #include <libwebsockets/lws-client.h>
 #include <libwebsockets/lws-http.h>
 #include <libwebsockets/lws-spa.h>
 #include <libwebsockets/lws-purify.h>
 #include <libwebsockets/lws-misc.h>
 #include <libwebsockets/lws-dsh.h>
-#include <libwebsockets/lws-timeout-timer.h>
 #include <libwebsockets/lws-service.h>
 #include <libwebsockets/lws-write.h>
 #include <libwebsockets/lws-writeable.h>
-#include <libwebsockets/lws-adopt.h>
-#include <libwebsockets/lws-network-helper.h>
 #include <libwebsockets/lws-ring.h>
 #include <libwebsockets/lws-sha1-base64.h>
 #include <libwebsockets/lws-x509.h>
 #include <libwebsockets/lws-cgi.h>
+#if defined(LWS_WITH_FILE_OPS)
 #include <libwebsockets/lws-vfs.h>
+#endif
+#include <libwebsockets/lws-gencrypto.h>
+
 #include <libwebsockets/lws-lejp.h>
-#include <libwebsockets/lws-stats.h>
+#include <libwebsockets/lws-lecp.h>
+#include <libwebsockets/lws-cose.h>
 #include <libwebsockets/lws-struct.h>
 #include <libwebsockets/lws-threadpool.h>
 #include <libwebsockets/lws-tokenize.h>
 #include <libwebsockets/lws-lwsac.h>
 #include <libwebsockets/lws-fts.h>
 #include <libwebsockets/lws-diskcache.h>
-#include <libwebsockets/lws-retry.h>
 #include <libwebsockets/lws-sequencer.h>
+#include <libwebsockets/lws-secure-streams.h>
+#include <libwebsockets/lws-secure-streams-policy.h>
+#include <libwebsockets/lws-secure-streams-client.h>
 
+#if !defined(LWS_PLAT_FREERTOS)
 #include <libwebsockets/abstract/abstract.h>
 
 #include <libwebsockets/lws-test-sequencer.h>
+#endif
+#include <libwebsockets/lws-async-dns.h>
 
 #if defined(LWS_WITH_TLS)
+
+#include <libwebsockets/lws-tls-sessions.h>
 
 #if defined(LWS_WITH_MBEDTLS)
 #include <mbedtls/md5.h>
@@ -572,7 +658,6 @@ struct lws;
 #include <mbedtls/sha512.h>
 #endif
 
-#include <libwebsockets/lws-gencrypto.h>
 #include <libwebsockets/lws-genhash.h>
 #include <libwebsockets/lws-genrsa.h>
 #include <libwebsockets/lws-genaes.h>
@@ -584,6 +669,21 @@ struct lws;
 #include <libwebsockets/lws-jwe.h>
 
 #endif
+
+#include <libwebsockets/lws-eventlib-exports.h>
+#include <libwebsockets/lws-i2c.h>
+#include <libwebsockets/lws-spi.h>
+#include <libwebsockets/lws-gpio.h>
+#include <libwebsockets/lws-bb-i2c.h>
+#include <libwebsockets/lws-bb-spi.h>
+#include <libwebsockets/lws-button.h>
+#include <libwebsockets/lws-led.h>
+#include <libwebsockets/lws-pwm.h>
+#include <libwebsockets/lws-display.h>
+#include <libwebsockets/lws-ssd1306-i2c.h>
+#include <libwebsockets/lws-ili9341-spi.h>
+#include <libwebsockets/lws-settings.h>
+#include <libwebsockets/lws-netdev.h>
 
 #ifdef __cplusplus
 }

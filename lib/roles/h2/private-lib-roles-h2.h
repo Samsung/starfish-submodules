@@ -1,41 +1,29 @@
 /*
  * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2010 - 2018 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2019 Andy Green <andy@warmcat.com>
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
- *
- *  This is included from core/private.h if LWS_ROLE_H2
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
 
-extern struct lws_role_ops role_ops_h2;
+extern const struct lws_role_ops role_ops_h2;
 #define lwsi_role_h2(wsi) (wsi->role_ops == &role_ops_h2)
-
-enum lws_h2_settings {
-	H2SET_HEADER_TABLE_SIZE = 1,
-	H2SET_ENABLE_PUSH,
-	H2SET_MAX_CONCURRENT_STREAMS,
-	H2SET_INITIAL_WINDOW_SIZE,
-	H2SET_MAX_FRAME_SIZE,
-	H2SET_MAX_HEADER_LIST_SIZE,
-	H2SET_RESERVED7,
-	H2SET_ENABLE_CONNECT_PROTOCOL, /* defined in mcmanus-httpbis-h2-ws-02 */
-
-	H2SET_COUNT /* always last */
-};
 
 struct http2_settings {
 	uint32_t s[H2SET_COUNT];
@@ -210,10 +198,12 @@ enum lws_h2_protocol_send_type {
 	LWS_PPS_NONE,
 	LWS_H2_PPS_MY_SETTINGS,
 	LWS_H2_PPS_ACK_SETTINGS,
+	LWS_H2_PPS_PING,
 	LWS_H2_PPS_PONG,
 	LWS_H2_PPS_GOAWAY,
 	LWS_H2_PPS_RST_STREAM,
 	LWS_H2_PPS_UPDATE_WINDOW,
+	LWS_H2_PPS_SETTINGS_INITIAL_UPDATE_WINDOW
 };
 
 struct lws_h2_protocol_send {
@@ -259,7 +249,8 @@ struct lws_h2_ghost_sid {
  * fills it but it belongs to the logical child.
  */
 struct lws_h2_netconn {
-	struct http2_settings set;
+	struct http2_settings our_set;
+	struct http2_settings peer_set;
 	struct hpack_dynamic_table hpack_dyn_table;
 	uint8_t	ping_payload[8];
 	uint8_t one_setting[LWS_H2_SETTINGS_LEN];
@@ -281,6 +272,7 @@ struct lws_h2_netconn {
 	unsigned int is_first_header_char:1;
 	unsigned int zero_huff_padding:1;
 	unsigned int last_action_dyntable_resize:1;
+	unsigned int sent_preface:1;
 
 	uint32_t hdr_idx;
 	uint32_t hpack_len;
@@ -313,94 +305,80 @@ struct lws_h2_netconn {
 
 struct _lws_h2_related {
 
-	struct lws_h2_netconn *h2n; /* malloc'd for root net conn */
-	struct lws *parent_wsi;
-	struct lws *child_list;
-	struct lws *sibling_list;
+	struct lws_h2_netconn	*h2n; /* malloc'd for root net conn */
 
-	char *pending_status_body;
+	char			*pending_status_body;
 
-	int tx_cr;
-	int peer_tx_cr_est;
-	unsigned int my_sid;
-	unsigned int child_count;
-	int my_priority;
-	uint32_t dependent_on;
+	uint8_t			h2_state; /* RFC7540 state of the connection */
 
-	unsigned int END_STREAM:1;
-	unsigned int END_HEADERS:1;
-	unsigned int send_END_STREAM:1;
-	unsigned int GOING_AWAY;
-	unsigned int requested_POLLOUT:1;
-	unsigned int skint:1;
-
-	uint16_t round_robin_POLLOUT;
-	uint16_t count_POLLOUT_children;
-
-	uint8_t h2_state; /* the RFC7540 state of the connection */
-	uint8_t weight;
-	uint8_t initialized;
+	uint8_t			END_STREAM:1;
+	uint8_t			END_HEADERS:1;
+	uint8_t			send_END_STREAM:1;
+	uint8_t			long_poll:1;
+	uint8_t			initialized:1;
 };
 
-#define HTTP2_IS_TOPLEVEL_WSI(wsi) (!wsi->h2.parent_wsi)
+#define HTTP2_IS_TOPLEVEL_WSI(wsi) (!wsi->mux.parent_wsi)
 
 int
 lws_h2_rst_stream(struct lws *wsi, uint32_t err, const char *reason);
 struct lws * lws_h2_get_nth_child(struct lws *wsi, int n);
-LWS_EXTERN void lws_h2_init(struct lws *wsi);
-LWS_EXTERN int
+void lws_h2_init(struct lws *wsi);
+int
 lws_h2_settings(struct lws *nwsi, struct http2_settings *settings,
 		unsigned char *buf, int len);
-LWS_EXTERN int
+int
 lws_h2_parser(struct lws *wsi, unsigned char *in, lws_filepos_t inlen,
 	      lws_filepos_t *inused);
-LWS_EXTERN int
+int
 lws_h2_do_pps_send(struct lws *wsi);
-LWS_EXTERN int
+int
 lws_h2_frame_write(struct lws *wsi, int type, int flags, unsigned int sid,
 		   unsigned int len, unsigned char *buf);
-LWS_EXTERN struct lws *
-lws_h2_wsi_from_id(struct lws *wsi, unsigned int sid);
-LWS_EXTERN int
+struct lws *
+lws_wsi_mux_from_id(struct lws *wsi, unsigned int sid);
+int
 lws_hpack_interpret(struct lws *wsi, unsigned char c);
-LWS_EXTERN int
+int
 lws_add_http2_header_by_name(struct lws *wsi,
 			     const unsigned char *name,
 			     const unsigned char *value, int length,
 			     unsigned char **p, unsigned char *end);
-LWS_EXTERN int
+int
 lws_add_http2_header_by_token(struct lws *wsi,
 			      enum lws_token_indexes token,
 			      const unsigned char *value, int length,
 			      unsigned char **p, unsigned char *end);
-LWS_EXTERN int
+int
 lws_add_http2_header_status(struct lws *wsi,
 			    unsigned int code, unsigned char **p,
 			    unsigned char *end);
-LWS_EXTERN void
+void
 lws_hpack_destroy_dynamic_header(struct lws *wsi);
-LWS_EXTERN int
+int
 lws_hpack_dynamic_size(struct lws *wsi, int size);
-LWS_EXTERN int
+int
 lws_h2_goaway(struct lws *wsi, uint32_t err, const char *reason);
-LWS_EXTERN int
+int
 lws_h2_tx_cr_get(struct lws *wsi);
-LWS_EXTERN void
+void
 lws_h2_tx_cr_consume(struct lws *wsi, int consumed);
-LWS_EXTERN int
+int
 lws_hdr_extant(struct lws *wsi, enum lws_token_indexes h);
-LWS_EXTERN void
+void
 lws_pps_schedule(struct lws *wsi, struct lws_h2_protocol_send *pss);
 
-LWS_EXTERN const struct http2_settings lws_h2_defaults;
-LWS_EXTERN int
+extern const struct http2_settings lws_h2_defaults;
+int
 lws_h2_ws_handshake(struct lws *wsi);
-LWS_EXTERN int lws_h2_issue_preface(struct lws *wsi);
-LWS_EXTERN int
+int lws_h2_issue_preface(struct lws *wsi);
+int
 lws_h2_client_handshake(struct lws *wsi);
-LWS_EXTERN struct lws *
+struct lws *
 lws_wsi_h2_adopt(struct lws *parent_wsi, struct lws *wsi);
 int
 lws_handle_POLLOUT_event_h2(struct lws *wsi);
 int
 lws_read_h2(struct lws *wsi, unsigned char *buf, lws_filepos_t len);
+struct lws_h2_protocol_send *
+lws_h2_new_pps(enum lws_h2_protocol_send_type type);

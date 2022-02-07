@@ -1,22 +1,25 @@
-/*
+ /*
  * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2010 - 2018 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2019 Andy Green <andy@warmcat.com>
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  *
  *  This is included from private-lib-core.h if either H1 or H2 roles are
  *  enabled
@@ -50,7 +53,7 @@ enum http_conn_type {
  * other APIs to get information out of it.
  */
 
-#if defined(LWS_WITH_ESP32)
+#if defined(LWS_PLAT_FREERTOS)
 typedef uint16_t ah_data_idx_t;
 #else
 typedef uint32_t ah_data_idx_t;
@@ -91,6 +94,8 @@ void
 lws_ranges_reset(struct lws_range_parsing *rp);
 #endif
 
+#define LWS_HTTP_NO_KNOWN_HEADER 0xff
+
 /*
  * these are assigned from a pool held in the context.
  * Both client and server mode uses them for http header analysis
@@ -114,7 +119,7 @@ struct allocated_headers {
 	 */
 	uint8_t frag_index[WSI_TOKEN_COUNT];
 
-#ifndef LWS_NO_CLIENT
+#if defined(LWS_WITH_CLIENT)
 	char initial_handshake_hash_base64[30];
 #endif
 	int hdr_token_idx;
@@ -122,9 +127,9 @@ struct allocated_headers {
 	ah_data_idx_t pos;
 	ah_data_idx_t http_response;
 	ah_data_idx_t current_token_limit;
+	ah_data_idx_t unk_pos; /* to undo speculative unknown header */
 
 #if defined(LWS_WITH_CUSTOM_HEADERS)
-	ah_data_idx_t unk_pos; /* to undo speculative unknown header */
 	ah_data_idx_t unk_value_pos;
 
 	ah_data_idx_t unk_ll_head;
@@ -188,10 +193,14 @@ struct lws_peer_role_http {
 };
 
 struct lws_vhost_role_http {
+#if defined(LWS_CLIENT_HTTP_PROXYING)
 	char http_proxy_address[128];
+#endif
 	const struct lws_http_mount *mount_list;
 	const char *error_document_404;
+#if defined(LWS_CLIENT_HTTP_PROXYING)
 	unsigned int http_proxy_port;
+#endif
 };
 
 #ifdef LWS_WITH_ACCESS_LOG
@@ -221,10 +230,16 @@ struct _lws_http_mode_related {
 	struct allocated_headers *ah;
 	struct lws *ah_wait_list;
 
+	unsigned long		writeable_len;
+
+#if defined(LWS_WITH_FILE_OPS)
 	lws_filepos_t filepos;
 	lws_filepos_t filelen;
 	lws_fop_fd_t fop_fd;
-
+#endif
+#if defined(LWS_WITH_CLIENT)
+	char multipart_boundary[16];
+#endif
 #if defined(LWS_WITH_RANGES)
 	struct lws_range_parsing range;
 	char multipart_content_type[64];
@@ -233,8 +248,11 @@ struct _lws_http_mode_related {
 #ifdef LWS_WITH_ACCESS_LOG
 	struct lws_access_log access_log;
 #endif
+#if defined(LWS_WITH_SERVER)
+	unsigned int response_code;
+#endif
 #ifdef LWS_WITH_CGI
-	struct lws_cgi *cgi; /* wsi being cgi master have one of these */
+	struct lws_cgi *cgi; /* wsi being cgi stream have one of these */
 #endif
 #if defined(LWS_WITH_HTTP_STREAM_COMPRESSION)
 	struct lws_compression_support *lcs;
@@ -256,17 +274,23 @@ struct _lws_http_mode_related {
 #endif
 	unsigned int deferred_transaction_completed:1;
 	unsigned int content_length_explicitly_zero:1;
+	unsigned int content_length_given:1;
 	unsigned int did_stream_close:1;
+	unsigned int multipart:1;
+	unsigned int cgi_transaction_complete:1;
+	unsigned int multipart_issue_boundary:1;
 };
 
 
-#ifndef LWS_NO_CLIENT
+#if defined(LWS_WITH_CLIENT)
 enum lws_chunk_parser {
 	ELCP_HEX,
 	ELCP_CR,
 	ELCP_CONTENT,
 	ELCP_POST_CR,
 	ELCP_POST_LF,
+	ELCP_TRAILER_CR,
+	ELCP_TRAILER_LF
 };
 #endif
 
@@ -284,7 +308,7 @@ enum lws_check_basic_auth_results {
 };
 
 enum lws_check_basic_auth_results
-lws_check_basic_auth(struct lws *wsi, const char *basic_auth_login_file);
+lws_check_basic_auth(struct lws *wsi, const char *basic_auth_login_file, unsigned int auth_mode);
 
 int
 lws_unauthorised_basic_auth(struct lws *wsi);
@@ -304,3 +328,24 @@ lws_http_proxy_start(struct lws *wsi, const struct lws_http_mount *hit,
 
 void
 lws_sul_http_ah_lifecheck(lws_sorted_usec_list_t *sul);
+
+uint8_t *
+lws_http_multipart_headers(struct lws *wsi, uint8_t *p);
+
+int
+lws_http_string_to_known_header(const char *s, size_t slen);
+
+int
+lws_http_date_render_from_unix(char *buf, size_t len, const time_t *t);
+
+int
+lws_http_date_parse_unix(const char *b, size_t len, time_t *t);
+
+enum {
+	CCTLS_RETURN_ERROR		= -1,
+	CCTLS_RETURN_DONE		= 0,
+	CCTLS_RETURN_RETRY		= 1,
+};
+
+int
+lws_client_create_tls(struct lws *wsi, const char **pcce, int do_c1);

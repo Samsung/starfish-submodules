@@ -1,26 +1,33 @@
 /*
- * libwebsockets - lws-plugin-ssh-base
+ * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2017 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2019 Andy Green <andy@warmcat.com>
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
 
 #if !defined(__LWS_SSH_H__)
 #define __LWS_SSH_H__
+
+#if defined(LWS_HAVE_SYS_TYPES_H)
+#include <sys/types.h>
+#endif
 
 #if defined(LWS_WITH_MBEDTLS)
 #include "mbedtls/sha1.h"
@@ -70,22 +77,22 @@
 #define POKE_U64(p, v) \
         do { \
                 const uint64_t __v = (v); \
-                ((uint8_t *)(p))[0] = (__v >> 56) & 0xff; \
-                ((uint8_t *)(p))[1] = (__v >> 48) & 0xff; \
-                ((uint8_t *)(p))[2] = (__v >> 40) & 0xff; \
-                ((uint8_t *)(p))[3] = (__v >> 32) & 0xff; \
-                ((uint8_t *)(p))[4] = (__v >> 24) & 0xff; \
-                ((uint8_t *)(p))[5] = (__v >> 16) & 0xff; \
-                ((uint8_t *)(p))[6] = (__v >> 8) & 0xff; \
-                ((uint8_t *)(p))[7] = __v & 0xff; \
+                ((uint8_t *)(p))[0] = (uint8_t)((__v >> 56) & 0xff); \
+                ((uint8_t *)(p))[1] = (uint8_t)((__v >> 48) & 0xff); \
+                ((uint8_t *)(p))[2] = (uint8_t)((__v >> 40) & 0xff); \
+                ((uint8_t *)(p))[3] = (uint8_t)((__v >> 32) & 0xff); \
+                ((uint8_t *)(p))[4] = (uint8_t)((__v >> 24) & 0xff); \
+                ((uint8_t *)(p))[5] = (uint8_t)((__v >> 16) & 0xff); \
+                ((uint8_t *)(p))[6] = (uint8_t)((__v >> 8) & 0xff); \
+                ((uint8_t *)(p))[7] = (uint8_t)(__v & 0xff); \
         } while (0)
 #define POKE_U32(p, v) \
         do { \
                 const uint32_t __v = (v); \
-                ((uint8_t *)(p))[0] = (__v >> 24) & 0xff; \
-                ((uint8_t *)(p))[1] = (__v >> 16) & 0xff; \
-                ((uint8_t *)(p))[2] = (__v >> 8) & 0xff; \
-                ((uint8_t *)(p))[3] = __v & 0xff; \
+                ((uint8_t *)(p))[0] = (uint8_t)((__v >> 24) & 0xff); \
+                ((uint8_t *)(p))[1] = (uint8_t)((__v >> 16) & 0xff); \
+                ((uint8_t *)(p))[2] = (uint8_t)((__v >> 8) & 0xff); \
+                ((uint8_t *)(p))[3] = (uint8_t)(__v & 0xff); \
         } while (0)
 #define POKE_U16(p, v) \
         do { \
@@ -271,6 +278,11 @@ enum {
 	SSHS_NVC_CHRQ_EXEC_CMD,
 
 	SSHS_NVC_CHRQ_SUBSYSTEM,
+
+	SSHS_NVC_CHRQ_WNDCHANGE_TW,
+	SSHS_NVC_CHRQ_WNDCHANGE_TH,
+	SSHS_NVC_CHRQ_WNDCHANGE_TWP,
+	SSHS_NVC_CHRQ_WNDCHANGE_THP,
 
 	SSHS_NVC_CH_EOF,
 	SSHS_NVC_CH_CLOSE,

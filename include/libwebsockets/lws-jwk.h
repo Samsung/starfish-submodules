@@ -1,24 +1,25 @@
 /*
  * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2010 - 2018 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2019 Andy Green <andy@warmcat.com>
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
- *
- * included from libwebsockets.h
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
 
 /*! \defgroup jwk JSON Web Keys
@@ -51,7 +52,7 @@ struct lws_jwk {
 	struct lws_gencrypto_keyelem e[LWS_GENCRYPTO_MAX_KEYEL_COUNT];
 	/* generic meta key elements, like KID */
 	struct lws_gencrypto_keyelem meta[LWS_COUNT_JWK_ELEMENTS];
-	int kty;			/**< one of LWS_JWK_ */
+	int kty;			/**< one of LWS_GENCRYPTO_KTY_ */
 	char private_key; /* nonzero = has private key elements */
 };
 
@@ -63,6 +64,8 @@ struct lws_jwk_parse_state {
 	lws_jwk_key_import_callback per_key_cb;
 	void *user;
 	int pos;
+	int cose_state;
+	int seen;
 	unsigned short possible;
 };
 
@@ -114,19 +117,30 @@ lws_jwk_destroy(struct lws_jwk *jwk);
 LWS_VISIBLE LWS_EXTERN int
 lws_jwk_dup_oct(struct lws_jwk *jwk, const void *key, int len);
 
+#define LWSJWKF_EXPORT_PRIVATE				(1 << 0)
+#define LWSJWKF_EXPORT_NOCRLF				(1 << 1)
+
 /** lws_jwk_export() - Export a JSON Web key to a textual representation
  *
  * \param jwk: the JWK object to export
- * \param _private: 0 = just export public parts, 1 = export everything
+ * \param flags: control export options
  * \param p: the buffer to write the exported JWK to
  * \param len: the length of the buffer \p p in bytes... reduced by used amount
  *
  * Returns length of the used part of the buffer if OK, or -1 for error.
  *
+ * \p flags can be OR-ed together
+ *
+ * LWSJWKF_EXPORT_PRIVATE: default is only public part, set this to also export
+ *			   the private part
+ *
+ * LWSJWKF_EXPORT_NOCRLF: normally adds a CRLF at the end of the export, if
+ *			  you need to suppress it, set this flag
+ *
  * Serializes the content of the JWK into a char buffer.
  */
 LWS_VISIBLE LWS_EXTERN int
-lws_jwk_export(struct lws_jwk *jwk, int _private, char *p, int *len);
+lws_jwk_export(struct lws_jwk *jwk, int flags, char *p, int *len);
 
 /** lws_jwk_load() - Import a JSON Web key from a file
  *
@@ -179,7 +193,7 @@ lws_jwk_rfc7638_fingerprint(struct lws_jwk *jwk, char *digest32);
  * \param in: string to copy
  * \param len: length of string to copy
  *
- * Returns 0 for OK or -1 for failure
+ * Returns 0 for OK or nonzero for failure
  */
 LWS_VISIBLE LWS_EXTERN int
 lws_jwk_strdup_meta(struct lws_jwk *jwk, enum enum_jwk_meta_tok idx,
@@ -197,7 +211,7 @@ lws_jwk_dump(struct lws_jwk *jwk);
  * \param bits: for OCT and RSA keys, the number of bits
  * \param curve: for EC keys, the name of the curve
  *
- * Returns 0 for OK or -1 for failure
+ * Returns 0 for OK or nonzero for failure
  */
 LWS_VISIBLE int
 lws_jwk_generate(struct lws_context *context, struct lws_jwk *jwk,

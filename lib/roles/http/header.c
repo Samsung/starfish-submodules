@@ -1,22 +1,25 @@
 /*
  * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2010-2018 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2020 Andy Green <andy@warmcat.com>
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
 
 #include "private-lib-core.h"
@@ -32,13 +35,43 @@ lws_token_to_string(enum lws_token_indexes token)
 	return (unsigned char *)set[token];
 }
 
+/*
+ * Return http header index if one matches slen chars of s, or -1
+ */
+
+int
+lws_http_string_to_known_header(const char *s, size_t slen)
+{
+	int n;
+
+	for (n = 0; n < (int)LWS_ARRAY_SIZE(set); n++)
+		if (!strncmp(set[n], s, slen))
+			return n;
+
+	return LWS_HTTP_NO_KNOWN_HEADER;
+}
+
+#ifdef LWS_WITH_HTTP2
+int
+lws_wsi_is_h2(struct lws *wsi)
+{
+	return wsi->upgraded_to_http2 ||
+	       wsi->mux_substream ||
+#if defined(LWS_WITH_CLIENT)
+	       wsi->client_mux_substream ||
+#endif
+	       lwsi_role_h2(wsi) ||
+	       lwsi_role_h2_ENCAPSULATION(wsi);
+}
+#endif
+
 int
 lws_add_http_header_by_name(struct lws *wsi, const unsigned char *name,
 			    const unsigned char *value, int length,
 			    unsigned char **p, unsigned char *end)
 {
 #ifdef LWS_WITH_HTTP2
-	if (lwsi_role_h2(wsi) || lwsi_role_h2_ENCAPSULATION(wsi))
+	if (lws_wsi_is_h2(wsi))
 		return lws_add_http2_header_by_name(wsi, name,
 						    value, length, p, end);
 #else
@@ -54,7 +87,8 @@ lws_add_http_header_by_name(struct lws *wsi, const unsigned char *name,
 	if (*p + length + 3 >= end)
 		return 1;
 
-	memcpy(*p, value, length);
+	if (value)
+		memcpy(*p, value, (unsigned int)length);
 	*p += length;
 	*((*p)++) = '\x0d';
 	*((*p)++) = '\x0a';
@@ -66,7 +100,7 @@ int lws_finalize_http_header(struct lws *wsi, unsigned char **p,
 			     unsigned char *end)
 {
 #ifdef LWS_WITH_HTTP2
-	if (lwsi_role_h2(wsi) || lwsi_role_h2_ENCAPSULATION(wsi))
+	if (lws_wsi_is_h2(wsi))
 		return 0;
 #else
 	(void)wsi;
@@ -92,7 +126,7 @@ lws_finalize_write_http_header(struct lws *wsi, unsigned char *start,
 	p = *pp;
 	len = lws_ptr_diff(p, start);
 
-	if (lws_write(wsi, start, len, LWS_WRITE_HTTP_HEADERS) != len)
+	if (lws_write(wsi, start, (unsigned int)len, LWS_WRITE_HTTP_HEADERS) != len)
 		return 1;
 
 	return 0;
@@ -105,7 +139,7 @@ lws_add_http_header_by_token(struct lws *wsi, enum lws_token_indexes token,
 {
 	const unsigned char *name;
 #ifdef LWS_WITH_HTTP2
-	if (lwsi_role_h2(wsi) || lwsi_role_h2_ENCAPSULATION(wsi))
+	if (lws_wsi_is_h2(wsi))
 		return lws_add_http2_header_by_token(wsi, token, value,
 						     length, p, end);
 #endif
@@ -131,11 +165,13 @@ lws_add_http_header_content_length(struct lws *wsi,
 	wsi->http.tx_content_length = content_length;
 	wsi->http.tx_content_remain = content_length;
 
-	lwsl_info("%s: wsi %p: tx_content_length/remain %llu\n", __func__,
-			wsi, (unsigned long long)content_length);
+	lwsl_info("%s: %s: tx_content_length/remain %llu\n", __func__,
+		  lws_wsi_tag(wsi), (unsigned long long)content_length);
 
 	return 0;
 }
+
+#if defined(LWS_WITH_SERVER)
 
 int
 lws_add_http_common_headers(struct lws *wsi, unsigned int code,
@@ -149,13 +185,14 @@ lws_add_http_common_headers(struct lws *wsi, unsigned int code,
 	if (lws_add_http_header_status(wsi, code, p, end))
 		return 1;
 
-	if (lws_add_http_header_by_token(wsi, WSI_TOKEN_HTTP_CONTENT_TYPE,
+	if (content_type &&
+	    lws_add_http_header_by_token(wsi, WSI_TOKEN_HTTP_CONTENT_TYPE,
 		    			(unsigned char *)content_type,
 		    			(int)strlen(content_type), p, end))
 		return 1;
 
 #if defined(LWS_WITH_HTTP_STREAM_COMPRESSION)
-	if (!wsi->http.lcs &&
+	if (!wsi->http.lcs && content_type &&
 	    (!strncmp(content_type, "text/", 5) ||
 	     !strcmp(content_type, "application/javascript") ||
 	     !strcmp(content_type, "image/svg+xml")))
@@ -178,7 +215,7 @@ lws_add_http_common_headers(struct lws *wsi, unsigned int code,
 		/* there was no length... it normally means CONNECTION_CLOSE */
 #if defined(LWS_WITH_HTTP_STREAM_COMPRESSION)
 
-		if (!wsi->http2_substream && wsi->http.lcs) {
+		if (!wsi->mux_substream && wsi->http.lcs) {
 			/* so...
 			 *  - h1 connection
 			 *  - http compression transform active
@@ -200,14 +237,14 @@ lws_add_http_common_headers(struct lws *wsi, unsigned int code,
 				t = 1;
 		}
 #endif
-		if (!wsi->http2_substream) {
+		if (!wsi->mux_substream) {
 			if (lws_add_http_header_by_token(wsi,
 						 WSI_TOKEN_CONNECTION,
 						 (unsigned char *)ka[t],
 						 (int)strlen(ka[t]), p, end))
 				return 1;
 
-			wsi->http.conn_type = types[t];
+			wsi->http.conn_type = (enum http_conn_type)types[t];
 		}
 	}
 
@@ -259,7 +296,7 @@ struct lws_protocol_vhost_options pvo_hsbph[] = {{
 	&pvo_hsbph[3], NULL, "content-security-policy:",
 	"default-src 'none'; img-src 'self' data: ; "
 		"script-src 'self'; font-src 'self'; "
-		"style-src 'self'; connect-src 'self'; "
+		"style-src 'self'; connect-src 'self' ws: wss:; "
 		"frame-ancestors 'none'; base-uri 'none';"
 		"form-action 'self';"
 }};
@@ -277,12 +314,13 @@ lws_add_http_header_status(struct lws *wsi, unsigned int _code,
 	unsigned char code_and_desc[60];
 	int n;
 
+	wsi->http.response_code = code;
 #ifdef LWS_WITH_ACCESS_LOG
-	wsi->http.access_log.response = code;
+	wsi->http.access_log.response = (int)code;
 #endif
 
 #ifdef LWS_WITH_HTTP2
-	if (lwsi_role_h2(wsi) || lwsi_role_h2_ENCAPSULATION(wsi)) {
+	if (lws_wsi_is_h2(wsi)) {
 		n = lws_add_http2_header_status(wsi, code, p, end);
 		if (n)
 			return n;
@@ -309,15 +347,16 @@ lws_add_http_header_status(struct lws *wsi, unsigned int _code,
 		else
 			p1 = hver[0];
 
-		n = lws_snprintf((char *)code_and_desc, sizeof(code_and_desc) - 1, "%s %u %s", p1, code,
-			    description);
+		n = lws_snprintf((char *)code_and_desc,
+				 sizeof(code_and_desc) - 1, "%s %u %s",
+				 p1, code, description);
 
 		if (lws_add_http_header_by_name(wsi, NULL, code_and_desc, n, p,
 						end))
 			return 1;
 	}
 
-	headers = wsi->vhost->headers;
+	headers = wsi->a.vhost->headers;
 	while (headers) {
 		if (lws_add_http_header_by_name(wsi,
 				(const unsigned char *)headers->name,
@@ -328,7 +367,7 @@ lws_add_http_header_status(struct lws *wsi, unsigned int _code,
 		headers = headers->next;
 	}
 
-	if (wsi->vhost->options &
+	if (wsi->a.vhost->options &
 	    LWS_SERVER_OPTION_HTTP_HEADERS_SECURITY_BEST_PRACTICES_ENFORCE) {
 		headers = &pvo_hsbph[LWS_ARRAY_SIZE(pvo_hsbph) - 1];
 		while (headers) {
@@ -342,14 +381,16 @@ lws_add_http_header_status(struct lws *wsi, unsigned int _code,
 		}
 	}
 
-	if (wsi->context->server_string &&
-	    !(_code & LWSAHH_FLAG_NO_SERVER_NAME))
+	if (wsi->a.context->server_string &&
+	    !(_code & LWSAHH_FLAG_NO_SERVER_NAME)) {
+		assert(wsi->a.context->server_string_len > 0);
 		if (lws_add_http_header_by_token(wsi, WSI_TOKEN_HTTP_SERVER,
-				(unsigned char *)wsi->context->server_string,
-				wsi->context->server_string_len, p, end))
+				(unsigned char *)wsi->a.context->server_string,
+				wsi->a.context->server_string_len, p, end))
 			return 1;
+	}
 
-	if (wsi->vhost->options & LWS_SERVER_OPTION_STS)
+	if (wsi->a.vhost->options & LWS_SERVER_OPTION_STS)
 		if (lws_add_http_header_by_name(wsi, (unsigned char *)
 				"Strict-Transport-Security:",
 				(unsigned char *)"max-age=15768000 ; "
@@ -365,7 +406,7 @@ lws_add_http_header_status(struct lws *wsi, unsigned int _code,
 	return 0;
 }
 
-LWS_VISIBLE int
+int
 lws_return_http_status(struct lws *wsi, unsigned int code,
 		       const char *html_body)
 {
@@ -378,19 +419,19 @@ lws_return_http_status(struct lws *wsi, unsigned int code,
 	int n = 0, m = 0, len;
 	char slen[20];
 
-	if (!wsi->vhost) {
+	if (!wsi->a.vhost) {
 		lwsl_err("%s: wsi not bound to vhost\n", __func__);
 
 		return 1;
 	}
 #if defined(LWS_ROLE_H1) || defined(LWS_ROLE_H2)
 	if (!wsi->handling_404 &&
-	    wsi->vhost->http.error_document_404 &&
+	    wsi->a.vhost->http.error_document_404 &&
 	    code == HTTP_STATUS_NOT_FOUND)
 		/* we should do a redirect, and do the 404 there */
 		if (lws_http_redirect(wsi, HTTP_STATUS_FOUND,
-			       (uint8_t *)wsi->vhost->http.error_document_404,
-			       (int)strlen(wsi->vhost->http.error_document_404),
+			       (uint8_t *)wsi->a.vhost->http.error_document_404,
+			       (int)strlen(wsi->a.vhost->http.error_document_404),
 			       &p, end) > 0)
 			return 0;
 #endif
@@ -426,7 +467,7 @@ lws_return_http_status(struct lws *wsi, unsigned int code,
 		return 1;
 
 #if defined(LWS_WITH_HTTP2)
-	if (wsi->http2_substream) {
+	if (wsi->mux_substream) {
 
 		/*
 		 * for HTTP/2, the headers must be sent separately, since they
@@ -440,7 +481,7 @@ lws_return_http_status(struct lws *wsi, unsigned int code,
 		 *
 		 * Solve it by writing the headers now...
 		 */
-		m = lws_write(wsi, start, lws_ptr_diff(p, start),
+		m = lws_write(wsi, start, lws_ptr_diff_size_t(p, start),
 			      LWS_WRITE_HTTP_HEADERS);
 		if (m != lws_ptr_diff(p, start))
 			return 1;
@@ -449,10 +490,10 @@ lws_return_http_status(struct lws *wsi, unsigned int code,
 		 * ... but stash the body and send it as a priority next
 		 * handle_POLLOUT
 		 */
-		wsi->http.tx_content_length = len;
-		wsi->http.tx_content_remain = len;
+		wsi->http.tx_content_length = (unsigned int)len;
+		wsi->http.tx_content_remain = (unsigned int)len;
 
-		wsi->h2.pending_status_body = lws_malloc(len + LWS_PRE + 1,
+		wsi->h2.pending_status_body = lws_malloc((unsigned int)len + LWS_PRE + 1,
 							"pending status body");
 		if (!wsi->h2.pending_status_body)
 			return -1;
@@ -470,8 +511,8 @@ lws_return_http_status(struct lws *wsi, unsigned int code,
 		 */
 
 		n = lws_ptr_diff(p, start) + len;
-		memcpy(p, body, len);
-		m = lws_write(wsi, start, n, LWS_WRITE_HTTP);
+		memcpy(p, body, (unsigned int)len);
+		m = lws_write(wsi, start, (unsigned int)n, LWS_WRITE_HTTP);
 		if (m != n)
 			return 1;
 	}
@@ -479,13 +520,13 @@ lws_return_http_status(struct lws *wsi, unsigned int code,
 	return m != n;
 }
 
-LWS_VISIBLE int
+int
 lws_http_redirect(struct lws *wsi, int code, const unsigned char *loc, int len,
 		  unsigned char **p, unsigned char *end)
 {
 	unsigned char *start = *p;
 
-	if (lws_add_http_header_status(wsi, code, p, end))
+	if (lws_add_http_header_status(wsi, (unsigned int)code, p, end))
 		return -1;
 
 	if (lws_add_http_header_by_token(wsi, WSI_TOKEN_HTTP_LOCATION, loc, len,
@@ -507,12 +548,13 @@ lws_http_redirect(struct lws *wsi, int code, const unsigned char *loc, int len,
 	if (lws_finalize_http_header(wsi, p, end))
 		return -1;
 
-	return lws_write(wsi, start, *p - start, LWS_WRITE_HTTP_HEADERS |
-						 LWS_WRITE_H2_STREAM_END);
+	return lws_write(wsi, start, lws_ptr_diff_size_t(*p, start),
+			 LWS_WRITE_HTTP_HEADERS | LWS_WRITE_H2_STREAM_END);
 }
+#endif
 
 #if !defined(LWS_WITH_HTTP_STREAM_COMPRESSION)
-LWS_VISIBLE int
+int
 lws_http_compression_apply(struct lws *wsi, const char *name,
 			   unsigned char **p, unsigned char *end, char decomp)
 {
@@ -531,6 +573,8 @@ lws_http_headers_detach(struct lws *wsi)
 {
 	return lws_header_table_detach(wsi, 0);
 }
+
+#if defined(LWS_WITH_SERVER)
 
 void
 lws_sul_http_ah_lifecheck(lws_sorted_usec_list_t *sul)
@@ -553,9 +597,9 @@ lws_sul_http_ah_lifecheck(lws_sorted_usec_list_t *sul)
 		const unsigned char *c;
 
 		if (!ah->in_use || !ah->wsi || !ah->assigned ||
-		    (ah->wsi->vhost &&
+		    (ah->wsi->a.vhost &&
 		     (now - ah->assigned) <
-		     ah->wsi->vhost->timeout_secs_ah_idle + 360)) {
+		     ah->wsi->a.vhost->timeout_secs_ah_idle + 360)) {
 			ah = ah->next;
 			continue;
 		}
@@ -573,26 +617,26 @@ lws_sul_http_ah_lifecheck(lws_sorted_usec_list_t *sul)
 #else
 		buf[0] = '\0';
 #endif
-		lwsl_notice("ah excessive hold: wsi %p\n"
+		lwsl_notice("%s: ah excessive hold: wsi %p\n"
 			    "  peer address: %s\n"
-			    "  ah pos %lu\n",
-			    wsi, buf, (unsigned long)ah->pos);
+			    "  ah pos %lu\n", __func__, lws_wsi_tag(wsi),
+			    buf, (unsigned long)ah->pos);
 		buf[0] = '\0';
 		m = 0;
 		do {
-			c = lws_token_to_string(m);
+			c = lws_token_to_string((enum lws_token_indexes)m);
 			if (!c)
 				break;
 			if (!(*c))
 				break;
 
-			len = lws_hdr_total_length(wsi, m);
+			len = lws_hdr_total_length(wsi, (enum lws_token_indexes)m);
 			if (!len || len > (int)sizeof(buf) - 1) {
 				m++;
 				continue;
 			}
 
-			if (lws_hdr_copy(wsi, buf, sizeof buf, m) > 0) {
+			if (lws_hdr_copy(wsi, buf, sizeof buf, (enum lws_token_indexes)m) > 0) {
 				buf[sizeof(buf) - 1] = '\0';
 
 				lwsl_notice("   %s = %s\n",
@@ -614,3 +658,4 @@ lws_sul_http_ah_lifecheck(lws_sorted_usec_list_t *sul)
 
 	lws_pt_unlock(pt);
 }
+#endif

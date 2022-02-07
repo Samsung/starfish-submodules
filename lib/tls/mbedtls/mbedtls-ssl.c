@@ -1,29 +1,31 @@
 /*
- * libwebsockets - mbedTLS-specific lws apis
+ * libwebsockets - small server side websockets and web server implementation
  *
  * Copyright (C) 2010 - 2019 Andy Green <andy@warmcat.com>
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
 
 #include "private-lib-core.h"
 #include "private-lib-tls-mbedtls.h"
 
-
-LWS_VISIBLE void
+void
 lws_ssl_destroy(struct lws_vhost *vhost)
 {
 	if (!lws_check_opt(vhost->context->options,
@@ -39,37 +41,26 @@ lws_ssl_destroy(struct lws_vhost *vhost)
 		X509_free(vhost->tls.x509_client_CA);
 }
 
-LWS_VISIBLE int
-lws_ssl_capable_read(struct lws *wsi, unsigned char *buf, int len)
+int
+lws_ssl_capable_read(struct lws *wsi, unsigned char *buf, size_t len)
 {
-	struct lws_context *context = wsi->context;
+	struct lws_context *context = wsi->a.context;
 	struct lws_context_per_thread *pt = &context->pt[(int)wsi->tsi];
 	int n = 0, m;
 
 	if (!wsi->tls.ssl)
 		return lws_ssl_capable_read_no_ssl(wsi, buf, len);
 
-	lws_stats_bump(pt, LWSSTATS_C_API_READ, 1);
-
 	errno = 0;
-	n = SSL_read(wsi->tls.ssl, buf, len);
-#if defined(LWS_WITH_ESP32)
+	n = SSL_read(wsi->tls.ssl, buf, (int)len);
+#if defined(LWS_PLAT_FREERTOS)
 	if (!n && errno == LWS_ENOTCONN) {
-		lwsl_debug("%p: SSL_read ENOTCONN\n", wsi);
+		lwsl_debug("%s: SSL_read ENOTCONN\n", lws_wsi_tag(wsi));
 		return LWS_SSL_CAPABLE_ERROR;
 	}
 #endif
-#if defined(LWS_WITH_STATS)
-	if (!wsi->seen_rx && wsi->accept_start_us) {
-                lws_stats_bump(pt, LWSSTATS_US_SSL_RX_DELAY_AVG,
-			lws_now_usecs() - wsi->accept_start_us);
-                lws_stats_bump(pt, LWSSTATS_C_SSL_CONNS_HAD_RX, 1);
-		wsi->seen_rx = 1;
-	}
-#endif
 
-
-	lwsl_debug("%p: SSL_read says %d\n", wsi, n);
+	lwsl_debug("%s: %s: SSL_read says %d\n", __func__, lws_wsi_tag(wsi), n);
 	/* manpage: returning 0 means connection shut down */
 	if (!n) {
 		wsi->socket_is_permanently_unusable = 1;
@@ -79,35 +70,59 @@ lws_ssl_capable_read(struct lws *wsi, unsigned char *buf, int len)
 
 	if (n < 0) {
 		m = SSL_get_error(wsi->tls.ssl, n);
-		lwsl_debug("%p: ssl err %d errno %d\n", wsi, m, errno);
-		if (errno == LWS_ENOTCONN) {
+		lwsl_debug("%s: %s: ssl err %d errno %d\n", __func__, lws_wsi_tag(wsi), m, errno);
+		if (errno == LWS_ENOTCONN)
 			/* If the socket isn't connected anymore, bail out. */
-			wsi->socket_is_permanently_unusable = 1;
-			return LWS_SSL_CAPABLE_ERROR;
-		}
+			goto do_err1;
+
+#if defined(LWS_PLAT_FREERTOS)
+		if (errno == LWS_ECONNABORTED)
+			goto do_err1;
+#endif
+
 		if (m == SSL_ERROR_ZERO_RETURN ||
 		    m == SSL_ERROR_SYSCALL)
-			return LWS_SSL_CAPABLE_ERROR;
+			goto do_err;
 
 		if (m == SSL_ERROR_WANT_READ || SSL_want_read(wsi->tls.ssl)) {
 			lwsl_debug("%s: WANT_READ\n", __func__);
-			lwsl_debug("%p: LWS_SSL_CAPABLE_MORE_SERVICE\n", wsi);
+			lwsl_debug("%s: LWS_SSL_CAPABLE_MORE_SERVICE\n", lws_wsi_tag(wsi));
 			return LWS_SSL_CAPABLE_MORE_SERVICE;
 		}
 		if (m == SSL_ERROR_WANT_WRITE || SSL_want_write(wsi->tls.ssl)) {
-			lwsl_debug("%s: WANT_WRITE\n", __func__);
-			lwsl_debug("%p: LWS_SSL_CAPABLE_MORE_SERVICE\n", wsi);
+			lwsl_info("%s: WANT_WRITE\n", __func__);
+			lwsl_debug("%s: LWS_SSL_CAPABLE_MORE_SERVICE\n", lws_wsi_tag(wsi));
+			wsi->tls_read_wanted_write = 1;
+			lws_callback_on_writable(wsi);
 			return LWS_SSL_CAPABLE_MORE_SERVICE;
 		}
+
+do_err1:
 		wsi->socket_is_permanently_unusable = 1;
+
+do_err:
+#if defined(LWS_WITH_SYS_METRICS)
+	if (wsi->a.vhost)
+		lws_metric_event(wsi->a.vhost->mt_traffic_rx, METRES_NOGO, 0);
+#endif
 
 		return LWS_SSL_CAPABLE_ERROR;
 	}
 
-	lws_stats_bump(pt, LWSSTATS_B_READ, n);
+#if defined(LWS_TLS_LOG_PLAINTEXT_RX)
+	/*
+	 * If using mbedtls type tls library, this is the earliest point for all
+	 * paths to dump what was received as decrypted data from the tls tunnel
+	 */
+	lwsl_notice("%s: len %d\n", __func__, n);
+	lwsl_hexdump_notice(buf, (size_t)n);
+#endif
 
-	if (wsi->vhost)
-		wsi->vhost->conn_stats.rx += n;
+#if defined(LWS_WITH_SYS_METRICS)
+	if (wsi->a.vhost)
+		lws_metric_event(wsi->a.vhost->mt_traffic_rx,
+				 METRES_GO /* rx */, (u_mt_t)n);
+#endif
 
 	/*
 	 * if it was our buffer that limited what we read,
@@ -116,15 +131,17 @@ lws_ssl_capable_read(struct lws *wsi, unsigned char *buf, int len)
 	 * Because these won't signal at the network layer with POLLIN
 	 * and if we don't realize, this data will sit there forever
 	 */
-	if (n != len)
+	if (n != (int)len)
 		goto bail;
 	if (!wsi->tls.ssl)
 		goto bail;
 
-	if (SSL_pending(wsi->tls.ssl) &&
-	    lws_dll2_is_detached(&wsi->tls.dll_pending_tls))
-		lws_dll2_add_head(&wsi->tls.dll_pending_tls,
-				 &pt->tls.dll_pending_tls_owner);
+	if (SSL_pending(wsi->tls.ssl)) {
+		if (lws_dll2_is_detached(&wsi->tls.dll_pending_tls))
+			lws_dll2_add_head(&wsi->tls.dll_pending_tls,
+					  &pt->tls.dll_pending_tls_owner);
+	} else
+		__lws_ssl_remove_wsi_from_buffered_list(wsi);
 
 	return n;
 bail:
@@ -133,7 +150,7 @@ bail:
 	return n;
 }
 
-LWS_VISIBLE int
+int
 lws_ssl_pending(struct lws *wsi)
 {
 	if (!wsi->tls.ssl)
@@ -142,17 +159,33 @@ lws_ssl_pending(struct lws *wsi)
 	return SSL_pending(wsi->tls.ssl);
 }
 
-LWS_VISIBLE int
-lws_ssl_capable_write(struct lws *wsi, unsigned char *buf, int len)
+int
+lws_ssl_capable_write(struct lws *wsi, unsigned char *buf, size_t len)
 {
 	int n, m;
+
+#if defined(LWS_TLS_LOG_PLAINTEXT_TX)
+	/*
+	 * If using mbedtls type tls library, this is the last point for all
+	 * paths before sending data into the tls tunnel, where you can dump it
+	 * and see what is being sent.
+	 */
+	lwsl_notice("%s: len %d\n", __func__, (int)len);
+	lwsl_hexdump_notice(buf, len);
+#endif
 
 	if (!wsi->tls.ssl)
 		return lws_ssl_capable_write_no_ssl(wsi, buf, len);
 
-	n = SSL_write(wsi->tls.ssl, buf, len);
-	if (n > 0)
+	n = SSL_write(wsi->tls.ssl, buf, (int)len);
+	if (n > 0) {
+#if defined(LWS_WITH_SYS_METRICS)
+		if (wsi->a.vhost)
+			lws_metric_event(wsi->a.vhost->mt_traffic_tx,
+					 METRES_GO, (u_mt_t)n);
+#endif
 		return n;
+	}
 
 	m = SSL_get_error(wsi->tls.ssl, n);
 	if (m != SSL_ERROR_SYSCALL) {
@@ -172,6 +205,12 @@ lws_ssl_capable_write(struct lws *wsi, unsigned char *buf, int len)
 
 	lwsl_debug("%s failed: %d\n",__func__, m);
 	wsi->socket_is_permanently_unusable = 1;
+
+#if defined(LWS_WITH_SYS_METRICS)
+		if (wsi->a.vhost)
+			lws_metric_event(wsi->a.vhost->mt_traffic_tx,
+					 METRES_NOGO, (u_mt_t)n);
+#endif
 
 	return LWS_SSL_CAPABLE_ERROR;
 }
@@ -194,20 +233,20 @@ lws_ssl_info_callback(const SSL *ssl, int where, int ret)
 	if (!wsi)
 		return;
 
-	if (!(where & wsi->vhost->tls.ssl_info_event_mask))
+	if (!(where & wsi->a.vhost->tls.ssl_info_event_mask))
 		return;
 
 	si.where = where;
 	si.ret = ret;
 
-	if (user_callback_handle_rxflow(wsi->protocol->callback,
+	if (user_callback_handle_rxflow(wsi->a.protocol->callback,
 					wsi, LWS_CALLBACK_SSL_INFO,
 					wsi->user_space, &si, 0))
 		lws_set_timeout(wsi, PENDING_TIMEOUT_KILLED_BY_SSL_INFO, -1);
 }
 
 
-LWS_VISIBLE int
+int
 lws_ssl_close(struct lws *wsi)
 {
 	lws_sockfd_type n;
@@ -219,8 +258,17 @@ lws_ssl_close(struct lws *wsi)
 	/* kill ssl callbacks, becausse we will remove the fd from the
 	 * table linking it to the wsi
 	 */
-	if (wsi->vhost->tls.ssl_info_event_mask)
+	if (wsi->a.vhost->tls.ssl_info_event_mask)
 		SSL_set_info_callback(wsi->tls.ssl, NULL);
+#endif
+
+#if defined(LWS_TLS_SYNTHESIZE_CB)
+	lws_sul_cancel(&wsi->tls.sul_cb_synth);
+	/*
+	 * ... check the session in case it did not live long enough to get
+	 * the scheduled callback to sample it
+	 */
+	lws_sess_cache_synth_cb(&wsi->tls.sul_cb_synth);
 #endif
 
 	n = SSL_get_fd(wsi->tls.ssl);
@@ -230,16 +278,7 @@ lws_ssl_close(struct lws *wsi)
 	SSL_free(wsi->tls.ssl);
 	wsi->tls.ssl = NULL;
 
-	if (!lwsi_role_client(wsi) &&
-	    wsi->context->simultaneous_ssl_restriction &&
-	    wsi->context->simultaneous_ssl-- ==
-			    wsi->context->simultaneous_ssl_restriction)
-		/* we made space and can do an accept */
-		lws_gate_accepts(wsi->context, 1);
-
-#if defined(LWS_WITH_STATS)
-	wsi->context->updated = 1;
-#endif
+	lws_tls_restrict_return(wsi);
 
 	return 1; /* handled */
 }
@@ -280,7 +319,7 @@ __lws_tls_shutdown(struct lws *wsi)
 
 	switch (n) {
 	case 1: /* successful completion */
-		n = shutdown(wsi->desc.sockfd, SHUT_WR);
+		(void)shutdown(wsi->desc.sockfd, SHUT_WR);
 		return LWS_SSL_CAPABLE_DONE;
 
 	case 0: /* needs a retry */

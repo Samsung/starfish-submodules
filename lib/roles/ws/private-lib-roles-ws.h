@@ -1,27 +1,30 @@
-/*
+ /*
  * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2010 - 2018 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2019 Andy Green <andy@warmcat.com>
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  *
  *  This is included from private-lib-core.h if LWS_ROLE_WS
  */
 
-extern struct lws_role_ops role_ops_ws;
+extern const struct lws_role_ops role_ops_ws;
 
 #define lwsi_role_ws(wsi) (wsi->role_ops == &role_ops_ws)
 
@@ -84,6 +87,8 @@ struct lws_pt_role_ws {
 };
 #endif
 
+#define PAYLOAD_BUF_SIZE 128 - 3 + LWS_PRE
+
 struct _lws_websocket_related {
 	unsigned char *rx_ubuf;
 #if !defined(LWS_WITHOUT_EXTENSIONS)
@@ -100,14 +105,39 @@ struct _lws_websocket_related {
 #endif
 
 	/* Also used for close content... control opcode == < 128 */
-	uint8_t ping_payload_buf[128 - 3 + LWS_PRE];
+	uint8_t ping_payload_buf[PAYLOAD_BUF_SIZE];
+	uint8_t pong_payload_buf[PAYLOAD_BUF_SIZE];
+
+	unsigned int final:1;
+	unsigned int frame_is_binary:1;
+	unsigned int all_zero_nonce:1;
+	unsigned int this_frame_masked:1;
+	unsigned int inside_frame:1; /* next write will be more of frame */
+	unsigned int clean_buffer:1; /* buffer not rewritten by extension */
+	unsigned int payload_is_close:1; /* process as PONG, but it is close */
+	unsigned int pong_pending_flag:1;
+	unsigned int continuation_possible:1;
+	unsigned int owed_a_fin:1;
+	unsigned int check_utf8:1;
+	unsigned int defeat_check_utf8:1;
+	unsigned int stashed_write_pending:1;
+	unsigned int send_check_ping:1;
+	unsigned int first_fragment:1;
+	unsigned int peer_has_sent_close:1;
+#if !defined(LWS_WITHOUT_EXTENSIONS)
+	unsigned int extension_data_pending:1;
+	unsigned int rx_draining_ext:1;
+	unsigned int tx_draining_ext:1;
+	unsigned int pmd_trailer_application:1;
+#endif
+
 	uint8_t mask[4];
 
 	size_t rx_packet_length;
 	uint32_t rx_ubuf_head;
 	uint32_t rx_ubuf_alloc;
 
-	uint8_t ping_payload_len;
+	uint8_t pong_payload_len;
 	uint8_t mask_idx;
 	uint8_t opcode;
 	uint8_t rsv;
@@ -118,30 +148,7 @@ struct _lws_websocket_related {
 	uint8_t stashed_write_type;
 	uint8_t tx_draining_stashed_wp;
 	uint8_t ietf_spec_revision;
-
-	unsigned int final:1;
-	unsigned int frame_is_binary:1;
-	unsigned int all_zero_nonce:1;
-	unsigned int this_frame_masked:1;
-	unsigned int inside_frame:1; /* next write will be more of frame */
-	unsigned int clean_buffer:1; /* buffer not rewritten by extension */
-	unsigned int payload_is_close:1; /* process as PONG, but it is close */
-	unsigned int ping_pending_flag:1;
-	unsigned int continuation_possible:1;
-	unsigned int owed_a_fin:1;
-	unsigned int check_utf8:1;
-	unsigned int defeat_check_utf8:1;
-	unsigned int stashed_write_pending:1;
-	unsigned int send_check_ping:1;
-	unsigned int first_fragment:1;
-	unsigned int peer_has_sent_close:1;
-	unsigned int await_pong;
 #if !defined(LWS_WITHOUT_EXTENSIONS)
-	unsigned int extension_data_pending:1;
-	unsigned int rx_draining_ext:1;
-	unsigned int tx_draining_ext:1;
-	unsigned int pmd_trailer_application:1;
-
 	uint8_t count_act_ext;
 #endif
 };

@@ -1,22 +1,25 @@
-/*
+ /*
  * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2010 - 2018 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2019 Andy Green <andy@warmcat.com>
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  *
  * This is included from private-lib-core.h if LWS_ROLE_WS
  */
@@ -29,7 +32,7 @@
 #endif
 #endif
 
-extern struct lws_role_ops role_ops_cgi;
+extern const struct lws_role_ops role_ops_cgi;
 
 #define lwsi_role_cgi(wsi) (wsi->role_ops == &role_ops_cgi)
 
@@ -47,11 +50,14 @@ enum {
 
 struct lws;
 
-/* wsi who is master of the cgi points to an lws_cgi */
+/* wsi who is owns the cgi points to an lws_cgi */
 
 struct lws_cgi {
 	struct lws_cgi *cgi_list;
-	struct lws *stdwsi[3]; /* points to the associated stdin/out/err wsis */
+
+	struct lws_spawn_piped		*lsp;
+	lws_sorted_usec_list_t		sul_grace;
+
 	struct lws *wsi; /* owner */
 	unsigned char *headers_buf;
 	unsigned char *headers_start;
@@ -69,10 +75,8 @@ struct lws_cgi {
 	lws_filepos_t content_length;
 	lws_filepos_t content_length_seen;
 
-	int pipe_fds[3][2];
 	int match[SIGNIFICANT_HDR_COUNT];
 	char l[12];
-	int pid;
 	int response_code;
 	int lp;
 

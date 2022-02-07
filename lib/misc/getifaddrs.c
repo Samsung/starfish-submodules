@@ -43,6 +43,8 @@
 #include <string.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+
+#include <libwebsockets.h>
 #include "private-lib-core.h"
 
 #ifdef LWS_HAVE_SYS_SOCKIO_H
@@ -88,7 +90,11 @@ getifaddrs2(struct ifaddrs **ifap, int af, int siocgifconf, int siocgifflags,
 			ret = ENOMEM;
 			goto error_out;
 		}
-		ifconf.ifc_len = buf_size;
+#if defined(__QNX__)
+		ifconf.ifc_len = (short)(int)buf_size;
+#else
+		ifconf.ifc_len = (int)buf_size;
+#endif
 		ifconf.ifc_buf = buf;
 
 		/*
@@ -139,7 +145,7 @@ getifaddrs2(struct ifaddrs **ifap, int af, int siocgifconf, int siocgifflags,
 
 		(*end)->ifa_next = NULL;
 		(*end)->ifa_name = strdup(ifr->ifr_name);
-		(*end)->ifa_flags = ifreq.ifr_flags;
+		(*end)->ifa_flags = (unsigned int)ifreq.ifr_flags;
 		(*end)->ifa_addr = lws_malloc(salen, "getifaddrs");
 		memcpy((*end)->ifa_addr, sa, salen);
 		(*end)->ifa_netmask = NULL;

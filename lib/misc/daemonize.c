@@ -7,7 +7,7 @@
  * he replied it is Public Domain.  Use the URL above to get the original
  * Public Domain version if you want it.
  *
- * This version is LGPL2.1+SLE like the rest of libwebsockets and is
+ * This version is MIT like the rest of libwebsockets and is
  * Copyright (c)2006 - 2013 Andy Green <andy@warmcat.com>
  *
  *
@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include <libwebsockets.h>
 #include "private-lib-core.h"
 
 pid_t pid_daemon;
@@ -63,7 +64,7 @@ child_handler(int signum)
 			exit(0);
 		}
 		len = sprintf(sz, "%u", (unsigned int)pid_daemon);
-		sent = write(fd, sz, len);
+		sent = (int)write(fd, sz, (size_t)len);
 		if (sent != len)
 			fprintf(stderr,
 			  "unable to write pid to lock file %s, code=%d (%s)\n",
@@ -99,7 +100,7 @@ static void lws_daemon_closing(int sigact)
  * The process context you called from has been terminated then.
  */
 
-LWS_VISIBLE int
+int
 lws_daemonize(const char *_lock_path)
 {
 	struct sigaction act;
@@ -116,7 +117,7 @@ lws_daemonize(const char *_lock_path)
 		if (fd >= 0) {
 			char buf[10];
 
-			n = read(fd, buf, sizeof(buf));
+			n = (int)read(fd, buf, sizeof(buf));
 			close(fd);
 			if (n) {
 				int ret;
@@ -135,8 +136,8 @@ lws_daemonize(const char *_lock_path)
 			}
 		}
 
-		n = strlen(_lock_path) + 1;
-		lock_path = lws_malloc(n, "daemonize lock");
+		n = (int)strlen(_lock_path) + 1;
+		lock_path = lws_malloc((unsigned int)n, "daemonize lock");
 		if (!lock_path) {
 			fprintf(stderr, "Out of mem in lws_daemonize\n");
 			return 1;

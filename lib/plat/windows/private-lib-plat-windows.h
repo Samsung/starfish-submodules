@@ -1,22 +1,25 @@
-/*
+ /*
  * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2010 - 2018 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2019 Andy Green <andy@warmcat.com>
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  *
  * Included from lib/private-lib-core.h if defined(WIN32) || defined(_WIN32)
  */
@@ -48,6 +51,7 @@
  #define SHUT_WR SD_SEND
 
  #define compatible_close(fd) closesocket(fd)
+ #define compatible_file_close(fd) CloseHandle(fd)
  #define lws_set_blocking_send(wsi) wsi->sock_send_blocking = 1
 
  #include <winsock2.h>
@@ -59,6 +63,22 @@
  #endif
  #include <mstcpip.h>
  #include <io.h>
+
+#if defined(LWS_WITH_UNIX_SOCK)
+#include <afunix.h>
+#endif
+
+#if defined(LWS_WITH_TLS)
+#include <wincrypt.h>
+#endif
+
+#if defined(LWS_HAVE_PTHREAD_H)
+#define lws_mutex_t		pthread_mutex_t
+#define lws_mutex_init(x)	pthread_mutex_init(&(x), NULL)
+#define lws_mutex_destroy(x)	pthread_mutex_destroy(&(x))
+#define lws_mutex_lock(x)	pthread_mutex_lock(&(x))
+#define lws_mutex_unlock(x)	pthread_mutex_unlock(&(x))
+#endif
 
  #if !defined(LWS_HAVE_ATOLL)
   #if defined(LWS_HAVE__ATOI64)
@@ -122,7 +142,7 @@ struct lws_fd_hashtable {
 	int length;
 };
 
-
+#if !defined(LWS_EXTERN)
 #ifdef LWS_DLL
 #ifdef LWS_INTERNAL
 #define LWS_EXTERN extern __declspec(dllexport)
@@ -132,9 +152,14 @@ struct lws_fd_hashtable {
 #else
 #define LWS_EXTERN
 #endif
+#endif
 
 typedef SOCKET lws_sockfd_type;
+#if defined(__MINGW32__)
+typedef int lws_filefd_type;
+#else
 typedef HANDLE lws_filefd_type;
+#endif
 #define LWS_WIN32_HANDLE_TYPES
 
 LWS_EXTERN struct lws *

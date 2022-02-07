@@ -1,6 +1,15 @@
 Notes about building lws
 ========================
 
+You can download and install lws using the [vcpkg](https://github.com/Microsoft/vcpkg/) dependency manager:
+```
+git clone https://github.com/microsoft/vcpkg.git
+cd vcpkg
+./bootstrap-vcpkg.sh
+./vcpkg integrate install
+vcpkg install libwebsockets
+```
+The lws port in vcpkg is kept up to date by Microsoft team members and community contributors. If the version is out of date, please [create an issue or pull request](https://github.com/Microsoft/vcpkg/) on the vcpkg repository.
 
 @section cm Introduction to CMake
 
@@ -536,7 +545,7 @@ All "foreign" cross-built binaries are sent into `/tmp/cross` so they cannot be 
 
 1) `cd /tmp`
 
-2) `wget -O mytoolchainfile https://raw.githubusercontent.com/warmcat/libwebsockets/master/contrib/cross-arm-linux-gnueabihf.cmake` 
+2) `wget -O mytoolchainfile https://raw.githubusercontent.com/warmcat/libwebsockets/main/contrib/cross-arm-linux-gnueabihf.cmake` 
 
 3) Edit `/tmp/mytoolchainfile` adapting `CROSS_PATH`, `CMAKE_C_COMPILER` and `CMAKE_CXX_COMPILER` to reflect your toolchain install dir and path to your toolchain C and C++ compilers respectively.  For my case:
 

@@ -1,24 +1,25 @@
 /*
- * libwebsockets - Generic Elliptic Curve Encryption
+ * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2010 - 2018 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2019 Andy Green <andy@warmcat.com>
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
- *
- * included from libwebsockets.h
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
 
 enum enum_genec_alg {
@@ -71,7 +72,7 @@ struct lws_ec_curves {
  * \param context: your lws_context (for RNG access)
  * \param curve_table: NULL, enabling P-256, P-384 and P-521, or a replacement
  *		       struct lws_ec_curves array, terminated by an entry with
- *		       .name = NULL, of curves you want to whitelist
+ *		       .name = NULL, of curves you want to allow
  *
  * Initializes a genecdh
  */
@@ -117,7 +118,7 @@ lws_genecdh_compute_shared_secret(struct lws_genec_ctx *ctx, uint8_t *ss,
  * \param context: your lws_context (for RNG access)
  * \param curve_table: NULL, enabling P-256, P-384 and P-521, or a replacement
  *		       struct lws_ec_curves array, terminated by an entry with
- *		       .name = NULL, of curves you want to whitelist
+ *		       .name = NULL, of curves you want to allow
  *
  * Initializes a genecdh
  */
@@ -146,7 +147,7 @@ lws_genecdsa_new_keypair(struct lws_genec_ctx *ctx, const char *curve_name,
  */
 LWS_VISIBLE LWS_EXTERN int
 lws_genecdsa_set_key(struct lws_genec_ctx *ctx,
-		     struct lws_gencrypto_keyelem *el);
+		     const struct lws_gencrypto_keyelem *el);
 
 /** lws_genecdsa_hash_sig_verify_jws() - Verifies a JWS ECDSA signature on a given hash
  *
@@ -183,7 +184,7 @@ lws_genecdsa_hash_sig_verify_jws(struct lws_genec_ctx *ctx, const uint8_t *in,
  * \param sig: pointer to buffer to take signature
  * \param sig_len: length of the buffer (must be >= length of key N)
  *
- * Returns <0 for error, or 0 for success.
+ * Returns <0 for error, or >=0 for success.
  *
  * This creates a JWS ECDSA signature for a hash you already computed and provide.
  *
