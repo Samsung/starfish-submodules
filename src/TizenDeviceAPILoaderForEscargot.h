@@ -39,8 +39,8 @@ namespace wrt {
 namespace xwalk {
     class Extension;
     class ExtensionInstance;
-}
-}
+} // namespace xwalk
+} // namespace wrt
 
 namespace DeviceAPI {
 
@@ -219,7 +219,7 @@ inline ExtensionManagerInstance* ExtensionManagerInstanceGet(
 
 ExtensionManagerInstance* initialize(Escargot::ContextRef* context);
 void close(Escargot::ContextRef* context);
-}
+} // namespace DeviceAPI
 
 class NativeDataAccessorPropertyDataForEntryPoint
     : public Escargot::ObjectRef::NativeDataAccessorPropertyData {

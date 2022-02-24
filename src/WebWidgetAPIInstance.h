@@ -39,7 +39,7 @@ public:
 private:
     Escargot::FunctionObjectRef* m_receiveContentListener;
 };
-}
+} // namespace DeviceAPI
 
 #endif // TIZEN_DEVICE_API
 #endif // __WebWidgetAPIInstance__

@@ -124,13 +124,12 @@ void WebWidgetAPIInstance::invokeReceiveContentListener(
         STARFISH_LOG_ERROR(
             "Uncaught %s",
             sbresult.resultOrErrorToString(ctx)->toStdUTF8String().data());
-        for (size_t i = 0; i < sbresult.stackTraceData.size(); i++) {
-            STARFISH_LOG_ERROR("at %s(%d:%d)",
-                               sbresult
-                                   .stackTraceData[i].src->toStdUTF8String().data(),
-                               (int)sbresult.stackTraceData[i]
-                                   .loc.line,
-                               (int)sbresult.stackTraceData[i].loc.column);
+        for (size_t i = 0; i < sbresult.stackTrace.size(); i++) {
+            STARFISH_LOG_ERROR(
+                "at %s(%d:%d)",
+                sbresult.stackTrace[i].src->toStdUTF8String().data(),
+                (int)sbresult.stackTrace[i].loc.line,
+                (int)sbresult.stackTrace[i].loc.column);
         }
     }
 }

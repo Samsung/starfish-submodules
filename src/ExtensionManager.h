@@ -43,7 +43,8 @@ namespace xwalk {
 
         ExtensionMap extensions_;
 
-        std::set<std::string> extension_symbols_; // dup? stores keys of extensions
+        std::set<std::string>
+            extension_symbols_; // dup? stores keys of extensions
     };
 
 } // namespace xwalk

@@ -178,7 +178,7 @@ namespace xwalk {
 namespace Escargot {
 class ContextRef;
 class ObjectRef;
-}
+} // namespace Escargot
 
 namespace DeviceAPI {
 
