@@ -255,7 +255,7 @@ lws_client_connect_3_connect(struct lws *wsi, const char *ads,
 		ads++;
 		memset(&wsi->sa46_peer, 0, sizeof(wsi->sa46_peer));
 		af = sau.sun_family = AF_UNIX;
-		strncpy(sau.sun_path, ads, sizeof(sau.sun_path));
+		strncpy(sau.sun_path, ads, sizeof(sau.sun_path) - 1);
 		sau.sun_path[sizeof(sau.sun_path) - 1] = '\0';
 
 		lwsl_wsi_info(wsi, "Unix skt: %s", ads);
