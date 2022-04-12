@@ -326,6 +326,7 @@ class StarfishIDLReader():
                          child.GetChildren(),
                          [_hd_extattr_clamp,
                           _hd_extattr_treatnull,
+                          _hd_extattr_rename,
                           _hd_extattr_unimplemented])
     return result
 

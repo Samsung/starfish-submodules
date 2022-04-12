@@ -70,21 +70,21 @@ namespace Starfish {
     }
 {% for key in members %}
     {% if not key.unimplemented %}
-    ValueRef* arg{{loop.index - 1}} = from->asObject()->get(state, ValueRef::create(StringRef::createFromASCII("{{ key.name }}")));
+    ValueRef* arg{{loop.index - 1}} = from->asObject()->get(state, ValueRef::create(StringRef::createFromASCII("{{ util_macro.gen_attr_name(key) }}")));
     {% endif %}
 {% endfor %}
     {{name}} result;
 {% for key in members -%}
     {% if not key.unimplemented %}
-    {% set names = {'name': name, 'kname': key.name,
+    {% set names = {'name': name, 'kname': util_macro.gen_attr_name(key),
                     'aname': 'arg%d'|format(loop.index - 1), 'vname': 'value%d'|format(loop.index - 1)} %}
     {{ util_macro.handle_arg(key, names)|trim }}
        {% if not key.default %}
     if (!{{ names.aname }}->isUndefined()) {
-        result.set{{key.name|first_word_capitalize}}({{'value%d'|format(loop.index - 1)}});
+        result.set{{util_macro.gen_attr_name(key)|first_word_capitalize}}({{'value%d'|format(loop.index - 1)}});
     }
         {% else %}
-    result.set{{key.name|first_word_capitalize}}({{'value%d'|format(loop.index - 1)}});
+    result.set{{util_macro.gen_attr_name(key)|first_word_capitalize}}({{'value%d'|format(loop.index - 1)}});
         {% endif %}
     {% endif %}
 {% endfor %}
@@ -99,14 +99,14 @@ ValueRef* toValueRefFrom{{name}}(ExecutionStateRef* state, {{name}}& from)
     {% set vname = 'value%d'|format(loop.index - 1) %}
     {% set use_nullable = util_macro.is_non_nullable_type(key.type.kind) and key.type.nullable %}
     {{ util_macro.gen_declare_return_value(key.type, vname)|trim }}
-    {{ vname }} = from.{{ key.name }}();
+    {{ vname }} = from.{{util_macro.gen_attr_name(key)}}();
 
     {% if use_nullable %}
     if (!{{ vname }}.hasValue()) {
-        result->set(state, ValueRef::create(StringRef::createFromASCII("{{ key.name }}")), ValueRef::createNull());
+        result->set(state, ValueRef::create(StringRef::createFromASCII("{{ util_macro.gen_attr_name(key) }}")), ValueRef::createNull());
     } else {
         {% if key.type.kind.startswith('SequenceOf') %}
-        ArrayObjectRef* {{ key.name }}ArrayObj = ArrayObjectRef::create(state);
+        ArrayObjectRef* {{ util_macro.gen_attr_name(key) }}ArrayObj = ArrayObjectRef::create(state);
         for (unsigned idx = 0; idx < {{ vname }}.value().size(); idx++) {
             {% if util_macro.is_non_nullable_type(key.type.data.kind) and key.type.data.nullable %}
             ValueRef* item = {{ vname }}.value()[idx].hasValue() ? {{ util_macro.gen_native_to_jsvalue(key.type.data, '%s.value()[idx].getValue()'|format(vname)) }} : ValueRef::createNull();
@@ -118,24 +118,24 @@ ValueRef* toValueRefFrom{{name}}(ExecutionStateRef* state, {{name}}& from)
                 {% endif %}
             ValueRef* item = {{ util_macro.gen_native_to_jsvalue(key.type.data, '%s.value()[idx]'|format(vname)) }};
             {% endif %}
-            {{ key.name }}ArrayObj->set(state, ValueRef::create(idx), item);
+            {{ util_macro.gen_attr_name(key) }}ArrayObj->set(state, ValueRef::create(idx), item);
         }
-        result->set(state, ValueRef::create(StringRef::createFromASCII("{{ key.name }}")), ValueRef::create({{ key.name }}ArrayObj));
+        result->set(state, ValueRef::create(StringRef::createFromASCII("{{ util_macro.gen_attr_name(key) }}")), ValueRef::create({{ util_macro.gen_attr_name(key) }}ArrayObj));
         {% else %}
-        result->set(state, ValueRef::create(StringRef::createFromASCII("{{ key.name }}")), {{ util_macro.gen_native_to_jsvalue(key.type, '%s.getValue()'|format(vname)) }});
+        result->set(state, ValueRef::create(StringRef::createFromASCII("{{ util_macro.gen_attr_name(key) }}")), {{ util_macro.gen_native_to_jsvalue(key.type, '%s.getValue()'|format(vname)) }});
         {% endif %}
     }
     {% elif key.type.nullable %}
     if ({{ vname }} == nullptr) {
-        result->set(state, ValueRef::create(StringRef::createFromASCII("{{ key.name }}")), ValueRef::createNull());
+        result->set(state, ValueRef::create(StringRef::createFromASCII("{{ util_macro.gen_attr_name(key) }}")), ValueRef::createNull());
     } else {
-        result->set(state, ValueRef::create(StringRef::createFromASCII("{{ key.name }}")), {{ vname }}->scriptValue());
+        result->set(state, ValueRef::create(StringRef::createFromASCII("{{ util_macro.gen_attr_name(key) }}")), {{ vname }}->scriptValue());
     }
     {% elif key.type.kind in pointer_type_kinds %}
     STARFISH_ASSERT({{ vname }} != nullptr);
-    result->set(state, ValueRef::create(StringRef::createFromASCII("{{ key.name }}")), {{ util_macro.gen_native_to_jsvalue(key.type, vname) }});
+    result->set(state, ValueRef::create(StringRef::createFromASCII("{{ util_macro.gen_attr_name(key) }}")), {{ util_macro.gen_native_to_jsvalue(key.type, vname) }});
     {% elif key.type.kind.startswith('SequenceOf') %}
-    ArrayObjectRef* {{ key.name }}ArrayObj = ArrayObjectRef::create(state);
+    ArrayObjectRef* {{ util_macro.gen_attr_name(key) }}ArrayObj = ArrayObjectRef::create(state);
     for (unsigned idx = 0; idx < {{ vname }}.size(); idx++) {
         {% if util_macro.is_non_nullable_type(key.type.data.kind) and key.type.data.nullable %}
         ValueRef* item = {{ vname }}[idx].hasValue() ? {{ util_macro.gen_native_to_jsvalue(key.type.data, '%s[idx].getValue()'|format(vname)) }} : ValueRef::createNull();
@@ -147,11 +147,11 @@ ValueRef* toValueRefFrom{{name}}(ExecutionStateRef* state, {{name}}& from)
             {% endif %}
         ValueRef* item = {{ util_macro.gen_native_to_jsvalue(key.type.data, '%s[idx]'|format(vname)) }};
         {% endif %}
-        {{ key.name }}ArrayObj->set(state, ValueRef::create(idx), item);
+        {{ util_macro.gen_attr_name(key) }}ArrayObj->set(state, ValueRef::create(idx), item);
     }
-    result->set(state, ValueRef::create(StringRef::createFromASCII("{{ key.name }}")), ValueRef::create({{ key.name }}ArrayObj));
+    result->set(state, ValueRef::create(StringRef::createFromASCII("{{ util_macro.gen_attr_name(key) }}")), ValueRef::create({{ util_macro.gen_attr_name(key) }}ArrayObj));
     {% else %}
-    result->set(state, ValueRef::create(StringRef::createFromASCII("{{ key.name }}")), {{ util_macro.gen_native_to_jsvalue(key.type, vname) }});
+    result->set(state, ValueRef::create(StringRef::createFromASCII("{{ util_macro.gen_attr_name(key) }}")), {{ util_macro.gen_native_to_jsvalue(key.type, vname) }});
     {% endif %}
     {% endif %}
 {% endfor %}

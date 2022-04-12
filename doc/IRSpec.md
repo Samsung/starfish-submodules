@@ -174,6 +174,7 @@ Extend [Operation Object](#operation-object)
 | default | `String`<br>*Ref: Document.idl* |
 | clamp | `Boolean`<br>*Ref: Blob.idl* |
 | ellipsis | `Boolean`<br>*Ref: DOMTokenList.idl* |
+| rename | `String`<br>*Ref: HTMLSourceElement.idl* |
 
 ## Key Object
 Same as [Argument Object](#argument-object)
