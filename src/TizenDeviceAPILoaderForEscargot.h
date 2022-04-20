@@ -3,6 +3,7 @@
 
 #ifdef TIZEN_DEVICE_API
 
+#include <dlog.h>
 #include <mutex>
 
 #include "StarfishConfig.h"
