@@ -32,8 +32,10 @@ def gen_groups(interfaces):
       group = {
         'seq': str(count),
         'flags': flags,
-        'default': [],
-        'exposed': {},
+        'exposed': {
+          'COMMON': set(),
+          'WINDOW': set()
+        },
         'no_interface': [],
         'nickname': []
       }
@@ -47,14 +49,20 @@ def gen_groups(interfaces):
     if interface.get('no_interface'):
       group['no_interface'].append(interface["name"])
     elif interface.get('exposed'):
+      if len(interface['exposed']) > 1 and 'Window' in interface['exposed']:
+        group['exposed']['COMMON'].add(interface["name"])
+        continue
       for key in interface['exposed']:
         exposed_name = key.upper()
         exposed_group = group['exposed']
         if exposed_name not in exposed_group.keys():
-          exposed_group[exposed_name] = []
-        exposed_group[exposed_name].append(interface['name'])
+          exposed_group[exposed_name] = set()
+        exposed_group[exposed_name].add(interface['name'])
     else:
-      group['default'].append(interface["name"])
+      # If there is no exposed keyword,
+      # it is considered to be exposed only to the window.
+      group['exposed']['WINDOW'].add(interface["name"])
+
   return groups
 
 def write_enum_macro(title, list, handle):
@@ -93,15 +101,12 @@ def gen_interface_collection(interfaces, outpath, mode_strict, exposed_module):
 
     for groupkey in groups:
       flags = groups[groupkey]['flags']
-      default = groups[groupkey]['default']
       exposed = groups[groupkey]['exposed']
       no_interface = groups[groupkey]['no_interface']
       nickname = groups[groupkey]['nickname']
       seq = groups[groupkey]['seq']
       w.write('\n// Binding group #' + seq)
       if len(flags) > 0:
-        if len(default) > 0:
-          write_enum_macro('STARFISH_BINDING_GROUP' + seq + '_DEFAULT', [], w)
         for exposed_key in exposed:
           if exposed_key in exposed_list:
             write_enum_macro('STARFISH_BINDING_GROUP%s_%s' % (seq, exposed_key), [], w)
@@ -112,8 +117,6 @@ def gen_interface_collection(interfaces, outpath, mode_strict, exposed_module):
       for flag in flags:
         w.write('\n#ifdef ' + flag)
       if len(flags) > 0:
-        if len(default) > 0:
-          w.write('\n#undef STARFISH_BINDING_GROUP' + seq + '_DEFAULT')
         for exposed_key in exposed:
             if exposed_key in exposed_list:
               w.write('\n#undef STARFISH_BINDING_GROUP%s_%s' % (seq, exposed_key))
@@ -121,8 +124,7 @@ def gen_interface_collection(interfaces, outpath, mode_strict, exposed_module):
           w.write('\n#undef STARFISH_BINDING_GROUP' + seq + '_NOINTERFACE')
         if len(nickname) > 0:
           w.write('\n#undef STARFISH_BINDING_GROUP' + seq + '_NICKNAME')
-      if len(default) > 0:
-        write_enum_macro('STARFISH_BINDING_GROUP' + seq + '_DEFAULT', sorted(default), w)
+     
       for exposed_key in exposed:
         if exposed_key in exposed_list:
           write_enum_macro('STARFISH_BINDING_GROUP%s_%s' % (seq, exposed_key), sorted(exposed[exposed_key]), w)
@@ -136,11 +138,6 @@ def gen_interface_collection(interfaces, outpath, mode_strict, exposed_module):
 
     # Groups definition
     w.write('\n// Groups')
-    w.write('\n#define STARFISH_BINDING_GROUPS_DEFAULT(F)')
-    for groupkey in groups:
-      seq = groups[groupkey]['seq']
-      if len(groups[groupkey]['default']) > 0:
-        w.write(' \\\n    STARFISH_BINDING_GROUP' + seq + '_DEFAULT(F)')
     for exposed_key in exposed_list:
       w.write('\n#define STARFISH_BINDING_GROUPS_%s(F)' % exposed_key)
       for groupkey in groups:
@@ -160,41 +157,63 @@ def gen_interface_collection(interfaces, outpath, mode_strict, exposed_module):
     w.write('\n')
 
     # TODO: 'nointerface' should be classified according to 'exposed' keyword.
-    # Only WINDOW includes the default interface.
-    # GLOBAL_BINDING_NAMES = (default) + exposed + nickname
-    # BINDING_NAMES = (default) + exposed + nointerface + nickname
-    # BINDING_CLASSES = (default) + exposed + nointerface
+    # GLOBAL_BINDING_NAMES = exposed + nickname
+    # BINDING_NAMES = exposed + nointerface + nickname
+    # BINDING_CLASSES = exposed + nointerface
 
-    exposed_module = exposed_module.upper()
-
+    exposed_module = 'COMMON'
     w.write('\n#define STARFISH_ENUM_GLOBAL_BINDING_%s_NAMES(F)' % exposed_module)
-    if exposed_module == 'WINDOW':
-      w.write(' \\\n    STARFISH_BINDING_GROUPS_DEFAULT(F)')
+    w.write(' \\\n    STARFISH_BINDING_GROUPS_COMMON(F)')
+
+    w.write('\n#define STARFISH_ENUM_BINDING_%s_NAMES(F)' % exposed_module)
+    w.write(' \\\n    STARFISH_BINDING_GROUPS_COMMON(F)')
+
+    w.write('\n#define STARFISH_ENUM_BINDING_%s_CLASSES(F)' % exposed_module)
+    w.write(' \\\n    STARFISH_BINDING_GROUPS_COMMON(F)')
+    w.write('\n')
+
+    exposed_module = 'WORKER'
+    w.write('\n#define STARFISH_ENUM_GLOBAL_BINDING_%s_NAMES(F)' % exposed_module)
+    w.write(' \\\n    STARFISH_ENUM_BINDING_COMMON_NAMES(F)')
+    w.write(' \\\n    STARFISH_BINDING_GROUPS_%s(F)' % exposed_module)
+   
+    w.write('\n#define STARFISH_ENUM_BINDING_%s_NAMES(F)' % exposed_module)
+    w.write(' \\\n    STARFISH_BINDING_GROUPS_%s(F)' % exposed_module)
+
+    w.write('\n#define STARFISH_ENUM_BINDING_%s_CLASSES(F)' % exposed_module)
+    w.write(' \\\n    STARFISH_BINDING_GROUPS_%s(F)' % exposed_module)
+    w.write('\n')
+
+    exposed_module = 'WINDOW'
+    w.write('\n#define STARFISH_ENUM_GLOBAL_BINDING_%s_NAMES(F)' % exposed_module)
+    w.write(' \\\n    STARFISH_ENUM_BINDING_COMMON_NAMES(F)')
     w.write(' \\\n    STARFISH_BINDING_GROUPS_%s(F)' % exposed_module)
     w.write(' \\\n    STARFISH_BINDING_GROUPS_NICKNAME(F)')
+
     w.write('\n#define STARFISH_ENUM_BINDING_%s_NAMES(F)' % exposed_module)
-    if exposed_module == 'WINDOW':
-      w.write(' \\\n    STARFISH_BINDING_GROUPS_DEFAULT(F)')
     w.write(' \\\n    STARFISH_BINDING_GROUPS_%s(F)' % exposed_module)
     w.write(' \\\n    STARFISH_BINDING_GROUPS_NOINTERFACE(F)')
     w.write(' \\\n    STARFISH_BINDING_GROUPS_NICKNAME(F)')
+
     w.write('\n#define STARFISH_ENUM_BINDING_%s_CLASSES(F)' % exposed_module)
-    if exposed_module == 'WINDOW':
-      w.write(' \\\n    STARFISH_BINDING_GROUPS_DEFAULT(F)')
     w.write(' \\\n    STARFISH_BINDING_GROUPS_%s(F)' % exposed_module)
     w.write(' \\\n    STARFISH_BINDING_GROUPS_NOINTERFACE(F)')
     w.write('\n')
 
     w.write('\n// Combination macros for direct use in Starfish')
-    w.write('\n// - GLOBAL_BINDING_NAMES = EXPOSED(%s) + DEFAULT + NICKNAME' % exposed_module)
-    w.write('\n// - BINDING_NAMES = EXPOSED(%s) + DEFAULT + NICKNAME + NOINTERFACE' % exposed_module)
-    w.write('\n// - BINDING_CLASSES = EXPOSED(%s) + DEFAULT + NOINTERFACE' % exposed_module)
-    w.write('\n#define STARFISH_ENUM_GLOBAL_BINDING_NAMES(F)')
-    w.write(' \\\n    STARFISH_ENUM_GLOBAL_BINDING_%s_NAMES(F)' % exposed_module)
+    w.write('\n// - GLOBAL_BINDING_NAMES => use STARFISH_ENUM_GLOBAL_BINDING_WINDOW_NAMES or STARFISH_ENUM_GLOBAL_BINDING_WORKER_NAMES')
+    w.write('\n// - BINDING_NAMES = COMMON + WINDOW(EXPOSED + NICKNAME + NOINTERFACE) + WORKER(EXPOSED)')
+    w.write('\n// - BINDING_CLASSES = COMMON + WINDOW(EXPOSED + NOINTERFACE) + WORKER(EXPOSED)')
+
     w.write('\n#define STARFISH_ENUM_BINDING_NAMES(F)')
-    w.write(' \\\n    STARFISH_ENUM_BINDING_%s_NAMES(F)' % exposed_module)
+    w.write(' \\\n    STARFISH_ENUM_BINDING_COMMON_NAMES(F)')
+    w.write(' \\\n    STARFISH_ENUM_BINDING_WINDOW_NAMES(F)')
+    w.write(' \\\n    STARFISH_ENUM_BINDING_WORKER_NAMES(F)')
+
     w.write('\n#define STARFISH_ENUM_BINDING_CLASSES(F)')
-    w.write(' \\\n    STARFISH_ENUM_BINDING_%s_CLASSES(F)' % exposed_module)
+    w.write(' \\\n    STARFISH_ENUM_BINDING_COMMON_CLASSES(F)')
+    w.write(' \\\n    STARFISH_ENUM_BINDING_WINDOW_CLASSES(F)')
+    w.write(' \\\n    STARFISH_ENUM_BINDING_WORKER_CLASSES(F)')
     w.write('\n')
 
     # Unimpl (only strict mode)
