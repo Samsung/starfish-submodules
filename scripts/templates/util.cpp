@@ -181,6 +181,8 @@ ScriptObject
         {% elif type.name == 'Function' %}
             {{- '%s->asObject()'|format(aname) -}}
         {% endif %}
+    {% elif type.kind == 'Promise' %}
+        {{- 'toPromise(fetchScriptBindingInstance(state->context()), %s)'|format(aname) -}}
     {% endif %}
 {%- endmacro -%}
 
