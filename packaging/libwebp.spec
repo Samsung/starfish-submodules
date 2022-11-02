@@ -1,7 +1,7 @@
 Summary:	WebP image codec libraries
 Name:		libwebp
 Version:	1.2.1
-Release:	0
+Release:	1
 Group:		Multimedia/Libraries
 URL:		https://developers.google.com/speed/webp/
 License:	BSD-3-clause

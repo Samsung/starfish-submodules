@@ -12,7 +12,7 @@
 // Authors: Somnath Banerjee (somnath@google.com)
 //          Johann Koenig (johannkoenig@google.com)
 
-#include <stdio.h>
+#include <unistd.h>
 
 #include "src/dsp/dsp.h"
 
