@@ -1,12 +1,14 @@
 Name:           libpng
 Version:        1.6.37
-Release:        2
+Release:        3
 License:        Libpng
 Summary:        A library of functions for manipulating PNG image format files
 Url:            http://www.libpng.org/pub/png/libpng.html
 Group:          System/Libraries
 Source:         %{name}-%{version}.tar.bz2
 Source1001:     libpng.manifest
+
+BuildRequires:  cmake
 BuildRequires:  zlib-devel
 
 %description
@@ -38,15 +40,17 @@ cp %{SOURCE1001} .
 CFLAGS+=" -D_ARCH_ARM_ -mfpu=neon"
 %endif
 
-%configure \
-    --disable-static \
+%cmake . -DPNG_STATIC=OFF \
+         -DSKIP_INSTALL_PROGRAMS=ON \
+         -DSKIP_INSTALL_EXPORT=ON \
 %ifarch %{arm}
-    --enable-arm-neon=check \
-    %{?ubsan: --enable-arm-neon=no}
+         -DPNG_ARM_NEON=check \
+%else
+         -DPNG_ARM_NEON=off \
 %endif
+         %{?ubsan: -DPNG_ARM_NEON=off}
 
-
-%__make %{?_smp_mflags}
+make %{?jobs:-j%jobs}
 
 %install
 %make_install
