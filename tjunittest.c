@@ -1,5 +1,6 @@
 /*
- * Copyright (C)2009-2014, 2017-2019 D. R. Commander.  All Rights Reserved.
+ * Copyright (C)2009-2014, 2017-2019, 2022 D. R. Commander.
+ *                                         All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -29,6 +30,10 @@
 /*
  * This program tests the various code paths in the TurboJPEG C Wrapper
  */
+
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_DEPRECATE
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -404,7 +409,7 @@ static void compTest(tjhandle handle, unsigned char **dstBuf,
                        jpegQual, flags));
   }
 
-  snprintf(tempStr, 1024, "%s_enc_%s_%s_%s_Q%d.jpg", basename, pfStr, buStr,
+  SNPRINTF(tempStr, 1024, "%s_enc_%s_%s_%s_Q%d.jpg", basename, pfStr, buStr,
            subName[subsamp], jpegQual);
   writeJPEG(*dstBuf, *dstSize, tempStr);
   printf("Done.\n  Result in %s\n", tempStr);
@@ -777,7 +782,7 @@ static int doBmpTest(const char *ext, int width, int align, int height, int pf,
     THROW("Could not allocate memory");
   initBitmap(buf, width, pitch, height, pf, flags);
 
-  snprintf(filename, 80, "test_bmp_%s_%d_%s.%s", pixFormatStr[pf], align,
+  SNPRINTF(filename, 80, "test_bmp_%s_%d_%s.%s", pixFormatStr[pf], align,
            (flags & TJFLAG_BOTTOMUP) ? "bu" : "td", ext);
   TRY_TJ(tjSaveImage(filename, buf, width, pitch, height, pf, flags));
   md5sum = MD5File(filename, md5buf);
