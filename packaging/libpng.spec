@@ -1,6 +1,6 @@
 Name:           libpng
-Version:        1.6.37
-Release:        3
+Version:        1.6.39
+Release:        0
 License:        Libpng
 Summary:        A library of functions for manipulating PNG image format files
 Url:            http://www.libpng.org/pub/png/libpng.html
@@ -44,7 +44,7 @@ CFLAGS+=" -D_ARCH_ARM_ -mfpu=neon"
          -DSKIP_INSTALL_PROGRAMS=ON \
          -DSKIP_INSTALL_EXPORT=ON \
 %ifarch %{arm}
-         -DPNG_ARM_NEON=check \
+         -DPNG_ARM_NEON=on \
 %else
          -DPNG_ARM_NEON=off \
 %endif

@@ -14,6 +14,7 @@
  * definitions (or not) of PNG_ARM_NEON_OPT and PNG_ARM_NEON_IMPLEMENTATION.
  */
 #define PNG_VERSION_INFO_ONLY
+#define PNG_ARM_NEON_IMPLEMENTATION 1 // apply patch for tizen
 #include "../pngpriv.h"
 
 #if (defined(__linux__) || defined(__FreeBSD__)) && defined(__ELF__)
