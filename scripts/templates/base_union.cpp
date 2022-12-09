@@ -39,6 +39,13 @@
 using namespace Escargot;
 
 namespace Starfish {
+{% for subtype in data %}
+    {% if subtype.kind == 'Dictionary' %}
+extern {{ subtype.name }} to{{ subtype.name }}FromValueRef(ExecutionStateRef* state, ValueRef* from);
+extern ValueRef* toValueRefFrom{{ subtype.name }}(ExecutionStateRef* state, {{ subtype.name }}& from);
+    {% endif %}
+{% endfor %}
+
 
 {% if used_unions %}
   {%- for union_item in used_unions %}

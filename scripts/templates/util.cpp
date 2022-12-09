@@ -334,6 +334,12 @@ if (!std::isfinite({{names.vname}})) {
             {% else %}
     {{ '%s %s = String::fromUTF8(%s);'|format(type_exp, names.vname, arg.default) }}
             {% endif %}
+        {% elif arg.type.kind == "UnionType" %}
+            {% if arg.default == 'false' or arg.default == 'true' %}
+    {{ '%s %s = %s::createboolean(%s);'|format(type_exp, names.vname,type_exp,arg.default) }}
+            {% else %}
+    {{ '%s %s = %s;'|format(type_exp, names.vname, arg.default) }}
+            {% endif %}
         {% else %}
     {{ '%s %s = %s;'|format(type_exp, names.vname, arg.default) }}
         {% endif %}
