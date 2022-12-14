@@ -2,10 +2,10 @@
 
 Although you may be viewing an alternate representation, this document
 is sourced in Markdown, a light-duty markup scheme, and is optimized for
-the [kramdown](http://kramdown.rubyforge.org/) transformer.
+the [kramdown](https://kramdown.gettalong.org/) transformer.
 
-See the accompanying README. External link targets are referenced at the
-end of this file.
+See the accompanying specs_generation.md. External link targets are referenced
+at the end of this file.
 
 -->
 
@@ -36,7 +36,7 @@ for:
   * **Lossless compression.** An image can be losslessly compressed, using the
     WebP Lossless Format.
 
-  * **Metadata.** An image may have metadata stored in EXIF or XMP formats.
+  * **Metadata.** An image may have metadata stored in Exif or XMP formats.
 
   * **Transparency.** An image may have transparency, i.e., an alpha channel.
 
@@ -52,10 +52,6 @@ document are to be interpreted as described in [RFC 2119][].
 
 Bit numbering in chunk diagrams starts at `0` for the most significant bit
 ('MSB 0') as described in [RFC 1166][].
-
-**Note:** Out of the features mentioned above, lossy compression, lossless
-compression, transparency, metadata, color profile and animation are finalized
-and are to be considered stable.
 
 Terminology &amp; Basics
 ------------------------
@@ -98,7 +94,7 @@ _1-based_
 RIFF File Format
 ----------------
 
-The WebP file format is based on the RIFF (resource interchange file format)
+The WebP file format is based on the RIFF (Resource Interchange File Format)
 document format.
 
 The basic element of a RIFF file is a _chunk_. It consists of:
@@ -265,11 +261,11 @@ An extended format file consists of:
 
   * Image data.
 
-  * An optional 'EXIF' chunk with EXIF metadata.
+  * An optional 'EXIF' chunk with Exif metadata.
 
   * An optional 'XMP ' chunk with XMP metadata.
 
-  * An optional list of [unknown chunks](#unknown-chunks). _\[status: experimental\]_
+  * An optional list of [unknown chunks](#unknown-chunks).
 
 For a _still image_, the _image data_ consists of a single frame, which is made
 up of:
@@ -321,9 +317,9 @@ Alpha (L): 1 bit
 : Set if any of the frames of the image contain transparency information
   ("alpha").
 
-EXIF metadata (E): 1 bit
+Exif metadata (E): 1 bit
 
-: Set if the file contains EXIF metadata.
+: Set if the file contains Exif metadata.
 
 XMP metadata (X): 1 bit
 
@@ -345,12 +341,12 @@ Reserved: 24 bits
 Canvas Width Minus One: 24 bits
 
 : _1-based_ width of the canvas in pixels.
-  The actual canvas width is '1 + Canvas Width Minus One'
+  The actual canvas width is `1 + Canvas Width Minus One`.
 
 Canvas Height Minus One: 24 bits
 
 : _1-based_ height of the canvas in pixels.
-  The actual canvas height is '1 + Canvas Height Minus One'
+  The actual canvas height is `1 + Canvas Height Minus One`.
 
 The product of _Canvas Width_ and _Canvas Height_ MUST be at most `2^32 - 1`.
 
@@ -427,21 +423,21 @@ If the _Animation flag_ is not set, then this chunk SHOULD NOT be present.
 
 Frame X: 24 bits (_uint24_)
 
-: The X coordinate of the upper left corner of the frame is `Frame X * 2`
+: The X coordinate of the upper left corner of the frame is `Frame X * 2`.
 
 Frame Y: 24 bits (_uint24_)
 
-: The Y coordinate of the upper left corner of the frame is `Frame Y * 2`
+: The Y coordinate of the upper left corner of the frame is `Frame Y * 2`.
 
 Frame Width Minus One: 24 bits (_uint24_)
 
 : The _1-based_ width of the frame.
-  The frame width is `1 + Frame Width Minus One`
+  The frame width is `1 + Frame Width Minus One`.
 
 Frame Height Minus One: 24 bits (_uint24_)
 
 : The _1-based_ height of the frame.
-  The frame height is `1 + Frame Height Minus One`
+  The frame height is `1 + Frame Height Minus One`.
 
 Frame Duration: 24 bits (_uint24_)
 
@@ -681,12 +677,12 @@ EXIF chunk:
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     |                      ChunkHeader('EXIF')                      |
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                        EXIF Metadata                          |
+    |                        Exif Metadata                          |
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-EXIF Metadata: _Chunk Size_ bytes
+Exif Metadata: _Chunk Size_ bytes
 
-: image metadata in EXIF format.
+: image metadata in Exif format.
 
 XMP chunk:
 
@@ -705,7 +701,7 @@ XMP Metadata: _Chunk Size_ bytes
 Additional guidance about handling metadata can be found in the
 Metadata Working Group's [Guidelines for Handling Metadata][metadata].
 
-#### Unknown Chunks _\[status: experimental\]_
+#### Unknown Chunks
 
 A RIFF chunk (described in [this](#terminology-amp-basics) section) whose _chunk
 tag_ is different from any of the chunks described in this document, is
@@ -802,7 +798,7 @@ RIFF/WEBP
 +- XMP  (metadata)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-An animated image with EXIF metadata may look as follows:
+An animated image with Exif metadata may look as follows:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 RIFF/WEBP
@@ -815,9 +811,9 @@ RIFF/WEBP
 +- EXIF (metadata)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[vp8spec]:  http://tools.ietf.org/html/rfc6386
+[vp8spec]:  https://datatracker.ietf.org/doc/html/rfc6386
 [webpllspec]: https://chromium.googlesource.com/webm/libwebp/+/HEAD/doc/webp-lossless-bitstream-spec.txt
-[iccspec]: http://www.color.org/icc_specs2.xalter
-[metadata]: http://www.metadataworkinggroup.org/pdf/mwg_guidance.pdf
-[rfc 1166]: http://tools.ietf.org/html/rfc1166
-[rfc 2119]: http://tools.ietf.org/html/rfc2119
+[iccspec]: https://www.color.org/icc_specs2.xalter
+[metadata]: https://web.archive.org/web/20180919181934/http://www.metadataworkinggroup.org/pdf/mwg_guidance.pdf
+[rfc 1166]: https://datatracker.ietf.org/doc/html/rfc1166
+[rfc 2119]: https://datatracker.ietf.org/doc/html/rfc2119

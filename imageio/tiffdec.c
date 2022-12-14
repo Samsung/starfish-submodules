@@ -46,7 +46,7 @@ static int ExtractMetadataFromTIFF(TIFF* const tif, Metadata* const metadata) {
         (MetadataPayload*)((uint8_t*)metadata +
                            kTIFFMetadataMap[i].storage_offset);
     void* tag_data;
-    uint32 tag_data_len;
+    uint32_t tag_data_len;
 
     if (TIFFGetField(tif, kTIFFMetadataMap[i].tag, &tag_data_len, &tag_data) &&
         !MetadataCopy((const char*)tag_data, tag_data_len, payload)) {
@@ -188,7 +188,9 @@ int ReadTIFF(const uint8_t* const data, size_t data_size,
     fprintf(stderr, "Error! Cannot retrieve TIFF samples-per-pixel info.\n");
     goto End;
   }
-  if (samples_per_px < 3 || samples_per_px > 4) goto End;  // not supported
+  if (!(samples_per_px == 1 || samples_per_px == 3 || samples_per_px == 4)) {
+    goto End;  // not supported
+  }
 
   if (!(TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &image_width) &&
         TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &image_height))) {
@@ -212,7 +214,7 @@ int ReadTIFF(const uint8_t* const data, size_t data_size,
       TIFFGetField(tif, TIFFTAG_TILELENGTH, &tile_height)) {
     if ((tile_width > 32 && tile_width / 2 > image_width) ||
         (tile_height > 32 && tile_height / 2 > image_height) ||
-        ImgIoUtilCheckSizeArgumentsOverflow(
+        !ImgIoUtilCheckSizeArgumentsOverflow(
             (uint64_t)tile_width * sizeof(*raster), tile_height)) {
       fprintf(stderr, "Error! TIFF tile dimension (%d x %d) is too large.\n",
               tile_width, tile_height);
@@ -230,7 +232,7 @@ int ReadTIFF(const uint8_t* const data, size_t data_size,
   alloc_size = (int64_t)(stride * image_height);
   if (alloc_size < 0 || alloc_size != (tsize_t)alloc_size) goto End;
 
-  raster = (uint32*)_TIFFmalloc((tsize_t)alloc_size);
+  raster = (uint32_t*)_TIFFmalloc((tsize_t)alloc_size);
   if (raster != NULL) {
     if (TIFFReadRGBAImageOriented(tif, image_width, image_height, raster,
                                   ORIENTATION_TOPLEFT, 1)) {

@@ -79,6 +79,26 @@ if [[ -z "${SDK[$IOS]}" ]] || [[ ${SDK[$IOS]%%.*} -lt 8 ]]; then
   exit 1
 fi
 
+#######################################
+# Moves Headers/*.h to Headers/<framework>/
+#
+# Places framework headers in a subdirectory to avoid Xcode errors when using
+# multiple frameworks:
+#   error: Multiple commands produce
+#     '.../Build/Products/Debug-iphoneos/include/types.h'
+# Arguments:
+#   $1 - path to framework
+#######################################
+update_headers_path() {
+  local framework_name="$(basename ${1%.xcframework})"
+  local subdir
+  for d in $(find "$1" -path "*/Headers"); do
+    subdir="$d/$framework_name"
+    mkdir "$subdir"
+    mv "$d/"*.h "$subdir"
+  done
+}
+
 echo "Xcode Version: ${XCODE}"
 echo "iOS SDK Version: ${SDK[$IOS]}"
 echo "MacOS SDK Version: ${SDK[$MACOS]}"
@@ -105,7 +125,7 @@ if [[ ! -e ${SRCDIR}/configure ]]; then
 Error creating configure script!
 This script requires the autoconf/automake and libtool to build. MacPorts or
 Homebrew can be used to obtain these:
-http://www.macports.org/install.php
+https://www.macports.org/install.php
 https://brew.sh/
 EOF
     exit 1
@@ -166,10 +186,9 @@ for (( i = 0; i < $NUM_PLATFORMS; ++i )); do
       CFLAGS="${CFLAGS}"
     set +x
 
-    # run make only in the src/ directory to create libwebp.a/libwebpdecoder.a
-    cd src/
-    make V=0
-    make install
+    # Build only the libraries, skip the examples.
+    make V=0 -C sharpyuv
+    make V=0 -C src install
 
     LIBLIST+=("${ROOTDIR}/lib/libwebp.a")
     DECLIBLIST+=("${ROOTDIR}/lib/libwebpdecoder.a")
@@ -177,17 +196,16 @@ for (( i = 0; i < $NUM_PLATFORMS; ++i )); do
     DEMUXLIBLIST+=("${ROOTDIR}/lib/libwebpdemux.a")
     # xcodebuild requires a directory for the -headers option, these will match
     # for all builds.
-    make install-data DESTDIR="${ROOTDIR}/lib-headers"
-    make install-commonHEADERS DESTDIR="${ROOTDIR}/dec-headers"
-    make -C demux install-data DESTDIR="${ROOTDIR}/demux-headers"
-    make -C mux install-data DESTDIR="${ROOTDIR}/mux-headers"
+    make -C src install-data DESTDIR="${ROOTDIR}/lib-headers"
+    make -C src install-commonHEADERS DESTDIR="${ROOTDIR}/dec-headers"
+    make -C src/demux install-data DESTDIR="${ROOTDIR}/demux-headers"
+    make -C src/mux install-data DESTDIR="${ROOTDIR}/mux-headers"
     LIB_HEADERS="${ROOTDIR}/lib-headers/${ROOTDIR}/include/webp"
     DEC_HEADERS="${ROOTDIR}/dec-headers/${ROOTDIR}/include/webp"
     DEMUX_HEADERS="${ROOTDIR}/demux-headers/${ROOTDIR}/include/webp"
     MUX_HEADERS="${ROOTDIR}/mux-headers/${ROOTDIR}/include/webp"
 
     make distclean
-    cd ..
 
     export PATH=${OLDPATH}
   done
@@ -228,6 +246,10 @@ xcodebuild -create-xcframework "${FAT_DEMUXLIBLIST[@]}" \
   -output ${DEMUXTARGETDIR}
 xcodebuild -create-xcframework "${FAT_MUXLIBLIST[@]}" \
   -output ${MUXTARGETDIR}
+update_headers_path "${TARGETDIR}"
+update_headers_path "${DECTARGETDIR}"
+update_headers_path "${DEMUXTARGETDIR}"
+update_headers_path "${MUXTARGETDIR}"
 set +x
 
 echo  "SUCCESS"
