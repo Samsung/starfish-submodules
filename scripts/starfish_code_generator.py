@@ -29,6 +29,7 @@ STRING_TYPE_KINDS = ['StringType', 'Enum']
 POINTER_TYPE_KINDS = ['Typeref', 'Callback', 'Promise', 'SpecialType']
 NUMBER_TYPE_NAMES = ['short', 'long', 'long long', 'float', 'double', 'unsigned long', 'unsigned short', 'unsigned long long']
 STRONG_TYPE_KINDS = ['Sequence', 'Dictionary', 'Typeref', 'Promise', 'SpecialType']
+HAS_SEQUENCE_TYPE_KINDS = ['MediaTrackConstraints']
 
 _root_dir=None
 _out_dir=None
@@ -187,6 +188,7 @@ if __name__ == "__main__":
   env.globals['strong_type_kinds'] = STRONG_TYPE_KINDS
   env.globals['number_type_names'] = NUMBER_TYPE_NAMES
   env.globals['strict_mode'] = STRICT_MODE
+  env.globals['has_sequence_type_kinds']= HAS_SEQUENCE_TYPE_KINDS
 
   # with open(MODULES_FILE, 'r') as r:
   #  sf_modules = json.loads(r.read())

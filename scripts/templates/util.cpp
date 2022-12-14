@@ -503,3 +503,7 @@ return {{ gen_native_to_jsvalue(type, vname) }};
 // Return ValueRef* from native value
     {{ handle_return_impl(return_type)|trim }}
 {%- endmacro -%}
+
+{% macro getTrimmedName(item) %}
+    {{- item['name'].replace(" ", "") -}}
+{% endmacro %}

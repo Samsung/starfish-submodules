@@ -89,7 +89,7 @@ extern ValueRef* toValueRefFrom{{ subtype.name }}(ExecutionStateRef* state, {{ s
         {% elif use_nullable %}
         return {{ name }}::create{{ subtype.name }}(Nullable<{{ type_exp }}>({{ util_macro.gen_esvalue_to_native(subtype, 'from', False) }}));
         {% else %}
-        return {{ name }}::create{{ subtype.name }}({{ util_macro.gen_esvalue_to_native(subtype, 'from', False) }});
+        return {{ name }}::create{{- util_macro.getTrimmedName(subtype) -}}({{ util_macro.gen_esvalue_to_native(subtype, 'from', False) }});
         {% endif %}
     }
     {%- endcall -%}
@@ -104,8 +104,8 @@ ValueRef* toValueRefFrom{{ name }}(ExecutionStateRef* state, const {{ name }}& f
 {% for subtype in data %}
     {%- call util_macro.ifdef_and_exposed(subtype.flags, subtype.exposed, args.exposed) %}
         {% set use_nullable = util_macro.is_non_nullable_type(subtype.kind) and subtype.nullable %}
-    if (from.is{{ subtype.name }}Value()) {
-        {{ util_macro.gen_type_str(subtype, use_nullable) }} resultValue = from.get{{ subtype.name }}Value();
+    if (from.is{{- util_macro.getTrimmedName(subtype) -}}Value()) {
+        {{ util_macro.gen_type_str(subtype, use_nullable) }} resultValue = from.get{{- util_macro.getTrimmedName(subtype) -}}Value();
         {{ util_macro.gen_return_code(subtype, 'resultValue')|indent(8) }}
     }
     {%- endcall -%}

@@ -49,13 +49,13 @@
 {% for item in data_list if not item.exposed or exposed in item.exposed %}
     {% if loop.first %}
         {% if item.kind in pointer_type_kinds %}
-    {{- "   : m_%sData(nullptr)"|format(item.name) -}}
+    {{- "   : m_%sData(nullptr)"|format(util_macro.getTrimmedName(item)) -}}
         {% elif item.kind == "PrimitiveType" %}
-    {{- "   : m_%sData(0)"|format(item.name) -}}
+    {{- "   : m_%sData(0)"|format(util_macro.getTrimmedName(item)) -}}
         {% elif item.kind == 'StringType' %}
-    {{- "   : m_%sData(String::emptyString)"|format(item.name) -}}
+    {{- "   : m_%sData(String::emptyString)"|format(util_macro.getTrimmedName(item)) -}}
         {% else %}
-    {{- "   : m_%sData()"|format(item.name) -}}
+    {{- "   : m_%sData()"|format(util_macro.getTrimmedName(item)) -}}
         {% endif %}
     {% endif %}
 {% endfor %}
@@ -65,6 +65,11 @@
     {% for x in list %}
         {% if x.kind.startswith('SequenceOf') %}
             {{ True }}
+        {% endif %}
+        {% if x.data %}
+            {% if x.data.name in has_sequence_type_kinds %}
+                {{ True }}
+            {% endif %}
         {% endif %}
     {% endfor %}
 {% endmacro %}
@@ -87,7 +92,7 @@ public:
         NoneValueKind,
 {% for item in data %}
     {%- call util_macro.ifdef_and_exposed(item.flags, item.exposed, args.exposed) %}
-        {{ item.name }}ValueKind,
+        {{ util_macro.getTrimmedName(item) -}}ValueKind,
     {%- endcall -%}
 {% endfor %}
     };
@@ -95,7 +100,7 @@ public:
     union ValueData {
 {% for item in data %}
     {%- call util_macro.ifdef_and_exposed(item.flags, item.exposed, args.exposed) %}
-        {{ gen_item_type_exp(item) }} m_{{ item.name }}Data;
+        {{ gen_item_type_exp(item) }} m_{{- util_macro.getTrimmedName(item) -}}Data;
     {%- endcall -%}
 {% endfor %}
         ~ValueData()
@@ -117,7 +122,7 @@ public:
 {% for item in data %}
     {%- call util_macro.ifdef_and_exposed(item.flags, item.exposed, args.exposed) %}
         ValueData({{ gen_item_type_exp(item) }} value)
-            : m_{{ item.name }}Data(value)
+            : m_{{- util_macro.getTrimmedName(item) -}}Data(value)
         {
         }
     {%- endcall -%}
@@ -134,11 +139,11 @@ public:
         switch (m_type) {
 {% for item in data %}
     {%- call util_macro.ifdef_and_exposed(item.flags, item.exposed, args.exposed) %}
-        case {{ item.name }}ValueKind:
+        case {{ util_macro.getTrimmedName(item) -}}ValueKind:
             {% if item.name == 'Sequence' %}
-            new(&m_data.m_{{ item.name }}Data) {{ gen_item_type_exp(item) }}(src.m_data.m_{{ item.name }}Data);
+            new(&m_data.m_{{- util_macro.getTrimmedName(item) -}}Data) {{ gen_item_type_exp(item) }}(src.m_data.m_{{- util_macro.getTrimmedName(item) -}}Data);
             {% else %}
-            m_data.m_{{ item.name }}Data = src.m_data.m_{{ item.name }}Data;
+            m_data.m_{{- util_macro.getTrimmedName(item) -}}Data = src.m_data.m_{{- util_macro.getTrimmedName(item) -}}Data;
             {% endif %}
             break;
     {%- endcall -%}
@@ -155,11 +160,11 @@ public:
         switch (m_type) {
 {% for item in data %}
     {%- call util_macro.ifdef_and_exposed(item.flags, item.exposed, args.exposed) %}
-        case {{ item.name }}ValueKind:
+        case {{ util_macro.getTrimmedName(item) -}}ValueKind:
             {% if item.name == 'Sequence' %}
-            new(&m_data.m_{{ item.name }}Data) {{ gen_item_type_exp(item) }}(other.m_data.m_{{ item.name }}Data);
+            new(&m_data.m_{{- util_macro.getTrimmedName(item) -}}Data) {{ gen_item_type_exp(item) }}(other.m_data.m_{{- util_macro.getTrimmedName(item) -}}Data);
             {% else %}
-            m_data.m_{{ item.name }}Data = other.m_data.m_{{ item.name }}Data;
+            m_data.m_{{- util_macro.getTrimmedName(item) -}}Data = other.m_data.m_{{- util_macro.getTrimmedName(item) -}}Data;
             {% endif %}
             break;
     {%- endcall -%}
@@ -173,9 +178,9 @@ public:
 
 {% for item in data %}
     {%- call util_macro.ifdef_and_exposed(item.flags, item.exposed, args.exposed) %}
-    static {{ name }} create{{ item.name }}({{ gen_item_type_exp(item) }} value)
+    static {{ name }} create{{- util_macro.getTrimmedName(item) -}}({{ gen_item_type_exp(item) }} value)
     {
-        return {{ name }}({{ item.name }}ValueKind, value);
+        return {{ name }}({{- util_macro.getTrimmedName(item) -}}ValueKind, value);
     }
 
     {%- endcall -%}
@@ -187,19 +192,19 @@ public:
 
 {% for item in data %}
     {%- call util_macro.ifdef_and_exposed(item.flags, item.exposed, args.exposed) %}
-    bool is{{ item.name }}Value() const
+    bool is{{- util_macro.getTrimmedName(item) -}}Value() const
     {
-        return m_type == {{ item.name }}ValueKind;
+        return m_type == {{- util_macro.getTrimmedName(item) -}}ValueKind;
     }
 
     {%- endcall -%}
 {% endfor %}
 {% for item in data %}
     {%- call util_macro.ifdef_and_exposed(item.flags, item.exposed, args.exposed) %}
-    {{ gen_item_type_exp(item) }} get{{ item.name }}Value() const
+    {{ gen_item_type_exp(item) }} get{{- util_macro.getTrimmedName(item) -}}Value() const
     {
-        STARFISH_ASSERT(is{{ item.name }}Value());
-        return m_data.m_{{ item.name }}Data;
+        STARFISH_ASSERT(is{{- util_macro.getTrimmedName(item) -}}Value());
+        return m_data.m_{{- util_macro.getTrimmedName(item) -}}Data;
     }
 
     {%- endcall -%}

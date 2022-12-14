@@ -60,7 +60,7 @@ class StarfishIRHandler():
       if not unimpl:
         self._add_used_typeref(name)
     elif kind == 'UnionType':
-      union_name = self._create_union_name(type_ir)
+      union_name = self._create_union_name(type_ir).replace(" ", "")
       type_ir['name'] = union_name
       self.used_unions.add(union_name)
       if union_name in self.unions:
