@@ -282,19 +282,27 @@ class StarfishIRHandler():
         target['has_unforgeable'] |= interface['has_unforgeable']
         target['has_unscopable'] |= interface['has_unscopable']
 
+  def _apply_flags(self, target, subtype_ir, union_ir):
+    if target.get('flags'):
+      if not subtype_ir.get('flags'):
+        subtype_ir['flags'] = set()
+      subtype_ir['flags'] |= target['flags']
+      # Flag covered as a whole are not partially applied
+      if union_ir.get('flags'):
+        subtype_ir['flags'] -= union_ir['flags']
+
   def _check_union(self, union_ir):
     self._init_using_info(union_ir)
     for idx, subtype_ir in enumerate(union_ir.get('data', [])):
       self._change_types(union_ir['data'], idx, False)
+
+      if subtype_ir['name'] in self.dictionaries:
+        target = self.dictionaries[subtype_ir['name']]
+        self._apply_flags(target, subtype_ir, union_ir)
+
       if subtype_ir['name'] in self.interfaces:
         target = self.interfaces[subtype_ir['name']]
-        if target.get('flags'):
-          if not subtype_ir.get('flags'):
-            subtype_ir['flags'] = set()
-          subtype_ir['flags'] |= target['flags']
-          # Flag covered as a whole are not partially applied
-          if union_ir.get('flags'):
-            subtype_ir['flags'] -= union_ir['flags']
+        self._apply_flags(target, subtype_ir, union_ir)
         if target.get('exposed'):
           subtype_ir['exposed'] = target['exposed']
     self._flush_using_info(union_ir)
