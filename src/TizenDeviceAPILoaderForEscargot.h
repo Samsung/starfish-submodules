@@ -114,7 +114,7 @@ class ESPostListener;
     F(ApplicationControlData)
 #endif // defined(STARFISH_TIZEN_WEARABLE_WIDGET)
 
-class TizenStrings {
+class TizenStrings : public gc {
 public:
     TizenStrings(Escargot::ContextRef* context);
     void initializeEarlyStrings();
