@@ -2,13 +2,13 @@
 import types
 
 def set_prop_to_dict(target, prop_name, v):
-  if type(target) is not types.DictionaryType:
+  if type(target) is not dict:
     return
   if v is not None:
     target[prop_name] = v
 
 def merge_extended_attrs(attrs1, attrs2):
-  print merge_extended_attrs
+  print(merge_extended_attrs)
 
 def _same_types(type_a, type_b):
   if type_a['name'] != type_b['name']:

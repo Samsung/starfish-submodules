@@ -34,6 +34,6 @@ if __name__ == '__main__':
   token = sf_lexer.token()
 
   while token:
-    print token
+    print(token)
     # print token.type + ": " + token.value
     token = sf_lexer.token()

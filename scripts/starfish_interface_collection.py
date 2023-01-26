@@ -26,7 +26,7 @@ def gen_groups(interfaces):
       flags = []
       groupkey = "DEFAULT"
 
-    if groups.has_key(groupkey):
+    if groupkey in groups:
       group = groups.get(groupkey)
     else:
       group = {
@@ -55,7 +55,7 @@ def gen_groups(interfaces):
       for key in interface['exposed']:
         exposed_name = key.upper()
         exposed_group = group['exposed']
-        if exposed_name not in exposed_group.keys():
+        if exposed_name not in list(exposed_group.keys()):
           exposed_group[exposed_name] = set()
         exposed_group[exposed_name].add(interface['name'])
     else:
@@ -97,7 +97,7 @@ def gen_interface_collection(interfaces, outpath, mode_strict, exposed_module):
 
     exposed_list = set()
     for groupkey in groups:
-      exposed_list.update(groups[groupkey]['exposed'].keys())
+      exposed_list.update(list(groups[groupkey]['exposed'].keys()))
 
     for groupkey in groups:
       flags = groups[groupkey]['flags']

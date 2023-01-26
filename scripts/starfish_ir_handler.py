@@ -92,7 +92,7 @@ class StarfishIRHandler():
       self._udpate_has_exception(attr['setter'])
       self._udpate_has_cross_origin(attr['setter'])
     if attr.get('put_forwards', False) and \
-       type(attr['put_forwards']) is types.StringType:
+       type(attr['put_forwards']) is str:
       ref_name = attr['getter']['return']['name']
       if ref_name in self.interfaces:
         ref_interface = self.interfaces[ref_name]
@@ -112,11 +112,11 @@ class StarfishIRHandler():
              self.processing.get('_inherited_svgelement')) or \
         not (attr['getter']['return']['kind'] == 'StringType' or \
              attr['getter']['return']['name'] == 'boolean'):
-        print 'Wrong use of "Reflect" on ' + self.processing['name'] + '.' + attr['name']
-        print 'Check below conditions'
-        print '> Interface should inherited Element'
-        print '> Attribute type should be String or Boolean'
-        print '> Attribute type is not nullable'
+        print('Wrong use of "Reflect" on ' + self.processing['name'] + '.' + attr['name'])
+        print('Check below conditions')
+        print('> Interface should inherited Element')
+        print('> Attribute type should be String or Boolean')
+        print('> Attribute type is not nullable')
         sys.exit(1)
       self.include_paths.add('StaticStrings')
       if self.processing.get('_inherited_htmlelement'):
@@ -206,7 +206,7 @@ class StarfishIRHandler():
 
   def _handle_interface_parent(self, interface):
     parent = interface.get('parent')
-    if parent and type(parent) == types.StringType:
+    if parent and type(parent) == str:
       if parent in self.interfaces:
         parent = self.interfaces[parent]
         if parent.get('static_interface'):
@@ -223,7 +223,7 @@ class StarfishIRHandler():
         if parent['name'] == 'SVGElement' or parent.get('_inherited_svgelement'):
           interface['_inherited_svgelement'] = True
       else:
-        print interface.get('name') + ': Wrong parent interface "' + parent + '"'
+        print(interface.get('name') + ': Wrong parent interface "' + parent + '"')
         sys.exit(1)
 
   def _inherit_descriptor(self, child, parent):
@@ -269,9 +269,9 @@ class StarfishIRHandler():
           for prop_a in interface[key]:
             for prop_b in target[key]:
               if prop_a['name'] == prop_b['name']:
-                print 'Duplicate ' + key + ": " + prop_a['name']
-                print '* ' + target['file_path'] + '.idl'
-                print '* ' + interface['file_path'] + '.idl'
+                print('Duplicate ' + key + ": " + prop_a['name'])
+                print('* ' + target['file_path'] + '.idl')
+                print('* ' + interface['file_path'] + '.idl')
                 sys.exit(1)
         # append to target
         for key in copy_list:
@@ -368,7 +368,7 @@ class StarfishIRHandler():
       if subtype_ir.get('kind') == 'UnionType':
         result = result + 'Or' + self._create_union_name(subtype_ir)
       elif not subtype_ir.get('name'):
-        print 'Subtype of Union should have type name'
+        print('Subtype of Union should have type name')
         sys.exit(1)
       else:
         result = result + 'Or' + subtype_ir['name']
@@ -390,19 +390,19 @@ class StarfishIRHandler():
     for key in to_ir.get('typedefs', {}):
       self._change_types(to_ir['typedefs'][key], 'from', False)
     # Check callbacks
-    for key, value in to_ir.get('callbacks', {}).iteritems():
+    for key, value in to_ir.get('callbacks', {}).items():
       self._check_operation(value)
     # Check dictionaries
-    for key, value in to_ir.get('dictionaries', {}).iteritems():
+    for key, value in to_ir.get('dictionaries', {}).items():
       self._check_dictionary(value)
     # Check interfaces
-    for key, value in to_ir.get('interfaces', {}).iteritems():
+    for key, value in to_ir.get('interfaces', {}).items():
       self._check_interface(value)
     # cleaning dictionaries
-    for key, value in self.dictionaries.iteritems():
+    for key, value in self.dictionaries.items():
       value.pop('_check', None)
     # Check extras in interfaces
-    for key, value in to_ir.get('interfaces', {}).iteritems():
+    for key, value in to_ir.get('interfaces', {}).items():
       self._check_implement(value)
       self._check_partial_interface(value)
     # Check unions
@@ -410,7 +410,7 @@ class StarfishIRHandler():
       self._check_union(self.unions[key])
     to_ir['unions'] = self.unions
 
-    for key, value in to_ir.get('interfaces', {}).iteritems():
+    for key, value in to_ir.get('interfaces', {}).items():
       self._check_used_unions_flags(value)
 
   def __init__(self):

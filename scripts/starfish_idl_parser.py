@@ -75,9 +75,9 @@ class StarfishIDLParser(IDLParser):
   def parse_file(self, file_path):
     result = ParseFile(self, file_path);
     if self._parse_errors > 0:
-      print "PARSE ERROR: " + file_path
-      print "> please execute below command to see details"
-      print "> ./binding_generator/scripts/starfish_idl_reader.py " + file_path
+      print("PARSE ERROR: " + file_path)
+      print("> please execute below command to see details")
+      print("> ./binding_generator/scripts/starfish_idl_reader.py " + file_path)
       sys.exit(1)
     return result
 
@@ -114,4 +114,4 @@ if __name__ == '__main__':
   #   print "  CLASS: " + child.GetClass()
 
   # print "================================="
-  print '\n'.join(top.Tree(accept_props=['PROD']))
+  print('\n'.join(top.Tree(accept_props=['PROD'])))

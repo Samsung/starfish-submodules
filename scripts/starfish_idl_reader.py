@@ -10,15 +10,15 @@ from starfish_ir_handler import StarfishIRHandler
 import starfish_ir_utils as IRUtils
 
 def CHECK_STRING_T(v, msg=""):
-  if type(v) is not types.StringType:
+  if type(v) is not str:
     raise RuntimeError(msg)
 
 def CHECK_BOOL_T(v, msg=""):
-  if type(v) is not types.BooleanType:
+  if type(v) is not bool:
     raise RuntimeError(msg)
 
 def CHECK_LIST_T(v, msg=""):
-  if type(v) is not types.ListType:
+  if type(v) is not list:
     raise RuntimeError(msg)
 
 def CHECK_NOT_NONE(v, msg=""):
@@ -43,7 +43,7 @@ __SKIP_DUMP_NAMES = [
 ]
 def dump_node(node):
   result = '[%s]' % node.GetClass()
-  for key, value in node.GetProperties().iteritems():
+  for key, value in node.GetProperties().items():
     if not key in __SKIP_DUMP_NAMES:
       result += __indent(__pre_br('%s: %s' % (key, value)))
   children = node.GetChildren()
@@ -141,9 +141,9 @@ def _hd_extattr_object_opt(target, extattr):
 def _hd_extattr_exposed(target, extattr):
   if extattr.GetName() == 'Exposed':
     value = extattr.GetProperty('VALUE')
-    if type(value) == types.StringType:
+    if type(value) == str:
       value = [value]
-    elif type(value) != types.ListType:
+    elif type(value) != list:
       raise TypeError("Type of the `Exposed` should be String or List")
     target['exposed'] = value
     return True
@@ -398,7 +398,7 @@ class StarfishIDLReader():
     getter_custom = True if (custom is True or custom and 'Getter' in custom) else None
     setter_custom = True if (custom is True or custom and 'Setter' in custom) else None
 
-    if result.get('reflect') and type(result['reflect']) is types.BooleanType:
+    if result.get('reflect') and type(result['reflect']) is bool:
       result['reflect'] = result['name'];
     # genarate getter ir
     getter = {}
@@ -560,9 +560,9 @@ class StarfishIDLReader():
         desc_type = self._handle_descriptor(op_ir)
         to[desc_type + '_deleter'] = op_ir
     except RuntimeError as err:
-      print 'Err: Wrong descriptor format '
-      print '> ' + str(err)
-      print '> ' + self.file_path
+      print('Err: Wrong descriptor format ')
+      print('> ' + str(err))
+      print('> ' + self.file_path)
       sys.exit(1)
 
   def _gen_ir_interface(self, node):
@@ -715,9 +715,9 @@ def merge_irs(to_ir, from_ir):
       to_ir[name] = {}
     for key in from_ir[name]:
       if to_ir[name].get(key):
-        print 'Duplicate ' + name + ": " + key
-        print '* ' + to_ir[name][key]['file_path'] + '.idl'
-        print '* ' + from_ir[name][key]['file_path'] + '.idl'
+        print('Duplicate ' + name + ": " + key)
+        print('* ' + to_ir[name][key]['file_path'] + '.idl')
+        print('* ' + from_ir[name][key]['file_path'] + '.idl')
         sys.exit(1)
       to_ir[name][key] = from_ir[name][key]
 
@@ -744,5 +744,5 @@ if __name__ == '__main__':
   args = argparser.parse_args()
 
   result = gen_ir_from_file(args.file_path, debug=True)
-  print "\n[IR RESULT]================="
+  print("\n[IR RESULT]=================")
   pprint(result, indent='2')

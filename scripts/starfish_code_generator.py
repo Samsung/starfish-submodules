@@ -13,8 +13,8 @@ from starfish_interface_collection import gen_interface_collection
 try:
   from jinja2 import Environment, FileSystemLoader
 except ImportError:
-  print "Error: Jinja2 not found"
-  print "Exiting..."
+  print("Error: Jinja2 not found")
+  print("Exiting...")
   os._exit(0)
 
 STRICT_MODE = False
@@ -35,10 +35,10 @@ _root_dir=None
 _out_dir=None
 
 def print_skip_msg(name, reason):
-  print "> Skip generating code for '" + name + "': " + reason
+  print("> Skip generating code for '" + name + "': " + reason)
 
 def generate_code(ir, args):
-  print "Generating binding code..."
+  print("Generating binding code...")
   interfaces = ir['interfaces']
 
   gen_interface_collection(interfaces, os.path.join(STARFISH_PATH, args.out_path), STRICT_MODE, args.exposed)
@@ -79,14 +79,14 @@ def generate_code_with_template(ir, out_name, template, args):
   with open(os.path.join(binding_path, out_name), 'w') as w:
     ret = template.render(**ir)
     w.write(ret)
-    print("> Generated Code \"{}\"".format(out_name))
+    print(("> Generated Code \"{}\"".format(out_name)))
     # print(ret)
 
   if args.log_idl:
     path = ir['name'] + 'Idl' + IR_EXT
     with open(os.path.join(binding_path, path), 'w') as w:
       w.write(pprint.pformat(ir))
-      print("Logged IR to \"{}\"".format(path))
+      print(("Logged IR to \"{}\"".format(path)))
 
 def prerun_all(dir_path, file_alone=None):
   result = {}
@@ -104,7 +104,7 @@ def prerun_all(dir_path, file_alone=None):
       ir = gen_ir_from_file(file_path)
       merge_irs(result, ir)
       if file_path == file_alone:
-        print("Generated IR from {}".format(file_path))
+        print(("Generated IR from {}".format(file_path)))
         file_result = ir
   apply_types(result, result)
   # pprint.pprint(result, indent='2')
@@ -115,7 +115,7 @@ def prerun_all(dir_path, file_alone=None):
 
 def filter_assert_true(errmsg, v):
   if v:
-    print errmsg
+    print(errmsg)
     sys.exit(1)
   return ''
 
@@ -131,7 +131,7 @@ def filter_to_argument_syntax(prefix, start, end):
   return result
 
 def filter_first_word_capitalize(word):
-  if not (isinstance(word, str) or isinstance(word, unicode)):
+  if not (isinstance(word, str) or isinstance(word, str)):
     return word
 
   if len(word) == 0:
@@ -161,11 +161,11 @@ if __name__ == "__main__":
   args = argparser.parse_args()
   # Argument validation
   if not os.path.isdir(args.root_path):
-    print 'ERR: Invalid root path \'' + args.root_path + '\''
+    print('ERR: Invalid root path \'' + args.root_path + '\'')
     sys.exit(1)
   if args.file is not None and \
      (not os.path.isfile(args.file) or not args.file.endswith('.idl')):
-    print 'ERR: Invalid file \'' + args.file + '\''
+    print('ERR: Invalid file \'' + args.file + '\'')
     sys.exit(1)
   if not os.path.exists(args.out_path):
     os.makedirs(args.out_path)
