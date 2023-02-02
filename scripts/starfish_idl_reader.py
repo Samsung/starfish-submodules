@@ -26,7 +26,7 @@ def CHECK_NOT_NONE(v, msg=""):
     raise RuntimeError(msg)
 
 def CHECK_HAS_LENGTH(v, msg=""):
-  if len(v) is 0:
+  if len(v) == 0:
     raise RuntimeError(msg)
 
 ##########################################################
@@ -640,6 +640,13 @@ class StarfishIDLReader():
                           _hd_extattr_transferable,
                           _hd_extattr_raise_expection,
                           _hd_extattr_exposed])
+      elif _is_class(child, 'Maplike'):
+        types = []
+        for node in child.GetChildren():
+          types.append(self._gen_ir_node(node))
+
+        IRUtils.set_prop_to_dict(result, 'maplike', types)
+        static_interface = False
     rs_except = result.pop('raises_exception', None)
     call_with = result.pop('_call_with', None)
     constructor = result.get('constructor')

@@ -109,6 +109,7 @@ def prerun_all(dir_path, file_alone=None):
   apply_types(result, result)
   # pprint.pprint(result, indent='2')
   if file_result:
+    apply_types(file_result, file_result)
     return result, file_result
   else:
     return result
