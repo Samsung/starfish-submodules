@@ -1,0 +1,6 @@
+[submodule "src/libwebrtc"]
+	path = src/libwebrtc
+	url = git@github.sec.samsung.net:mh-byun/libwebrtc.git
+[submodule "src/webrtc_tizen_tools"]
+	path = src/webrtc_tizen_tools
+	url = git@github.sec.samsung.net:f-project/webrtc_tizen_tools.git

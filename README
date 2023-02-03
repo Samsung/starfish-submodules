@@ -1,0 +1,114 @@
+Build the libwebrt
+
+1. Create the webrtc dir.
+
+ mkdir webrtc
+
+ cd webrtc
+
+2. Create .gclient of webrtc source
+
+solutions = [
+
+  {
+
+    "name"        : 'src',
+
+    "url"         : 'https://github.com/webrtc-sdk/webrtc.git@m104_release',
+
+    "deps_file"   : 'DEPS',
+
+    "managed"     : False,
+
+    "custom_deps" : {
+
+    },
+
+    "custom_vars": {},
+
+  },
+
+]
+
+target_os  = ['linux']
+
+3. Synchronize source code
+
+gclient sync
+
+4. Download the sysroot of tizen in 'src' dir
+
+cd src
+
+git clone https://github.sec.samsung.net/f-project/webrtc_tizen_tools.git
+
+cd webrtc_tizen_tools
+
+sysroot/build-rootfs.py --arch arm
+
+sysroot/build-rootfs.py --arch arm64
+
+sysroot/build-rootfs.py --arch x86
+
+5. Download the libwebrtc in 'src' dir
+
+cd ../
+
+git clone https://github.sec.samsung.net/f-project/libwebrtc.git
+
+6. Modify webrtc's src/BUILD.gn file and add libwebrtc to group("default").
+
+diff --git a/BUILD.gn b/BUILD.gn
+
+index 3ad9c97c31..a5c8e28d77 100644
+
+--- a/BUILD.gn
+
++++ b/BUILD.gn
+
+@@ -38,7 +38,7 @@ if (!build_with_chromium) {
+
+   # 'ninja default' and then 'ninja all', the second build should do no work.
+
+   group("default") {
+
+     testonly = true
+
+-    deps = [ ":webrtc" ]
+
++    deps = [ ":webrtc", "//libwebrtc:libwebrtc", ]
+
+     if (rtc_build_examples) {
+
+       deps += [ "examples" ]
+
+     }
+
+7. Create build project by gn, please replace the target_sysroot to the path of your tizen sysroot
+
+gn gen out/tizen_debug_arm --args='target_os="linux" target_cpu="arm" target_sysroot="/home/xuwc/work/flutter-tizen/webrtc/src/webrtc_tizen_tools/sysroot/arm" is_debug=true is_component_build=false rtc_include_tests=false arm_float_abi="softfp" rtc_use_pipewire=false ozone_platform_x11=false rtc_build_examples=false use_goma=false'
+
+gn gen out/tizen_release_arm --args='target_os="linux" target_cpu="arm" target_sysroot="/home/xuwc/work/flutter-tizen/webrtc/src/webrtc_tizen_tools/sysroot/arm" is_debug=false is_component_build=false rtc_include_tests=false arm_float_abi="softfp" rtc_use_pipewire=false ozone_platform_x11=false rtc_build_examples=false use_goma=false'
+
+gn gen out/tizen_debug_arm64 --args='target_os="linux" target_cpu="arm64" target_sysroot="/home/xuwc/work/flutter-tizen/webrtc/src/webrtc_tizen_tools/sysroot/arm64" is_debug=true is_component_build=false rtc_include_tests=false rtc_use_pipewire=false ozone_platform_x11=false rtc_build_examples=false use_goma=false'
+
+gn gen out/tizen_release_arm64 --args='target_os="linux" target_cpu="arm64" target_sysroot="/home/xuwc/work/flutter-tizen/webrtc/src/webrtc_tizen_tools/sysroot/arm64" is_debug=false is_component_build=false rtc_include_tests=false rtc_use_pipewire=false ozone_platform_x11=false rtc_build_examples=false use_goma=false'
+
+8. Build the libwebrtc
+
+ninja -C out/tizen_debug_arm libwebrtc
+
+ninja -C out/tizen_release_arm libwebrtc
+
+ninja -C out/tizen_debug_arm64 libwebrtc
+
+ninja -C out/tizen_release_arm64 libwebrtc
+
+
+
+
+------------------------------------------------------------------------------------------------------------
+Submodule info
+
+src/libwebrtc : git@github.sec.samsung.net:mh-byun/libwebrtc.git
+src/webrtc_tizen_tools : git@github.sec.samsung.net
