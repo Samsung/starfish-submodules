@@ -187,7 +187,7 @@ void bindUnscopables{{ name }}(ScriptBindingInstance* instance, ObjectRef* targe
 }
 {% endif %}
 
-{% if iterable %}
+{% if iterable or maplike %}
 {% if iterable|length == 1 %}
 static ValueRef* entriesFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
@@ -255,10 +255,10 @@ static ValueRef* forEachFunction(ExecutionStateRef* state, ValueRef* thisValue, 
 }
 
 {% else %}
-{% set isStringTypeKey = (iterable[0].name == 'DOMString' or iterable[0].name == 'ByteString' or iterable[0].name == 'USVString') %}
-{% set isStringTypeValue = (iterable[1].name == 'DOMString' or iterable[1].name == 'ByteString' or iterable[1].name == 'USVString') %}
-{% set keyType = 'Nullable<String*>' if isStringTypeKey else 'Nullable<' + iterable[0].name + '*>' %}
-{% set valueType = 'Nullable<String*>' if isStringTypeValue else 'Nullable<' + iterable[1].name + '*>' %}
+{% set types = iterable if iterable else maplike.types %}
+{% set keyType = util_macro.gen_type_str(types[0], True) %}
+{% set valueType = util_macro.gen_type_str(types[1], True) %}
+{% set valueTypeNonNullable = util_macro.gen_type_str(types[1], False) %}
 
 static ObjectRef* createPrototype(ExecutionStateRef* state)
 {
@@ -275,14 +275,24 @@ static ObjectRef* createPrototype(ExecutionStateRef* state)
 static ValueRef* entriesFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
     ContextRef* context = state->context();
-    IterationSource<Nullable<String*>, Nullable<String*>>* iterationSource = originalObj->startIteration(state);
+    IterationSource<Nullable<String*>, {{ valueType }}>* iterationSource = originalObj->startIteration(state);
     GenericIteratorObjectRef* genericIter = GenericIteratorObjectRef::create(state, [](ExecutionStateRef* state, void* data) -> std::pair<ValueRef*, bool> {
-            IterationSource<Nullable<String*>, Nullable<String*>>* iterationSource = static_cast<IterationSource<Nullable<String*>, Nullable<String*>>*> (data);
-            Nullable<String*> key, value;
+            IterationSource<Nullable<String*>, {{ valueType }}>* iterationSource = static_cast<IterationSource<Nullable<String*>, {{ valueType }}>*> (data);
+            Nullable<String*> key;
+            {{ valueType }} value;
             if (iterationSource->next(state, key, value) && key.hasValue() && value.hasValue()) {
                 ArrayObjectRef* arrayObj = ArrayObjectRef::create(state);
+                // Set key
                 arrayObj->set(state, ValueRef::create(0), ValueRef::create(toJSString(key.value())));
+
+                // Set Value
+                {% if valueType == 'Nullable<String*>' %}
                 arrayObj->set(state, ValueRef::create(1), ValueRef::create(toJSString(value.value())));
+                {% elif valueType == 'Nullable<ScriptValue>' %}
+                arrayObj->set(state, ValueRef::create(1), value.value());
+                {% else %}
+                arrayObj->set(state, ValueRef::create(1), value.value()->scriptValue());
+                {% endif %}
                 return std::make_pair(arrayObj, false);
             }
             return std::make_pair(ValueRef::createUndefined(), true);
@@ -294,11 +304,13 @@ static ValueRef* entriesFunction(ExecutionStateRef* state, ValueRef* thisValue, 
 static ValueRef* keysFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
     ContextRef* context = state->context();
-    IterationSource<Nullable<String*>, Nullable<String*>>* iterationSource = originalObj->startIteration(state);
+    IterationSource<Nullable<String*>, {{ valueType }}>* iterationSource = originalObj->startIteration(state);
     GenericIteratorObjectRef* genericIter = GenericIteratorObjectRef::create(state, [](ExecutionStateRef* state, void* data) -> std::pair<ValueRef*, bool> {
-            IterationSource<Nullable<String*>, Nullable<String*>>* iterationSource = static_cast<IterationSource<Nullable<String*>, Nullable<String*>>*> (data);
-            Nullable<String*> key, value;
+            IterationSource<Nullable<String*>, {{ valueType }}>* iterationSource = static_cast<IterationSource<Nullable<String*>, {{ valueType }}>*> (data);
+            Nullable<String*> key;
+            {{ valueType }} value;
             if (iterationSource->next(state, key, value) && key.hasValue()) {
+                // Set key
                 return std::make_pair(ValueRef::create(toJSString(key.value())), false);
             }
             return std::make_pair(ValueRef::createUndefined(), true);
@@ -311,12 +323,20 @@ static ValueRef* keysFunction(ExecutionStateRef* state, ValueRef* thisValue, siz
 static ValueRef* valuesFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
     ContextRef* context = state->context();
-    IterationSource<Nullable<String*>, Nullable<String*>>* iterationSource = originalObj->startIteration(state);
+    IterationSource<Nullable<String*>, {{ valueType }}>* iterationSource = originalObj->startIteration(state);
     GenericIteratorObjectRef* genericIter = GenericIteratorObjectRef::create(state, [](ExecutionStateRef* state, void* data) -> std::pair<ValueRef*, bool> {
-            IterationSource<Nullable<String*>, Nullable<String*>>* iterationSource = static_cast<IterationSource<Nullable<String*>, Nullable<String*>>*> (data);
-            Nullable<String*> key, value;
+            IterationSource<Nullable<String*>, {{ valueType }}>* iterationSource = static_cast<IterationSource<Nullable<String*>, {{ valueType }}>*> (data);
+            Nullable<String*> key;
+            {{ valueType }} value;
             if (iterationSource->next(state, key, value) && value.hasValue()) {
+                // Set Value
+                {% if valueType == 'Nullable<String*>' %}
                 return std::make_pair(ValueRef::create(toJSString(value.value())), false);
+                {% elif valueType == 'Nullable<ScriptValue>' %}
+                return std::make_pair(value.value(), false);
+                {% else %}
+                return std::make_pair(value.value()->scriptValue(), false);
+                {% endif %}
             }
             return std::make_pair(ValueRef::createUndefined(), true);
 
@@ -351,19 +371,21 @@ static ValueRef* forEachFunction(ExecutionStateRef* state, ValueRef* thisValue, 
         if (!k.hasValue()) {
             funcArgv[1] = ValueRef::createNull();
         } else {
-        {% if isStringTypeKey %}
-            funcArgv[1] = createScriptString(k.getValue());
+        {% if keyType == 'Nullable<String*>' %}
+            funcArgv[1] = createScriptString(k.value());
         {% else %}
-            funcArgv[1] = k.getValue()->scriptValue();
+            funcArgv[1] = k.value()->scriptValue();
         {% endif %}
         }
         if (!v.hasValue()) {
             funcArgv[0] = ValueRef::createNull();
         } else {
-        {% if isStringTypeValue %}
-            funcArgv[0] = createScriptString(v.getValue());
+        {% if valueType == 'Nullable<String*>' %}
+            funcArgv[0] = createScriptString(v.value());
+        {% elif valueType == 'Nullable<ScriptValue>' %}
+            funcArgv[0] = v.value();
         {% else %}
-            funcArgv[0] = v.getValue()->scriptValue();
+            funcArgv[0] = v.value()->scriptValue();
         {% endif %}
         }
 
@@ -415,6 +437,173 @@ void bindIterable{{ name }}(ScriptBindingInstance* instance, ObjectRef* targetOb
 }
 {% endif %}
 
+{% if maplike %}
+static ValueRef* getFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression)
+{
+    GENERATE_THIS_AND_CHECK_TYPE({{name}});
+    size_t argCount = argc;
+    if (argCount < 1) {
+        char buffer[2];
+        snprintf(buffer, 2, "%zu", argCount);
+        COMPOSE_MESSAGE(reason, ARGS_NOT_ENOUGH, "1", buffer);
+        COMPOSE_MESSAGE(msg, FAILED_TO_EXECUTE, "get", "{{name}}", reason);
+        THROW_EXCEPTION(msg);
+    }
+
+    ValueRef* arg0 = argv[0];
+    String* value0 = String::emptyString;
+    value0 = toBrowserString(state, arg0);
+
+    {{ valueType }} result;
+
+    result = originalObj->get(value0);
+
+    if (!result.hasValue()) {
+        return ValueRef::createNull();
+    }
+
+    {% if valueType == 'Nullable<String*>' %}
+    return createScriptString(result.value());
+    {% elif valueType == 'Nullable<ScriptValue>' %}
+    return result.value();
+    {% else %}
+    return result.value()->scriptValue();
+    {% endif %}
+}
+
+static ValueRef* hasFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression)
+{
+    GENERATE_THIS_AND_CHECK_TYPE({{name}});
+    size_t argCount = argc;
+    if (argCount < 1) {
+        char buffer[2];
+        snprintf(buffer, 2, "%zu", argCount);
+        COMPOSE_MESSAGE(reason, ARGS_NOT_ENOUGH, "1", buffer);
+        COMPOSE_MESSAGE(msg, FAILED_TO_EXECUTE, "has", "{{name}}", reason);
+        THROW_EXCEPTION(msg);
+    }
+
+    ValueRef* arg0 = argv[0];
+    String* value0 = String::emptyString;
+    value0 = toBrowserString(state, arg0);
+
+    bool result = false;
+    result = originalObj->has(value0);
+
+    return ValueRef::create(result);
+}
+
+{% if maplike.readonly == false %}
+static ValueRef* setFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression)
+{
+    GENERATE_THIS_AND_CHECK_TYPE({{name}});
+    size_t argCount = argc;
+    if (argCount < 2) {
+        char buffer[2];
+        snprintf(buffer, 2, "%zu", argCount);
+        COMPOSE_MESSAGE(reason, ARGS_NOT_ENOUGH, "2", buffer);
+        COMPOSE_MESSAGE(msg, FAILED_TO_EXECUTE, "set", "{{name}}", reason);
+        THROW_EXCEPTION(msg);
+    }
+
+    ValueRef* arg0 = argv[0];
+    ValueRef* arg1 = argv[1];
+
+    String* key = String::emptyString;
+    key = toBrowserString(state, arg0);
+
+    {{ valueTypeNonNullable }} value;
+    {% if valueTypeNonNullable == 'String*' %}
+    value = toBrowserString(state, arg1);
+    {% elif valueTypeNonNullable == 'ScriptValue' %}
+    value = arg1;
+    {% else %}
+    CHECK_TYPEOF(arg1, {{ valueTypeNonNullable }});
+    value = {{ valueTypeNonNullable }}(arg1->asObject()->extraData());
+    {% endif %}
+
+    originalObj->set(key, value);
+
+    return ValueRef::createUndefined();
+}
+
+static ValueRef* deleteFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression)
+{
+    GENERATE_THIS_AND_CHECK_TYPE({{name}});
+    size_t argCount = argc;
+    if (argCount < 1) {
+        char buffer[2];
+        snprintf(buffer, 2, "%zu", argCount);
+        COMPOSE_MESSAGE(reason, ARGS_NOT_ENOUGH, "1", buffer);
+        COMPOSE_MESSAGE(msg, FAILED_TO_EXECUTE, "delete", "{{name}}", reason);
+        THROW_EXCEPTION(msg);
+    }
+ 
+    ValueRef* arg0 = argv[0];
+    String* value0 = String::emptyString;
+    value0 = toBrowserString(state, arg0);
+
+    bool result = false;
+    result = originalObj->deleteItem(value0);
+
+    return ValueRef::create(result);
+}
+
+
+static ValueRef* clearFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression)
+{
+    GENERATE_THIS_AND_CHECK_TYPE({{name}});
+
+    originalObj->clear();
+
+    return ValueRef::createUndefined();
+}
+
+{% endif %}
+void bindMaplike{{ name }}(ScriptBindingInstance* instance, ObjectRef* targetObject)
+{
+    ContextRef* context = instance->scriptContext();
+    Evaluator::execute(context, [](ExecutionStateRef* state, ScriptBindingInstance* instance, ObjectRef* targetObject) -> ValueRef* {
+        ContextRef* context = instance->scriptContext();
+        FunctionObjectRef* getFn = FunctionObjectRef::create(state,
+            FunctionObjectRef::NativeFunctionInfo(AtomicStringRef::create(context, "get"), getFunction, 1, true, false));
+        FunctionObjectRef* hasFn = FunctionObjectRef::create(state,
+            FunctionObjectRef::NativeFunctionInfo(AtomicStringRef::create(context, "has"), hasFunction, 1, true, false));
+        {% if maplike.readonly == False %}
+        FunctionObjectRef* setFn = FunctionObjectRef::create(state,
+            FunctionObjectRef::NativeFunctionInfo(AtomicStringRef::create(context, "set"), setFunction, 2, true, false));
+        FunctionObjectRef* deleteFn = FunctionObjectRef::create(state,
+            FunctionObjectRef::NativeFunctionInfo(AtomicStringRef::create(context, "delete"), deleteFunction, 1, true, false));
+        FunctionObjectRef* clearFn = FunctionObjectRef::create(state,
+            FunctionObjectRef::NativeFunctionInfo(AtomicStringRef::create(context, "clear"), clearFunction, 0, true, false));
+        {% endif %}
+        targetObject->defineDataProperty(state,
+                ValueRef::create(StringRef::createFromASCII("get")),
+                ValueRef::create(getFn),
+                true, true, true);
+        targetObject->defineDataProperty(state,
+                ValueRef::create(StringRef::createFromASCII("has")),
+                ValueRef::create(hasFn),
+                true, true, true);
+        {% if maplike.readonly == False %}
+        targetObject->defineDataProperty(state,
+                ValueRef::create(StringRef::createFromASCII("set")),
+                ValueRef::create(setFn),
+                true, true, true);
+        targetObject->defineDataProperty(state,
+                ValueRef::create(StringRef::createFromASCII("delete")),
+                ValueRef::create(deleteFn),
+                true, true, true);
+        targetObject->defineDataProperty(state,
+                ValueRef::create(StringRef::createFromASCII("clear")),
+                ValueRef::create(clearFn),
+                true, true, true);
+        {% endif %}
+        return ValueRef::createUndefined();
+    }, instance, targetObject);
+}
+
+{% endif %}
 FunctionObjectRef* binding{{ name }}(
     ScriptBindingInstance* scriptBindingInstance)
 {
@@ -428,8 +617,11 @@ FunctionObjectRef* binding{{ name }}(
         {% if has_unscopable %}
         bindUnscopables{{ name }}(scriptBindingInstance, targetObject);
         {% endif %}
-        {% if iterable %}
+        {% if iterable or maplike %}
         bindIterable{{ name }}(scriptBindingInstance, targetObject);
+        {% endif %}
+        {% if maplike %}
+        bindMaplike{{ name }}(scriptBindingInstance, targetObject);
         {% endif %}
         {{ bind_common(condition_binding_fn) }}
         return {{ name }}Function;

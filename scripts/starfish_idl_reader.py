@@ -210,7 +210,7 @@ class StarfishIDLReader():
     return result
 
   def _gen_ir_dictionary(self, node):
-    # print dump_node(node)
+    # print(dump_node(node))
     result = _gen_basic_named(node)
     IRUtils.set_prop_to_dict(result, 'unimplemented', self.treat_as_unimpl)
     keys = []
@@ -258,7 +258,7 @@ class StarfishIDLReader():
     return result
 
   def _gen_ir_type(self, node):
-    # print dump_node(node)
+    # print(dump_node(node))
     result = {}
     _set_boolean_prop(result, node, 'NULLABLE', 'nullable')
     for child in node.GetChildren():
@@ -307,7 +307,7 @@ class StarfishIDLReader():
     return result
 
   def _gen_ir_argument(self, node):
-    # print dump_node(node)
+    # print(dump_node(node))
     result = _gen_basic_named(node)
     _set_boolean_prop(result, node, 'OPTIONAL', 'optional')
     for child in node.GetChildren():
@@ -360,7 +360,7 @@ class StarfishIDLReader():
     return result
 
   def _gen_ir_attribute(self, node):
-    # print dump_node(node)
+    # print(dump_node(node))
     result = _gen_basic_named(node)
     _set_boolean_prop(result, node, 'INHERIT', 'inherit')
     IRUtils.set_prop_to_dict(result, 'unimplemented', self.treat_as_unimpl)
@@ -566,7 +566,7 @@ class StarfishIDLReader():
       sys.exit(1)
 
   def _gen_ir_interface(self, node):
-    # print dump_node(node)
+    # print(dump_node(node))
     result = _gen_basic_named(node)
     partial = node.GetProperty('Partial')
     if partial:
@@ -641,11 +641,14 @@ class StarfishIDLReader():
                           _hd_extattr_raise_expection,
                           _hd_extattr_exposed])
       elif _is_class(child, 'Maplike'):
+        maplike = {}
         types = []
         for node in child.GetChildren():
           types.append(self._gen_ir_node(node))
+        IRUtils.set_prop_to_dict(maplike, 'types', types)
+        IRUtils.set_prop_to_dict(maplike, 'readonly', child.GetProperties().get('READONLY', False))
+        IRUtils.set_prop_to_dict(result, 'maplike', maplike)
 
-        IRUtils.set_prop_to_dict(result, 'maplike', types)
         static_interface = False
     rs_except = result.pop('raises_exception', None)
     call_with = result.pop('_call_with', None)
@@ -670,14 +673,14 @@ class StarfishIDLReader():
     return result
 
   def _gen_ir_implements(self, node):
-    # print dump_node(node)
+    # print(dump_node(node))
     result = _gen_basic_named(node)
     IRUtils.set_prop_to_dict(result, 'refer_name', node.GetProperty('REFERENCE'))
     self.implements.append(result)
     return result
 
   def _gen_ir_node(self, node):
-    # print dump_node(node)
+    # print(dump_node(node))
     class_name = node.GetClass().lower()
     func_name = '_gen_ir_' + class_name
     try:
