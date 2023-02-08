@@ -36,6 +36,7 @@
 | decriptor | [Descriptor Object](#descriptor-object)<br>*Ref: DOMTokenList.idl, HTMLCollection.idl, NamedNodeMap.idl* |
 | serializer | [Serializer Object](#serializer-object)<br>*Ref: DOMQuad.idl* |
 | iterable | [Type Object](#type-object)<br>*Ref: DOMTokenList.idl* |
+| maplike | [Maplike Object](#maplike-object)<br>*Ref: RTCStatsReport.idl* |
 | HTMLConstructor | `Boolean` |
 | primary_global | `Boolean`<br>*Ref: Window.idl* |
 | flags | `Set` of [Flags](#flags)<br>STARFISH_* |
@@ -196,6 +197,12 @@ Extend [Type Object](#type-object)
 | indexed_deleter | [Operation Object](#operation-object) |
 | named_deleter | [Operation Object](#operation-object) |
 | custom | `Boolean` |
+
+## Maplike Object
+| Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |
+| ----- | ----- |
+| **types** | [Type Objects](#type-object) |
+| readonly | `Boolean` |
 
 ## Serializer Object
 (TBD)
