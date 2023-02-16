@@ -9,6 +9,8 @@
 
 #include "StarfishConfig.h"
 
+#define STR(R) #R
+
 using namespace Escargot;
 
 namespace DeviceAPI {
@@ -103,19 +105,19 @@ wrt::xwalk::Extension* ExtensionManagerInstance::getExtension(
         char library_path[512];
         if (strcmp(apiName, "tizen") == 0) {
             snprintf(library_path, 512,
-                     "/usr/lib/tizen-extensions-crosswalk/libtizen.so");
+                     STR(LIBDIR)"/tizen-extensions-crosswalk/libtizen.so");
         } else if (strcmp(apiName, "sensorservice") == 0) {
             snprintf(library_path, 512,
-                     "/usr/lib/tizen-extensions-crosswalk/libtizen_sensor.so");
+                     STR(LIBDIR)"/tizen-extensions-crosswalk/libtizen_sensor.so");
         } else if (strcmp(apiName, "webapis") == 0) {
             snprintf(library_path, 512,
-                     "/usr/lib/tizen-extensions-crosswalk/libwebapis.so");
+                     STR(LIBDIR)"/tizen-extensions-crosswalk/libwebapis.so");
         } else if (strcmp(apiName, "sa") == 0) {
             snprintf(library_path, 512,
-                     "/usr/lib/tizen-extensions-crosswalk/libwebapis_sa.so");
+                     STR(LIBDIR)"/tizen-extensions-crosswalk/libwebapis_sa.so");
         } else {
             snprintf(library_path, 512,
-                     "/usr/lib/tizen-extensions-crosswalk/libtizen_%s.so",
+                     STR(LIBDIR)"/tizen-extensions-crosswalk/libtizen_%s.so",
                      apiName);
         }
         wrt::xwalk::Extension* extension =

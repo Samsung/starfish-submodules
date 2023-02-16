@@ -16,12 +16,14 @@
 #include "StarfishConfig.h"
 #include "TizenDeviceAPILoaderForEscargot.h"
 
+#define STR(R) #R
+
 namespace wrt {
 namespace xwalk {
 
     namespace {
         // TODO: need to cleanup
-        const char kExtensionDir[] = "/usr/lib/wrt-plugins-widget";
+        const char kExtensionDir[] = STR(LIBDIR)"/wrt-plugins-widget";
         const char kExtensionPrefix[] = "lib";
         const char kExtensionSuffix[] = ".so";
         const char kExtensionMetadataSuffix[] = ".json";
