@@ -137,11 +137,11 @@ lws_ssl_client_bio_create(struct lws *wsi)
 			alpn_comma = hostname;
 	}
 
-	lwsl_info("%s: %s: client conn sending ALPN list '%s'\n",
-		  __func__, lws_wsi_tag(wsi), alpn_comma);
-
 	protos.len = (uint8_t)lws_alpn_comma_to_openssl(alpn_comma, protos.data,
 					       sizeof(protos.data) - 1);
+
+	lwsl_info("%s: %s: client conn sending ALPN list '%s' (protos.len %d)\n",
+		  __func__, lws_wsi_tag(wsi), alpn_comma, protos.len);
 
 	/* with mbedtls, protos is not pointed to after exit from this call */
 	SSL_set_alpn_select_cb(wsi->tls.ssl, &protos);
@@ -272,7 +272,8 @@ lws_tls_client_connect(struct lws *wsi, char *errbuf, size_t elen)
 	if (!n) /* we don't know what he wants, but he says to retry */
 		return LWS_SSL_CAPABLE_MORE_SERVICE;
 
-	if (m == SSL_ERROR_SYSCALL && !en)
+	if (m == SSL_ERROR_SYSCALL && !en && n >= 0) /* otherwise we miss explicit failures and spin
+						      * in hs state 17 until timeout... */
 		return LWS_SSL_CAPABLE_MORE_SERVICE;
 
 	lws_snprintf(errbuf, elen, "mbedtls connect %d %d %d", n, m, en);

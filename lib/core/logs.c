@@ -242,6 +242,16 @@ lwsl_timestamp(int level, char *p, size_t len)
 			n = lws_snprintf(p, len, "[%llu:%04d] %c: ",
 					(unsigned long long) now / 10000,
 					(int)(now % 10000), log_level_names[n]);
+
+#if defined(LWS_PLAT_FREERTOS)
+		n += lws_snprintf(p + n, len - n, "%6u: ",
+#if defined(LWS_AMAZON_RTOS)
+				  (unsigned int)xPortGetFreeHeapSize());
+#else
+				  (unsigned int)esp_get_free_heap_size());
+#endif
+#endif
+
 		return n;
 	}
 #else
@@ -506,8 +516,23 @@ int lwsl_visible_cx(lws_log_cx_t *cx, int level)
 void
 lwsl_refcount_cx(lws_log_cx_t *cx, int _new)
 {
+#if LWS_MAX_SMP > 1
+	volatile lws_log_cx_t *vcx = (volatile lws_log_cx_t *)cx;
+#endif
+
 	if (!cx)
 		return;
+
+#if LWS_MAX_SMP > 1
+	if (!vcx->inited) {
+		vcx->inited = 1;
+		lws_pthread_mutex_init(&cx->refcount_lock);
+		vcx->inited = 2;
+	}
+	while (vcx->inited != 2)
+		;
+	lws_pthread_mutex_lock(&cx->refcount_lock);
+#endif
 
 	if (_new > 0)
 		cx->refcount++;
@@ -518,6 +543,10 @@ lwsl_refcount_cx(lws_log_cx_t *cx, int _new)
 
 	if (cx->refcount_cb)
 		cx->refcount_cb(cx, _new);
+
+#if LWS_MAX_SMP > 1
+	lws_pthread_mutex_unlock(&cx->refcount_lock);
+#endif
 }
 
 void
