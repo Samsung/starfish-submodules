@@ -1,6 +1,6 @@
 Name:       libwebsockets
 Summary:    WebSocket Library
-Version:    4.3.stable
+Version:    4.3.2
 Release:    0
 Group:      System/Libraries
 License:    MIT with exceptions

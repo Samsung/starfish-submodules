@@ -136,6 +136,7 @@ const uint32_t ss_state_txn_validity[] = {
 
 	[LWSSSCS_POLL]			= (1 << LWSSSCS_CONNECTING) |
 					  (1 << LWSSSCS_TIMEOUT) |
+					  (1 << LWSSSCS_ALL_RETRIES_FAILED) |
 					  (1 << LWSSSCS_DESTROYING),
 
 	[LWSSSCS_ALL_RETRIES_FAILED]	= (1 << LWSSSCS_CONNECTING) |
@@ -146,11 +147,16 @@ const uint32_t ss_state_txn_validity[] = {
 					  (1 << LWSSSCS_TIMEOUT) |
 #if defined(LWS_ROLE_MQTT)
 					  (1 << LWSSSCS_QOS_ACK_REMOTE) |
+					  (1 << LWSSSCS_QOS_NACK_REMOTE) |
 #endif
 					  (1 << LWSSSCS_DESTROYING),
 
 	[LWSSSCS_QOS_NACK_REMOTE]	= (1 << LWSSSCS_DISCONNECTED) |
 					  (1 << LWSSSCS_TIMEOUT) |
+#if defined(LWS_ROLE_MQTT)
+					  (1 << LWSSSCS_QOS_ACK_REMOTE) |
+					  (1 << LWSSSCS_QOS_NACK_REMOTE) |
+#endif
 					  (1 << LWSSSCS_DESTROYING),
 
 	[LWSSSCS_QOS_ACK_LOCAL]		= (1 << LWSSSCS_DISCONNECTED) |
@@ -614,7 +620,7 @@ lws_smd_ss_cb(void *opaque, lws_smd_class_t _class,
 	lws_ser_wu64be(p + 8, (uint64_t)timestamp);
 
 	if (h->info.rx)
-		h->info.rx((void *)&h[1], p, len + LWS_SMD_SS_RX_HEADER_LEN,
+		h->info.rx((void *)(h + 1), p, len + LWS_SMD_SS_RX_HEADER_LEN,
 		      LWSSS_FLAG_SOM | LWSSS_FLAG_EOM);
 
 	return 0;
@@ -634,7 +640,7 @@ lws_ss_smd_tx_cb(lws_sorted_usec_list_t *sul)
 	if (!h->info.tx)
 		return;
 
-	n = h->info.tx(&h[1], h->txord++, buf, &len, &flags);
+	n = h->info.tx((h + 1), h->txord++, buf, &len, &flags);
 	if (n)
 		/* nonzero return means don't want to send anything */
 		return;
@@ -1072,7 +1078,7 @@ lws_ss_create(struct lws_context *context, int tsi, const lws_ss_info_t *ssi,
 		h->proxy_onward = 1;
 
 	/* start of overallocated area */
-	p = (char *)&h[1];
+	p = (char *)(h + 1);
 
 	/* set the handle pointer in the user data struct */
 	v = (void **)(p + ssi->handle_offset);
@@ -1350,7 +1356,7 @@ fail_creation:
 void *
 lws_ss_to_user_object(struct lws_ss_handle *h)
 {
-	return (void *)&h[1];
+	return (void *)(h + 1);
 }
 
 void
@@ -1617,9 +1623,12 @@ _lws_ss_request_tx(lws_ss_handle_t *h)
 		return LWSSSSRET_OK;
 
 	h->seqstate = SSSEQ_TRY_CONNECT;
-	r = lws_ss_event_helper(h, LWSSSCS_POLL);
-	if (r)
-		return r;
+	if (h->prev_ss_state != LWSSSCS_POLL) { /* possible if we were created
+						 * before we could action it */
+		r = lws_ss_event_helper(h, LWSSSCS_POLL);
+		if (r)
+			return r;
+	}
 
 	/*
 	 * Retries operate via lws_ss_request_tx(), explicitly ask for a
