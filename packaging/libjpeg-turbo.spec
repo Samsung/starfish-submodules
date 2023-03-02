@@ -2,7 +2,7 @@
 
 Name:           libjpeg-turbo
 Version:        2.1.4
-Release:        0
+Release:        1
 Summary:        A MMX/SSE2 accelerated library for manipulating JPEG image files
 License:        BSD License (BSD 3-clause, Historic Permission Notice and Disclaimer, libjpeg License)
 Group:          Graphics & UI Framework/Libraries
@@ -75,12 +75,11 @@ rm %{buildroot}%{_bindir}/*
 
 # Remove docs, we'll select docs manually
 rm -rf %{buildroot}%{_datadir}/doc/
+rm -rf %{buildroot}%{_mandir}/man1/
 
 %post -n libjpeg -p /sbin/ldconfig
 
 %postun -n libjpeg -p /sbin/ldconfig
-
-%docs_package
 
 %files
 %manifest %{name}.manifest
