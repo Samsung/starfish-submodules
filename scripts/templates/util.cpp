@@ -192,30 +192,32 @@ ScriptObject
 {{ gen_type_str(seq, False) }} {{ vector_name }};
 {% endif %}
 if (!{{ aname }}->isUndefinedOrNull()) {
-int {{ aname }}Size = (int){{ aname }}->asObject()->get(state, ValueRef::create(StringRef::createFromASCII("length")))->toNumber(state);
-for (int i = 0; i < {{ aname }}Size; i++) {
-    {% set use_nullable = is_non_nullable_type(seq.data.kind) and seq.data.nullable %}
-    {% set type_exp = gen_type_str(seq.data, use_nullable) %}
-    {% if seq.data.kind.startswith('SequenceOf') %}
-    DOES NOT SUPPORT NESTED SEQUENCE YET !! (PLEASE USE `CUSTOM`)
-    {% endif %}
-    ValueRef* itemJS = {{ aname }}->asObject()->get(state, ValueRef::create(i));
-    {% if seq.data.kind in pointer_type_kinds %}
-    {{type_exp}} itemNV = nullptr;
-    {% else %}
-    {{type_exp}} itemNV;
-    {% endif %}
-    {% if seq.data.nullable %}
-    if (!itemJS->isUndefinedOrNull()) {
+    int {{ aname }}Size = (int){{ aname }}->asObject()->get(state, ValueRef::create(StringRef::createFromASCII("length")))->toNumber(state);
+    for (int i = 0; i < {{ aname }}Size; i++) {
+        {% set use_nullable = is_non_nullable_type(seq.data.kind) and seq.data.nullable %}
+        {% set type_exp = gen_type_str(seq.data, use_nullable) %}
+        {% if seq.data.kind.startswith('SequenceOf') %}
+        DOES NOT SUPPORT NESTED SEQUENCE YET !! (PLEASE USE `CUSTOM`)
+        {% endif %}
+        ValueRef* itemJS = {{ aname }}->asObject()->get(state, ValueRef::create(i));
+        {% if seq.data.kind in pointer_type_kinds %}
+        {{type_exp}} itemNV = nullptr;
+        {% else %}
+        {{type_exp}} itemNV;
+        {% endif %}
+        {% if seq.data.nullable %}
+        if (!itemJS->isUndefinedOrNull()) {
+            {{ gen_check_type_exception(seq.data, 'itemJS')|trim }}
+            itemNV = {{gen_esvalue_to_native(seq.data, 'itemJS')}};
+        }
+        {% else %}
         {{ gen_check_type_exception(seq.data, 'itemJS')|trim }}
         itemNV = {{gen_esvalue_to_native(seq.data, 'itemJS')}};
+        {% endif %}
+        {{vector_name}}.push_back(itemNV);
     }
-    {% else %}
-    {{ gen_check_type_exception(seq.data, 'itemJS')|trim }}
-    itemNV = {{gen_esvalue_to_native(seq.data, 'itemJS')}};
-    {% endif %}
-    {{vector_name}}.push_back(itemNV);
-}
+} else if ({{ aname }}->isNull()) {
+    THROW_EXCEPTION(ILLEGAL_INVOKE);
 }
 {% if seq.nullable %}
 {{ vname }} = {{ vector_name }};
