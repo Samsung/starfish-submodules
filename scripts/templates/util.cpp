@@ -299,8 +299,9 @@ if (!std::isfinite({{names.vname}})) {
     COMPOSE_MESSAGE(msg, FAILED_TO_EXECUTE, "{{names.fname}}", "{{names.name}}", reason);
     THROW_EXCEPTION(msg);
             {% elif names.kname %}
-    // Not implemented for restricted number for dictionary
-    STARFISH_ASSERT_NOT_REACHED();
+    COMPOSE_MESSAGE(reason, ARG_TYPE_IS_NONFINITE);
+    COMPOSE_MESSAGE(msg, FAILED_TO_SET_PROPERTY, "{{names.attrname}}", "{{names.name}}", reason);
+    THROW_EXCEPTION(msg);
             {% else %}
     COMPOSE_MESSAGE(reason, ARG_TYPE_IS_NONFINITE);
     COMPOSE_MESSAGE(msg, FAILED_TO_CONSTRUCT, "{{names.name}}", reason);
@@ -342,6 +343,8 @@ if (!std::isfinite({{names.vname}})) {
             {% else %}
     {{ '%s %s = %s;'|format(type_exp, names.vname, arg.default) }}
             {% endif %}
+        {% elif arg.type.kind.startswith('SequenceOf') and arg.default == '[]' %}
+    {{ '%s %s = {};'|format(type_exp, names.vname) }}
         {% else %}
     {{ '%s %s = %s;'|format(type_exp, names.vname, arg.default) }}
         {% endif %}
@@ -412,8 +415,13 @@ if (!std::isfinite({{names.vname}})) {
     if (!{{ names.aname }}->isUndefinedOrNull()) {
         {{ assign_exp_with_check|indent(8) }}
     }
+        {%- elif names.kname and not arg.default and not check_type %}
+        {# '(6) In dictionary, No-DefaultValue + No-CheckType #}
+    if (!{{ names.aname }}->isUndefined()) {
+         {{ assign_exp_with_check|indent(8) }}
+    }
         {%- else %}
-        {# '(6) Non-optional + Non-Nullable (RefTypes)' #}
+        {# '(7) Non-optional + Non-Nullable (RefTypes)' #}
     {{ assign_exp_with_check|indent(4) }}
         {% endif %}
     {% endif %}

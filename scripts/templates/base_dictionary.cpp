@@ -80,10 +80,12 @@ namespace Starfish {
                     'aname': 'arg%d'|format(loop.index - 1), 'vname': 'value%d'|format(loop.index - 1)} %}
     {{ util_macro.handle_arg(key, names)|trim }}
        {% if not key.default %}
+    // Set value if arg is not Undefined, because it hasn't a default value.
     if (!{{ names.aname }}->isUndefined()) {
         result.set{{util_macro.gen_attr_name(key)|first_word_capitalize}}({{'value%d'|format(loop.index - 1)}});
     }
         {% else %}
+    // Always set value because it has a default value.
     result.set{{util_macro.gen_attr_name(key)|first_word_capitalize}}({{'value%d'|format(loop.index - 1)}});
         {% endif %}
     {% endif %}
