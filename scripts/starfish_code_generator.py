@@ -79,14 +79,14 @@ def generate_code_with_template(ir, out_name, template, args):
   with open(os.path.join(binding_path, out_name), 'w') as w:
     ret = template.render(**ir)
     w.write(ret)
-    print(("> Generated Code \"{}\"".format(out_name)))
+    print("> Generated Code \"{}\"".format(out_name))
     # print(ret)
 
   if args.log_idl:
     path = ir['name'] + 'Idl' + IR_EXT
     with open(os.path.join(binding_path, path), 'w') as w:
       w.write(pprint.pformat(ir))
-      print(("Logged IR to \"{}\"".format(path)))
+      print("Logged IR to \"{}\"".format(path))
 
 def prerun_all(dir_path, file_alone=None):
   result = {}
@@ -104,7 +104,7 @@ def prerun_all(dir_path, file_alone=None):
       ir = gen_ir_from_file(file_path)
       merge_irs(result, ir)
       if file_path == file_alone:
-        print(("Generated IR from {}".format(file_path)))
+        print("Generated IR from {}".format(file_path))
         file_result = ir
   apply_types(result, result)
   # pprint.pprint(result, indent='2')
@@ -132,7 +132,7 @@ def filter_to_argument_syntax(prefix, start, end):
   return result
 
 def filter_first_word_capitalize(word):
-  if not (isinstance(word, str) or isinstance(word, str)):
+  if not (isinstance(word, str) or isinstance(word, unicode)):
     return word
 
   if len(word) == 0:
