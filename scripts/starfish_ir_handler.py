@@ -71,6 +71,13 @@ class StarfishIRHandler():
       self._change_types(type_ir, 'data', unimpl)
     elif str(kind).startswith('SequenceOf'):
       self._change_types(type_ir, 'data', unimpl)
+    elif kind == 'Dictionary' and name in self.dictionaries:
+      # After the type_ir is handled in line 44 first time, the kind is changed
+      # from 'Typeref' to 'Dictionary', so from then on we have to check whether
+      # the kind is a dictionary.
+      dictionary = self.dictionaries[name]
+      if not unimpl:
+        self._add_used_dictionary(dictionary)
 
   def _udpate_has_exception(self, op):
     if op.get('raises_exception'):
