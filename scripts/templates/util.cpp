@@ -148,7 +148,7 @@ ScriptObject
             {{- '%s->toBoolean(state)'|format(aname) -}}
         {% elif type.name in ['long', 'short'] %}
             {{- '%s->toInt32(state)'|format(aname) -}}
-        {% elif type.name in ['unsigned long', 'unsigned short'] %}
+        {% elif type.name in ['octet', 'unsigned long', 'unsigned short'] %}
             {{- '%s->toUint32(state)'|format(aname) -}}
         {% elif type.name in ['unsigned long long', 'long long', 'float', 'double'] %}
             {{- '%s->toNumber(state)'|format(aname) -}}
