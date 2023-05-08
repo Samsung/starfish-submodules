@@ -507,7 +507,7 @@ build_man_docs: $(MANDOCS1) $(MANDOCS3) $(MANDOCS5) $(MANDOCS7)
 build_html_docs: $(HTMLDOCS1) $(HTMLDOCS3) $(HTMLDOCS5) $(HTMLDOCS7)
 
 build_generated: $(GENERATED_MANDATORY)
-build_libs_nodep: libcrypto.pc libssl.pc openssl.pc
+build_libs_nodep: libcrypto3.pc libssl3.pc openssl3.pc
 build_modules_nodep: $(MODULES)
 build_programs_nodep: $(PROGRAMS) $(SCRIPTS)
 
@@ -590,7 +590,7 @@ clean: libclean
 	$(RM) tags TAGS doc-nits md-nits
 	$(RM) -r test/test-runs
 	$(RM) providers/fips*.new
-	$(RM) openssl.pc libcrypto.pc libssl.pc
+	$(RM) openssl3.pc libcrypto3.pc libssl3.pc
 	-find . -type l \! -name '.*' -exec $(RM) {} \;
 
 distclean: clean
@@ -756,15 +756,15 @@ install_dev: install_runtime_libs
 	done
 	@ : {- output_on() if $disabled{shared}; "" -}
 	@$(PERL) $(SRCDIR)/util/mkdir-p.pl $(DESTDIR)$(libdir)/pkgconfig
-	@$(ECHO) "install libcrypto.pc -> $(DESTDIR)$(libdir)/pkgconfig/libcrypto.pc"
-	@cp libcrypto.pc $(DESTDIR)$(libdir)/pkgconfig
-	@chmod 644 $(DESTDIR)$(libdir)/pkgconfig/libcrypto.pc
-	@$(ECHO) "install libssl.pc -> $(DESTDIR)$(libdir)/pkgconfig/libssl.pc"
-	@cp libssl.pc $(DESTDIR)$(libdir)/pkgconfig
-	@chmod 644 $(DESTDIR)$(libdir)/pkgconfig/libssl.pc
-	@$(ECHO) "install openssl.pc -> $(DESTDIR)$(libdir)/pkgconfig/openssl.pc"
-	@cp openssl.pc $(DESTDIR)$(libdir)/pkgconfig
-	@chmod 644 $(DESTDIR)$(libdir)/pkgconfig/openssl.pc
+	@$(ECHO) "install libcrypto3.pc -> $(DESTDIR)$(libdir)/pkgconfig/libcrypto3.pc"
+	@cp libcrypto3.pc $(DESTDIR)$(libdir)/pkgconfig
+	@chmod 644 $(DESTDIR)$(libdir)/pkgconfig/libcrypto3.pc
+	@$(ECHO) "install libssl3.pc -> $(DESTDIR)$(libdir)/pkgconfig/libssl3.pc"
+	@cp libssl3.pc $(DESTDIR)$(libdir)/pkgconfig
+	@chmod 644 $(DESTDIR)$(libdir)/pkgconfig/libssl3.pc
+	@$(ECHO) "install openssl3.pc -> $(DESTDIR)$(libdir)/pkgconfig/openssl3.pc"
+	@cp openssl3.pc $(DESTDIR)$(libdir)/pkgconfig
+	@chmod 644 $(DESTDIR)$(libdir)/pkgconfig/openssl3.pc
 
 uninstall_dev: uninstall_runtime_libs
 	@$(ECHO) "*** Uninstalling development files"
@@ -808,9 +808,9 @@ uninstall_dev: uninstall_runtime_libs
 		: {- output_on() unless windowsdll(); "" -}; \
 	done
 	@ : {- output_on() if $disabled{shared}; "" -}
-	$(RM) $(DESTDIR)$(libdir)/pkgconfig/libcrypto.pc
-	$(RM) $(DESTDIR)$(libdir)/pkgconfig/libssl.pc
-	$(RM) $(DESTDIR)$(libdir)/pkgconfig/openssl.pc
+	$(RM) $(DESTDIR)$(libdir)/pkgconfig/libcrypto3.pc
+	$(RM) $(DESTDIR)$(libdir)/pkgconfig/libssl3.pc
+	$(RM) $(DESTDIR)$(libdir)/pkgconfig/openssl3.pc
 	-$(RMDIR) $(DESTDIR)$(libdir)/pkgconfig
 	-$(RMDIR) $(DESTDIR)$(libdir)
 
@@ -1388,9 +1388,9 @@ FORCE:
 
 # Building targets ###################################################
 
-libcrypto.pc libssl.pc openssl.pc: Makefile $(LIBS) {- join(" ",map { platform->sharedlib_simple($_) // platform->sharedlib_import($_) // platform->sharedlib($_) // () } @{$unified_info{libraries}}) -}
+libcrypto3.pc libssl3.pc openssl3.pc: Makefile $(LIBS) {- join(" ",map { platform->sharedlib_simple($_) // platform->sharedlib_import($_) // platform->sharedlib($_) // () } @{$unified_info{libraries}}) -}
 
-libcrypto.pc:
+libcrypto3.pc:
 	@ ( echo 'prefix=$(INSTALLTOP)'; \
 	    echo 'exec_prefix=$${prefix}'; \
 	    if [ -n "$(LIBDIR)" ]; then \
@@ -1407,9 +1407,9 @@ libcrypto.pc:
 	    echo 'Version: '$(VERSION); \
 	    echo 'Libs: -L$${libdir} -lcrypto'; \
 	    echo 'Libs.private: $(LIB_EX_LIBS)'; \
-	    echo 'Cflags: -I$${includedir}' ) > libcrypto.pc
+	    echo 'Cflags: -I$${includedir}' ) > libcrypto3.pc
 
-libssl.pc:
+libssl3.pc:
 	@ ( echo 'prefix=$(INSTALLTOP)'; \
 	    echo 'exec_prefix=$${prefix}'; \
 	    if [ -n "$(LIBDIR)" ]; then \
@@ -1422,11 +1422,11 @@ libssl.pc:
 	    echo 'Name: OpenSSL-libssl'; \
 	    echo 'Description: Secure Sockets Layer and cryptography libraries'; \
 	    echo 'Version: '$(VERSION); \
-	    echo 'Requires.private: libcrypto'; \
+	    echo 'Requires.private: libcrypto3'; \
 	    echo 'Libs: -L$${libdir} -lssl'; \
-	    echo 'Cflags: -I$${includedir}' ) > libssl.pc
+	    echo 'Cflags: -I$${includedir}' ) > libssl3.pc
 
-openssl.pc:
+openssl3.pc:
 	@ ( echo 'prefix=$(INSTALLTOP)'; \
 	    echo 'exec_prefix=$${prefix}'; \
 	    if [ -n "$(LIBDIR)" ]; then \
@@ -1439,7 +1439,7 @@ openssl.pc:
 	    echo 'Name: OpenSSL'; \
 	    echo 'Description: Secure Sockets Layer and cryptography libraries and tools'; \
 	    echo 'Version: '$(VERSION); \
-	    echo 'Requires: libssl libcrypto' ) > openssl.pc
+	    echo 'Requires: libssl3 libcrypto3' ) > openssl3.pc
 
 Makefile: configdata.pm \
           {- join(" \\\n" . ' ' x 10,

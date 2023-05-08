@@ -61,7 +61,7 @@ DEFINE_STACK_OF(EX_CALLBACK)
 typedef struct mem_st MEM;
 DEFINE_LHASH_OF(MEM);
 
-# define OPENSSL_CONF             "openssl.cnf"
+# define OPENSSL_CONF             "openssl3.cnf"
 
 # ifndef OPENSSL_SYS_VMS
 #  define X509_CERT_AREA          OPENSSLDIR
