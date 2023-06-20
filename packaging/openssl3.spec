@@ -39,7 +39,6 @@ Summary:    Secure Sockets Layer and cryptography libraries mandatory for Develo
 Group:      Development/Libraries
 Requires:   lib%{name} = %{version}-%{release}
 Requires:   zlib-devel
-Conflicts:  libopenssl-devel
 Conflicts:  libopenssl1.1-devel
 
 %description -n lib%{name}-devel
@@ -96,7 +95,9 @@ mv ${RPM_BUILD_ROOT}%{openssldir}/openssl.cnf ${RPM_BUILD_ROOT}%{openssldir}/ope
 %license LICENSE.txt
 %{_bindir}/openssl
 %{_bindir}/c_rehash
-%{openssldir}/*.cnf*
+%{openssldir}/%{name}.cnf
+%exclude %{openssldir}/ct_log_list.cnf
+%exclude %{openssldir}/*.dist
 %{openssldir}/misc
 
 %files -n lib%{name}
