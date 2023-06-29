@@ -41,7 +41,7 @@ def generate_code(ir, args):
   print("Generating binding code...")
   interfaces = ir['interfaces']
 
-  gen_interface_collection(interfaces, os.path.join(STARFISH_PATH, args.out_path), STRICT_MODE, args.exposed)
+  gen_interface_collection(interfaces, os.path.join(STARFISH_PATH, args.out_path), STRICT_MODE)
 
   for key in interfaces:
     interface = interfaces[key]

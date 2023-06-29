@@ -83,7 +83,9 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     }
     {% endif %}
     {% elif name == 'WorkerGlobalScope' %}
-    GENERATE_WORKERGLOBALSCOPE();
+    GENERATE_WORKER_GLOBALSCOPE();
+    {% elif name == 'DedicatedWorkerGlobalScope' %}
+    GENERATE_DEDICATEDWORKER_GLOBALSCOPE();
     {% elif not function.static %}
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
     {% if name == 'Location' %}
@@ -175,7 +177,9 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {% if name == 'Window' %}
     GENERATE_WINDOW();
     {% elif name == 'WorkerGlobalScope' %}
-    GENERATE_WORKERGLOBALSCOPE();
+    GENERATE_WORKER_GLOBALSCOPE();
+    {% elif name == 'DedicatedWorkerGlobalScope' %}
+    GENERATE_DEDICATEDWORKER_GLOBALSCOPE();
     {% elif not function.static %}
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
     {% endif %}

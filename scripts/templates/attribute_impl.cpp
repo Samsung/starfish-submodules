@@ -37,7 +37,9 @@ static ValueRef* {{ util_macro.gen_getter_function(attribute, name) }}(Execution
     }
     {% endif %}
     {% elif name == 'WorkerGlobalScope' %}
-    GENERATE_WORKERGLOBALSCOPE();
+    GENERATE_WORKER_GLOBALSCOPE();
+    {% elif name == 'DedicatedWorkerGlobalScope' %}
+    GENERATE_DEDICATEDWORKER_GLOBALSCOPE();
     {% else %}
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
     {% if name == 'Location' %}
@@ -108,7 +110,9 @@ static ValueRef* {{ util_macro.gen_setter_function(attribute, name) }}(Execution
     }
     {% endif %}
     {% elif name == 'WorkerGlobalScope' %}
-    GENERATE_WORKERGLOBALSCOPE();
+    GENERATE_WORKER_GLOBALSCOPE();
+    {% elif name == 'DedicatedWorkerGlobalScope' %}
+    GENERATE_DEDICATEDWORKER_GLOBALSCOPE();
     {% else %}
     GENERATE_THIS_AND_CHECK_TYPE({{ name }});
     {% if name == 'Location' %}
