@@ -8,7 +8,7 @@ Release:    0
 License:    Apache-2.0
 Group:      Security/Crypto Libraries
 Url:        https://www.openssl.org/
-source0:    https://www.openssl.org/source/${name}-%{version}.tar.gz
+source0:    https://www.openssl.org/source/%{name}-%{version}.tar.gz
 Source1:    %{name}.manifest
 Requires:   lib%{name} = %{version}-%{release}
 
