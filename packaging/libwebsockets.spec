@@ -9,8 +9,7 @@ Source0:    %{name}-%{version}.tar.gz
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 BuildRequires: zlib-devel
-BuildRequires: pkgconfig(openssl1.1)
-BuildRequires: openssl1.1
+BuildRequires: pkgconfig(openssl3)
 BuildRequires: cmake
 
 %define _optdeveldir /opt/usr/devel/usr/
