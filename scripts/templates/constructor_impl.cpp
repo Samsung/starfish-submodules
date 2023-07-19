@@ -22,17 +22,17 @@
     {% endif %}
 {%- endmacro -%}
 {% if constructor.custom %}
-extern ValueRef* {{ name|lower }}Constructor(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression);
+extern ValueRef* {{ name|lower }}Constructor(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, OptionalRef<ObjectRef> newTarget);
 
 {% else %}
-static ValueRef* {{ name|lower }}Constructor(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression)
+static ValueRef* {{ name|lower }}Constructor(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, OptionalRef<ObjectRef> newTarget)
 {
     {% set max_arg = constructor.arguments|length %}
     {% set min_passing_count = constructor.min_passing_count|default(0) %}
     {% set min_passed_count = constructor.min_passed_count|default(0) %}
     {% set uniformed_call = (max_arg == min_passing_count) %}
     {% set need_counting = (not uniformed_call) and max_arg - constructor.min_passed_count > 1 %}
-    if (!isNewExpression) {
+    if (!newTarget) {
         COMPOSE_MESSAGE(msg, CALLED_CONSTRUCTOR_WITHOUT_NEW, "{{ name }}");
         THROW_EXCEPTION(msg);
     }
@@ -90,6 +90,17 @@ static ValueRef* {{ name|lower }}Constructor(ExecutionStateRef* state, ValueRef*
     {% else %}
     {{ test_macro_a()|trim() }}
     {% endif %}
+
+    if (newTarget.value() != fetchScriptBindingInstance(state->context())->fn{{ name }}()) {
+        ValueRef* proto = ValueRef::createUndefined();
+        if (newTarget->isFunctionObject()) {
+            proto = newTarget->asFunctionObject()->getFunctionPrototype(state);
+        } else {
+            proto = newTarget->get(state, StringRef::createFromASCII("prototype"));
+        }
+        result->scriptObject()->setPrototype(state, proto);
+    }
+
     return result->scriptValue();
 }
 
