@@ -884,9 +884,9 @@ ExtensionManagerInstance::~ExtensionManagerInstance()
     std::lock_guard<std::mutex> guard(s_mutex);
     DEVICEAPI_LOG_INFO(
         "ExtensionManagerInstance delete ExtensionManagerInstance %p", this);
-    for (auto it : m_extensionInstances)
+    for (auto& it : m_extensionInstances)
         delete it.second;
-    for (auto it : m_postListeners)
+    for (auto& it : m_postListeners)
         it->finalize();
     auto it = s_extensionManagerInstances.find(m_context);
     s_extensionManagerInstances.erase(it);
