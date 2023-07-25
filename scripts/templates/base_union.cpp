@@ -97,7 +97,6 @@ extern ValueRef* toValueRefFrom{{ subtype.name }}(ExecutionStateRef* state, {{ s
     {%- endcall -%}
 {% endfor %}
 
-    THROW_EXCEPTION(ILLEGAL_INVOKE);
     return {{name}}();
 }
 
