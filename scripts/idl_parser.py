@@ -893,9 +893,12 @@ class IDLParser(object):
                   | identifier TypeSuffix
                   | SEQUENCE '<' Type '>' Null
                   | FROZENARRAY '<' Type '>' Null
-                  | RecordType Null"""
+                  | RecordType Null
+                  | UNDEFINED Null"""
     if len(p) == 3:
-      if type(p[1]) == str:
+      if p[1] == 'undefined':
+        typeref = self.BuildProduction('Undefined', p, 1)
+      elif type(p[1]) == str:
         typeref = self.BuildNamed('Typeref', p, 1)
       else:
         typeref = p[1]

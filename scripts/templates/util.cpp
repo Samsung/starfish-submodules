@@ -435,7 +435,7 @@ if (!std::isfinite({{names.vname}})) {
     {{- '%s %s = nullptr;'|format(type_exp, vname) -}}
     {% elif type.kind in string_type_kinds %}
     {{- '%s %s = String::emptyString;'|format(type_exp, vname) -}}
-    {% elif type.name != 'void' %}
+    {% elif type.name != 'void' and type.name != 'undefined' %}
     {{- '%s %s;'|format(type_exp, vname) -}}
     {% endif %}
 {%- endmacro -%}
@@ -490,7 +490,7 @@ return {{ gen_native_to_jsvalue(type, vname) }};
 
 {%- macro handle_return_impl(return_type, vname='result') -%}
     {% set use_nullable = is_non_nullable_type(return_type.kind) and return_type.nullable %}
-    {% if return_type.name == 'void' -%}
+    {% if return_type.name == 'void' or return_type.name == 'undefined'-%}
     return ValueRef::createUndefined();
     {%- elif use_nullable -%}
     if (!{{ vname }}.hasValue()) {

@@ -292,6 +292,9 @@ class StarfishIDLReader():
       elif _is_class(child, 'Any'):
         result['kind'] = child.GetClass()
         result['name'] = child.GetClass()
+      elif _is_class(child, "Undefined"):
+        result['kind'] = child.GetClass()
+        result['name'] = 'undefined'
       elif 'Type' in child.GetClass():
         # PrimitiveType | StringType | Typeref
         if child.GetName() in ['ArrayBuffer', 'ArrayBufferView', 'Int8Array', 'Uint8Array', 'Int16Array', 'Uint16Array', 'Uint8ClampedArray', 'Uint32Array', 'Int32Array', 'Float32Array', 'Float64Array', 'Function']:

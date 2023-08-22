@@ -26,7 +26,7 @@
 {%- macro gen_native_call_impl(return_type, uniformed_call) -%}
     {% set call_with = 'callWith' if function.call_with else '' %}
     {% set call_with_comma = 'callWith, ' if call_with|length > 0 else '' %}
-    {% set return_left = '' if return_type.name == 'void' else 'result = ' %}
+    {% set return_left = '' if (return_type.name == 'void') or (return_type.name == 'undefined') else 'result = ' %}
     {% set property_owner = 'window' if name == 'Window' else 'originalObj' %}
     {% set calling = '%s::'|format(name) if function.static else '%s->'|format(property_owner) %}
     {% set fnname = function.name if function.rename|length == 0 else function.rename %}
@@ -105,7 +105,7 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {% set max_arg = function.arguments|length %}
     {% set uniformed_call = (max_arg == function.min_passing_count) %}
     {% set need_counting = (not uniformed_call) and max_arg - function.min_passed_count > 1 %}
-    {% set has_return = (function.return.name != 'void') %}
+    {% set has_return = (function.return.name != 'void') and (function.return.name != 'undefined') %}
     {% if min_passed_count != 0 and not skip_type_check %}
     size_t argCount = argc;
     if (argCount < {{ min_passed_count }}) {
@@ -183,7 +183,7 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {% elif not function.static %}
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
     {% endif %}
-    {% set has_return = (function.return.name != 'void') %}
+    {% set has_return = (function.return.name != 'void') and (function.return.name != 'undefined') %}
     {% set property_owner = 'window' if name == 'Window' else 'originalObj' %}
     // Class item getter by index
     {{ gen_check_getter_code() }}
