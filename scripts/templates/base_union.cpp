@@ -43,7 +43,7 @@ namespace Starfish {
     {% if subtype.kind == 'Dictionary' %}
     {%- call util_macro.ifdef_and_exposed(subtype.flags, subtype.exposed, args.exposed) %}
 extern {{ subtype.name }} to{{ subtype.name }}FromValueRef(ExecutionStateRef* state, ValueRef* from);
-extern ValueRef* toValueRefFrom{{ subtype.name }}(ExecutionStateRef* state, {{ subtype.name }}& from);
+extern ValueRef* toValueRefFrom{{ subtype.name }}(ExecutionStateRef* state, const {{ subtype.name }}& from);
     {%- endcall -%}
     {% endif %}
 {% endfor %}

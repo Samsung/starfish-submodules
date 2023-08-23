@@ -93,7 +93,7 @@ namespace Starfish {
     return result;
 }
 
-ValueRef* toValueRefFrom{{name}}(ExecutionStateRef* state, {{name}}& from)
+ValueRef* toValueRefFrom{{name}}(ExecutionStateRef* state, const {{name}}& from)
 {
     ObjectRef* result = ObjectRef::create(state);
 {% for key in members %}

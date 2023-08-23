@@ -6,7 +6,7 @@
 {% endfor %}
 {% endif %}
 extern {{dictionary.name}} to{{dictionary.name}}FromValueRef(ExecutionStateRef* state, ValueRef* from);
-extern ValueRef* toValueRefFrom{{dictionary.name}}(ExecutionStateRef* state, {{dictionary.name}}& from);
+extern ValueRef* toValueRefFrom{{dictionary.name}}(ExecutionStateRef* state, const {{dictionary.name}}& from);
 {% if dictionary.flags and dictionary.flags|length > 0 %}
 #endif
 {% endif %}
