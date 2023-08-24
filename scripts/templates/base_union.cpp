@@ -85,9 +85,14 @@ extern ValueRef* toValueRefFrom{{ subtype.name }}(ExecutionStateRef* state, cons
                 {{ type_exp }} resultValue;
                 {{ util_macro.get_arrayobject_to_native(subtype, 'from', 'resultValue')|indent(16) }}
                 return {{ name }}::create{{ subtype.name }}(resultValue);
-            }else{
-                return {{ name }}::createDOMString({{ util_macro.gen_esvalue_to_native({'kind': 'StringType', 'name': 'DOMString'}, 'from', False) }});
+            {% if glob.use_string == true %}
+            } else{
+                // Fallback
+                return {{ name }}::create{{ glob.type.name }}({{ util_macro.gen_esvalue_to_native(glob.type, 'from', False) }});
             }
+            {% else %}
+            }
+            {% endif %}
         {% elif use_nullable %}
         return {{ name }}::create{{ subtype.name }}(Nullable<{{ type_exp }}>({{ util_macro.gen_esvalue_to_native(subtype, 'from', False) }}));
         {% else %}
