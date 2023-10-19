@@ -5,3 +5,4 @@ parsetab.*
 *.pyc
 *.out
 .vscode
+pip_archive/site-packages
