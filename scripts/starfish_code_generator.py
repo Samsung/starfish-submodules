@@ -144,7 +144,7 @@ def filter_to_header_path(inputtxt):
   return inputtxt.replace(_root_dir, '') + '.h'
 
 def filter_to_union_header_path(union_name):
-  return _out_dir.replace(_root_dir, '') + union_name + 'Union.h'
+  return union_name + 'Union.h'
 
 def filter_digit(num):
   return int(log10(num)) + 1

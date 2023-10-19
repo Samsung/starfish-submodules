@@ -34,10 +34,10 @@
 
 #include "StarfishConfig.h"
 #include "binding/ScriptWrappable.h"
-{% for item in include_paths %}
+{% for item in include_paths|sort %}
 #include "{{item|to_h_path}}"
 {% endfor %}
-{% for item in used_unions %}
+{% for item in used_unions|sort %}
 #include "{{item|to_union_h_path}}"
 {% endfor %}
 #include "{{file_path|to_h_path}}"
@@ -48,7 +48,7 @@ using namespace Escargot;
 namespace Starfish {
 
 {% if used_unions %}
-  {%- for union_item in used_unions %}
+  {%- for union_item in used_unions|sort %}
 {% include 'union_impl.cpp' ignore missing %}
   {% endfor %}
 {% endif %}

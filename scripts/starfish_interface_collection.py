@@ -11,7 +11,7 @@ def gen_group_key(flaglist):
 def gen_groups(interfaces):
   groups = {}
   count = 0
-  for key in interfaces:
+  for key in sorted(interfaces):
     interface = interfaces[key]
 
     if interface.get('partial_interface'):
@@ -54,7 +54,7 @@ def gen_groups(interfaces):
       if len(interface['exposed']) > 1 and 'Window' in interface['exposed']:
         group['exposed']['COMMON'].add(interface["name"])
         continue
-      for key in interface['exposed']:
+      for key in sorted(interface['exposed']):
         exposed_name = key.upper()
         exposed_group = group['exposed']
         if exposed_name not in list(exposed_group.keys()):
@@ -73,7 +73,7 @@ def gen_groups(interfaces):
 
 def write_enum_macro(title, list, handle):
   handle.write('\n#define ' + title + '(F)')
-  for name in list:
+  for name in sorted(list):
     handle.write(' \\\n    F(' + name + ')')
 
 def gen_interface_collection(interfaces, outpath, mode_strict):
@@ -102,10 +102,10 @@ def gen_interface_collection(interfaces, outpath, mode_strict):
     w.write('#define __StarfishInterfaces__\n')
 
     exposed_list = set()
-    for groupkey in groups:
+    for groupkey in sorted(groups):
       exposed_list.update(list(groups[groupkey]['exposed'].keys()))
 
-    for groupkey in groups:
+    for groupkey in sorted(groups):
       flags = groups[groupkey]['flags']
       exposed = groups[groupkey]['exposed']
       no_interface = groups[groupkey]['no_interface']
@@ -113,17 +113,17 @@ def gen_interface_collection(interfaces, outpath, mode_strict):
       seq = groups[groupkey]['seq']
       w.write('\n// Binding group #' + seq)
       if len(flags) > 0:
-        for exposed_key in exposed:
+        for exposed_key in sorted(exposed):
           if exposed_key in exposed_list:
             write_enum_macro('STARFISH_BINDING_GROUP%s_%s' % (seq, exposed_key), [], w)
         if len(no_interface) > 0:
           write_enum_macro('STARFISH_BINDING_GROUP' + seq + '_NOINTERFACE', [], w)
         if len(nickname) > 0:
           write_enum_macro('STARFISH_BINDING_GROUP' + seq + '_NICKNAME', [], w)
-      for flag in flags:
+      for flag in sorted(flags):
         w.write('\n#ifdef ' + flag)
       if len(flags) > 0:
-        for exposed_key in exposed:
+        for exposed_key in sorted(exposed):
             if exposed_key in exposed_list:
               w.write('\n#undef STARFISH_BINDING_GROUP%s_%s' % (seq, exposed_key))
         if len(no_interface) > 0:
@@ -131,32 +131,32 @@ def gen_interface_collection(interfaces, outpath, mode_strict):
         if len(nickname) > 0:
           w.write('\n#undef STARFISH_BINDING_GROUP' + seq + '_NICKNAME')
      
-      for exposed_key in exposed:
+      for exposed_key in sorted(exposed):
         if exposed_key in exposed_list:
           write_enum_macro('STARFISH_BINDING_GROUP%s_%s' % (seq, exposed_key), sorted(exposed[exposed_key]), w)
       if len(no_interface) > 0:
         write_enum_macro('STARFISH_BINDING_GROUP' + seq + '_NOINTERFACE', sorted(no_interface), w)
       if len(nickname) > 0:
         write_enum_macro('STARFISH_BINDING_GROUP' + seq + '_NICKNAME', sorted(nickname), w)
-      for flag in flags:
+      for flag in sorted(flags):
         w.write('\n#endif')
       w.write('\n')
 
     # Groups definition
     w.write('\n// Groups')
-    for exposed_key in exposed_list:
+    for exposed_key in sorted(exposed_list):
       w.write('\n#define STARFISH_BINDING_GROUPS_%s(F)' % exposed_key)
-      for groupkey in groups:
+      for groupkey in sorted(groups):
         seq = groups[groupkey]['seq']
         if exposed_key in groups[groupkey]['exposed'] and len(groups[groupkey]['exposed'][exposed_key]) > 0:
           w.write(' \\\n    STARFISH_BINDING_GROUP%s_%s(F)' % (seq, exposed_key))
     w.write('\n#define STARFISH_BINDING_GROUPS_NOINTERFACE(F)')
-    for groupkey in groups:
+    for groupkey in sorted(groups):
       seq = groups[groupkey]['seq']
       if len(groups[groupkey]['no_interface']) > 0:
         w.write(' \\\n    STARFISH_BINDING_GROUP' + seq + '_NOINTERFACE(F)')
     w.write('\n#define STARFISH_BINDING_GROUPS_NICKNAME(F)')
-    for groupkey in groups:
+    for groupkey in sorted(groups):
       seq = groups[groupkey]['seq']
       if len(groups[groupkey]['nickname']) > 0:
         w.write(' \\\n    STARFISH_BINDING_GROUP' + seq + '_NICKNAME(F)')
@@ -167,7 +167,7 @@ def gen_interface_collection(interfaces, outpath, mode_strict):
     # BINDING_CLASSES = exposed + nointerface
 
     modules = ['COMMON', 'WORKER', 'SERVICEWORKER']
-    for module in modules:
+    for module in sorted(modules):
       w.write('\n#define STARFISH_ENUM_BINDING_%s_NAMES(F)' % module)
       w.write(' \\\n    STARFISH_BINDING_GROUPS_%s(F)' % module)
 
@@ -228,7 +228,7 @@ def gen_interface_collection(interfaces, outpath, mode_strict):
     # Unimpl (only strict mode)
     w.write("\n#define STARFISH_ENUM_BINDING_UNIMPL_NAMES(F)")
     if mode_strict:
-      for key in interfaces:
+      for key in sorted(interfaces):
         if interfaces[key].get('unimplemented') and\
            not interfaces[key].get('partial_interface'):
           w.write(" \\\n    F({})".format(key))

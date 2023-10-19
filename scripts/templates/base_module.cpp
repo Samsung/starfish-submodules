@@ -81,10 +81,10 @@
 #include "StarfishConfig.h"
 #include "binding/ScriptBindingInstance.h"
 #include "binding/ScriptWrappable.h"
-{% for item in include_paths %}
+{% for item in include_paths|sort %}
 #include "{{item|to_h_path}}"
 {% endfor %}
-{% for item in used_unions %}
+{% for item in used_unions|sort %}
 #include "{{item|to_union_h_path}}"
 {% endfor %}
 #include "{{file_path|to_h_path}}"
@@ -100,7 +100,7 @@ namespace Starfish {
   {% endfor %}
 {% endif %}
 {% if used_unions %}
-  {%- for union_item in used_unions %}
+  {%- for union_item in used_unions|sort %}
 {%- call util_macro.ifdef(used_unions_flags[union_item]) %}
 {% include 'union_impl.cpp' ignore missing %}
 {% endcall %}

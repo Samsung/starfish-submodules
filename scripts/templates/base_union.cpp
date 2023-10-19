@@ -50,7 +50,7 @@ extern ValueRef* toValueRefFrom{{ subtype.name }}(ExecutionStateRef* state, cons
 
 
 {% if used_unions %}
-  {%- for union_item in used_unions %}
+  {%- for union_item in used_unions|sort %}
 {% include 'union_impl.cpp' ignore missing %}
   {% endfor %}
 {% endif %}

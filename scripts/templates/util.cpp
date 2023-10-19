@@ -1,10 +1,10 @@
 {% macro ifdef(flags) -%}
 {% if flags %}
-    {% for flag in flags %}
+    {% for flag in flags|sort %}
 #ifdef {{ flag }}
     {% endfor %}
 {{ caller() }}
-    {% for flag in flags %}
+    {% for flag in flags|sort %}
 #endif
     {% endfor %}
 
@@ -16,11 +16,11 @@
 {% macro ifdef_and_exposed(flags, exposed_list, exposed) -%}
 {% if not exposed_list or exposed in exposed_list %}
     {% if flags %}
-        {% for flag in flags %}
+        {% for flag in flags|sort %}
 #ifdef {{ flag }}
         {% endfor %}
 {{ caller() }}
-        {% for flag in flags %}
+        {% for flag in flags|sort %}
 #endif
         {% endfor %}
     {% else %}
