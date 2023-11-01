@@ -79,6 +79,8 @@
             ({{ aname }}->isObject() && {{ aname }}->asObject()->isArrayBufferObject())
         {% elif type.name == 'ArrayBufferView' %}
             ({{ aname }}->isObject() && {{ aname }}->asObject()->isArrayBufferView())
+        {% elif type.name == 'SharedArrayBuffer' %}
+            ({{ aname }}->isObject() && {{ aname }}->asObject()->isSharedArrayBufferObject())
         {% elif type.name == 'Uint8ClampedArray' %}
             ({{ aname }}->isObject() && {{ aname }}->asObject()->isUint8ClampedArrayObject())
         {% elif type.name == 'Int8Array' %}
@@ -160,6 +162,8 @@ ScriptObject
             {{- '%s->asObject()->asArrayBufferObject()'|format(aname) -}}
         {% elif type.name == 'ArrayBufferView' %}
             {{- '%s->asObject()->asArrayBufferView()'|format(aname) -}}
+        {% elif type.name == 'SharedArrayBuffer' %}
+            {{- '%s->asObject()->asSharedArrayBufferObject()'|format(aname) -}}
         {% elif type.name == 'Int8Array' %}
             {{- '%s->asObject()->asInt8ArrayObject()'|format(aname) -}}
         {% elif type.name == 'Uint8Array' %}
@@ -242,6 +246,8 @@ if (!{{ aname }}->isUndefinedOrNull()) {
             {% set type_str  = 'ScriptArrayBuffer' %}
         {% elif type.name == 'ArrayBufferView' %}
             {% set type_str  = 'ScriptArrayBufferView' %}
+        {% elif type.name == 'SharedArrayBuffer' %}
+            {% set type_str  = 'ScriptSharedArrayBuffer' %}
         {% elif type.name == 'Int8Array' %}
             {% set type_str  = 'ScriptInt8Array' %}
         {% elif type.name == 'Uint8Array' %}
