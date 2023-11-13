@@ -32,6 +32,11 @@
 {% import 'util.cpp' as util_macro %}
 {%- call util_macro.ifdef(flags) %}
 #include "StarfishConfig.h"
+
+{% for item in include_paths|sort %}
+#include "{{item|to_h_path}}"
+{% endfor %}
+
 #include "{{name|to_union_h_path}}"
 #include "binding/ScriptWrappable.h"
 

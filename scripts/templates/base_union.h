@@ -38,9 +38,6 @@
 #define __Starfish{{ name }}__
 
 #include "binding/ScriptWrappable.h"
-{% for item in include_paths|sort %}
-#include "{{item|to_h_path}}"
-{% endfor %}
 {% for item in used_unions|sort %}
 #include "{{item|to_union_h_path}}"
 {% endfor %}
