@@ -317,7 +317,7 @@ includedir=\${prefix}/include
 Name: libwebsockets
 Description: Websockets server and client library
 Version: ${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}
-Requires: openssl1.1
+Requires: openssl3
 
 Libs: -L\${libdir} -lwebsockets
 Cflags: -I\${includedir}
@@ -340,7 +340,7 @@ includedir=\${prefix}/include
 Name: libwebsockets_static
 Description: Websockets server and client static library
 Version: ${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}
-Requires: openssl1.1
+Requires: openssl3
 
 Libs: -L\${libdir} -l:libwebsockets${CMAKE_STATIC_LIBRARY_SUFFIX}
 Libs.private:
