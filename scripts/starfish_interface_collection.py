@@ -36,6 +36,8 @@ def gen_groups(interfaces):
           'COMMON': set(),
           'WINDOW': set(),
           'WORKER': set(),
+          'DEDICATEDWORKER': set(),
+          'SHAREDWORKER': set(),
           'SERVICEWORKER': set()
         },
         'no_interface': [],
@@ -59,10 +61,7 @@ def gen_groups(interfaces):
         exposed_group = group['exposed']
         if exposed_name not in list(exposed_group.keys()):
           exposed_group[exposed_name] = set()
-        if (exposed_name == 'DEDICATEDWORKER' or exposed_name == 'SHAREDWORKER'):
-          exposed_group['WORKER'].add(interface["name"])
-        else:
-          exposed_group[exposed_name].add(interface['name'])
+        exposed_group[exposed_name].add(interface['name'])
     else:
       # If there is no exposed keyword,
       # it is considered to be exposed only to the window.
@@ -166,34 +165,34 @@ def gen_interface_collection(interfaces, outpath, mode_strict):
     # BINDING_NAMES = exposed + nointerface + nickname
     # BINDING_CLASSES = exposed + nointerface
 
-    modules = ['COMMON', 'WORKER', 'SERVICEWORKER']
-    for module in sorted(modules):
+    modules = ['COMMON', 'WINDOW', 'WORKER', 'DEDICATEDWORKER', 'SHAREDWORKER', 'SERVICEWORKER']
+    for module in modules:
       w.write('\n#define STARFISH_ENUM_BINDING_%s_NAMES(F)' % module)
       w.write(' \\\n    STARFISH_BINDING_GROUPS_%s(F)' % module)
+      if module == 'WINDOW':
+        w.write(' \\\n    STARFISH_BINDING_GROUPS_NOINTERFACE(F)')
+        w.write(' \\\n    STARFISH_BINDING_GROUPS_NICKNAME(F)')
 
       w.write('\n#define STARFISH_ENUM_BINDING_%s_CLASSES(F)' % module)
       w.write(' \\\n    STARFISH_BINDING_GROUPS_%s(F)' % module)
+      if module == 'WINDOW':
+        w.write(' \\\n    STARFISH_BINDING_GROUPS_NOINTERFACE(F)')
       w.write('\n')
-
-    w.write('\n#define STARFISH_ENUM_BINDING_WINDOW_NAMES(F)')
-    w.write(' \\\n    STARFISH_BINDING_GROUPS_WINDOW(F)')
-    w.write(' \\\n    STARFISH_BINDING_GROUPS_NOINTERFACE(F)')
-    w.write(' \\\n    STARFISH_BINDING_GROUPS_NICKNAME(F)')
-
-    w.write('\n#define STARFISH_ENUM_BINDING_WINDOW_CLASSES(F)')
-    w.write(' \\\n    STARFISH_BINDING_GROUPS_WINDOW(F)')
-    w.write(' \\\n    STARFISH_BINDING_GROUPS_NOINTERFACE(F)')
-    w.write('\n')
 
     w.write('\n// Combination macros for direct use in Starfish')
     w.write('\n// - GLOBAL_BINDING_NAMES =>')
-    w.write('\n// -     use STARFISH_ENUM_GLOBAL_BINDING_WINDOW_NAMES, STARFISH_ENUM_GLOBAL_BINDING_WORKER_NAMES')
+    w.write('\n// -     use STARFISH_ENUM_GLOBAL_BINDING_WINDOW_NAMES')
+    w.write('\n// -     , STARFISH_ENUM_GLOBAL_BINDING_DEDICATEDWORKER_NAMES')
+    w.write('\n// -     , STARFISH_ENUM_GLOBAL_BINDING_SHAREDWORKER_NAMES')
     w.write('\n// -     or STARFISH_ENUM_GLOBAL_BINDING_SERVICEWORKER_NAMES')
     w.write('\n// - BINDING_NAMES = COMMON + WINDOW(EXPOSED + NICKNAME + NOINTERFACE)')
-    w.write('\n// -                 + WORKER(EXPOSED) + SERVICEWORKER(EXPOSED)')    
+    w.write('\n// -                 + WORKER(EXPOSED) + DEDICATEDWORKER(EXPOSED)')    
+    w.write('\n// -                 + SHAREDWORKER(EXPOSED) + SERVICEWORKER(EXPOSED)') 
     w.write('\n// - BINDING_CLASSES = COMMON + WINDOW(EXPOSED + NOINTERFACE)')
-    w.write('\n// -                 + WORKER(EXPOSED) + SERVICEWORKER(EXPOSED)') 
-
+    w.write('\n// -                 + WORKER(EXPOSED) + DEDICATEDWORKER(EXPOSED)') 
+    w.write('\n// -                 + SHAREDWORKER(EXPOSED) + SERVICEWORKER(EXPOSED)') 
+    w.write('\n')
+  
     w.write('\n#define STARFISH_ENUM_GLOBAL_BINDING_WINDOW_NAMES(F)')
     w.write(' \\\n    STARFISH_BINDING_GROUPS_COMMON(F)')
     w.write(' \\\n    STARFISH_BINDING_GROUPS_WINDOW(F)')
@@ -205,24 +204,21 @@ def gen_interface_collection(interfaces, outpath, mode_strict):
     w.write(' \\\n    STARFISH_BINDING_GROUPS_WORKER(F)')
     w.write('\n')
 
-    w.write('\n#define STARFISH_ENUM_GLOBAL_BINDING_SERVICEWORKER_NAMES(F)')
-    w.write(' \\\n    STARFISH_BINDING_GROUPS_COMMON(F)')
-    w.write(' \\\n    STARFISH_BINDING_GROUPS_WORKER(F)')
-    w.write(' \\\n    STARFISH_BINDING_GROUPS_SERVICEWORKER(F)')
-    w.write('\n')
+    worker_modules = ['DEDICATEDWORKER', 'SHAREDWORKER', 'SERVICEWORKER']
+    for module in worker_modules:
+      w.write('\n#define STARFISH_ENUM_GLOBAL_BINDING_%s_NAMES(F)' % module)
+      w.write(' \\\n    STARFISH_ENUM_GLOBAL_BINDING_WORKER_NAMES(F)')
+      w.write(' \\\n    STARFISH_BINDING_GROUPS_%s(F)' % module)
+      w.write('\n')
 
     w.write('\n#define STARFISH_ENUM_BINDING_NAMES(F)')
-    w.write(' \\\n    STARFISH_ENUM_BINDING_COMMON_NAMES(F)')
-    w.write(' \\\n    STARFISH_ENUM_BINDING_WINDOW_NAMES(F)')
-    w.write(' \\\n    STARFISH_ENUM_BINDING_WORKER_NAMES(F)')
-    w.write(' \\\n    STARFISH_ENUM_BINDING_SERVICEWORKER_NAMES(F)')
+    for module in modules:
+      w.write(' \\\n    STARFISH_ENUM_BINDING_%s_NAMES(F)' % module)
     w.write('\n')
 
     w.write('\n#define STARFISH_ENUM_BINDING_CLASSES(F)')
-    w.write(' \\\n    STARFISH_ENUM_BINDING_COMMON_CLASSES(F)')
-    w.write(' \\\n    STARFISH_ENUM_BINDING_WINDOW_CLASSES(F)')
-    w.write(' \\\n    STARFISH_ENUM_BINDING_WORKER_CLASSES(F)')
-    w.write(' \\\n    STARFISH_ENUM_BINDING_SERVICEWORKER_CLASSES(F)')
+    for module in modules:
+      w.write(' \\\n    STARFISH_ENUM_BINDING_%s_CLASSES(F)' % module)
     w.write('\n')
 
     # Unimpl (only strict mode)
