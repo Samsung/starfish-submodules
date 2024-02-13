@@ -3,7 +3,7 @@
 
 Summary:    Secure Sockets Layer and cryptography libraries and tools
 Name:       openssl3
-Version:    3.0.9
+Version:    3.0.13
 Release:    0
 License:    Apache-2.0
 Group:      Security/Crypto Libraries
