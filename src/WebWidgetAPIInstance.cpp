@@ -5,7 +5,7 @@
 #include "WebWidgetAPIInstance.h"
 #include "binding/ScriptBindingInstance.h"
 #include "binding/ScriptWrappable.h"
-#include "platform/window/PlatformWindow.h"
+#include "core/modules/renderer/Renderer.h"
 #include "core/page/WebView.h"
 #include "core/page/BrowsingContext.h"
 #include "core/page/Window.h"
