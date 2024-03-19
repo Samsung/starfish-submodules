@@ -60,6 +60,12 @@ class StarfishIRHandler():
       if not unimpl:
         self._add_used_typeref(name)
     elif kind == 'UnionType':
+      for type in type_ir['data']:
+        if type['kind'] == 'Typeref':
+          if (type['name'] in self.dictionaries):
+            self._add_used_dictionary(self.dictionaries[type['name']])
+          else:
+            self._add_used_typeref(type['name'])
       union_name = self._create_union_name(type_ir).replace(" ", "")
       type_ir['name'] = union_name
       self.used_unions.add(union_name)
