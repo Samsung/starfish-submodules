@@ -267,7 +267,7 @@ static ObjectRef* createPrototype(ExecutionStateRef* state)
     prototype->defineDataProperty(
         state, context->vmInstance()->toStringTagSymbol(),
         StringRef::createFromASCII("{{ name }} Iterator"), false, false, true);
-    prototype->setPrototype(
+    prototype->setObjectPrototype(
         state, context->globalObject()->objectPrototype());
     return prototype;
 }
@@ -646,7 +646,7 @@ void {{ name }}::init(ScriptBindingInstance* instance, void* domObjectPointer)
         self->m_object->defineDataProperty(state, context->vmInstance()->toStringTagSymbol(),
                 StringRef::createFromASCII("{{ name }}"), false, false, true);
 
-        self->scriptObject()->setPrototype(state, instance->fn{{ name }}()->getFunctionPrototype(state));
+        self->scriptObject()->setObjectPrototype(state, instance->fn{{ name }}()->getFunctionPrototype(state));
         ObjectRef* targetObject = self->scriptObject();
 
         {{ bind_common(condition_init_fn) }}

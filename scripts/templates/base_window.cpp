@@ -204,7 +204,7 @@ void Window::init(ScriptBindingInstance* instance, void* domObjectPointer)
         m_object->defineDataProperty(state, context->vmInstance()->toStringTagSymbol(),
                 StringRef::createFromASCII("Window"), false, false, true);
 
-        scriptObject()->setPrototype(state, instance->fn{{ name }}()->getFunctionPrototype(state));
+        scriptObject()->setObjectPrototype(state, instance->fn{{ name }}()->getFunctionPrototype(state));
         ObjectRef* targetObject = scriptObject();
 
         {{ bind_common(condition_init_fn) }}
@@ -229,7 +229,7 @@ void WindowProxy::init(ScriptBindingInstance* instance, void* domObjectPointer)
         m_object->setExtraData(domObjectPointer);
         m_object->giveInternalClassProperty("Window");
 
-        scriptObject()->setPrototype(state, instance->fnWindow()->getFunctionPrototype(state));
+        scriptObject()->setObjectPrototype(state, instance->fnWindow()->getFunctionPrototype(state));
         ObjectRef* windowObject = window()->scriptObject();
         ObjectRef* targetObject = scriptObject();
 
