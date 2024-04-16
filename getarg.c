@@ -216,7 +216,7 @@ GATestAllSatis(char *CtrlStrCopy,
      */
     if (LocalToken == NULL) {
         LocalToken = (char *)malloc(3);
-        strcpy(LocalToken, "-?");
+        strncpy(LocalToken, "-?", 3);
     }
 
     /* Check if last item is an option. If not then copy rest of command

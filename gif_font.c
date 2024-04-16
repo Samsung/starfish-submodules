@@ -235,7 +235,7 @@ GifDrawBoxedText8x8(SavedImage *Image,
 	GifDrawRectangle(Image, x + 1, y + 1,
 		      border + TextWidth * GIF_FONT_WIDTH + border - 1,
 		      border + LineCount * GIF_FONT_HEIGHT + border - 1, bg);
-	(void)strcpy(dup, (char *)legend);
+	(void)strncpy(dup, (char *)legend, strlen(legend)+1);
 	char *lasts;
 	cp = strtok_r(dup, "\r\n", &lasts);
 	do {
