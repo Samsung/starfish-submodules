@@ -9,6 +9,7 @@
 OFLAGS = -O0 -g
 OFLAGS  = -O2
 CFLAGS  = -std=gnu99 -fPIC -Wall -Wno-format-truncation $(OFLAGS)
+CFLAGS += -fstack-protector-strong -Wl,-z,relro -D_FORTIFY_SOURCE=2 -fPIE -pie
 
 SHELL = /bin/sh
 TAR = tar
