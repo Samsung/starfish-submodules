@@ -70,18 +70,26 @@ static ValueRef* {{ function.name }}Function(ExecutionStateRef* state, ValueRef*
         {% endif %}
         {% set hasStrongCondition = hasStrongCondition.append(cond) %}
     {% endfor %}
+    {% set generate_exception = namespace(flag=true) %}
     {% for fn in function.operations %}
         {% if hasCondition[loop.index-1] == 'true' or hasStrongCondition[loop.index-1] == 'true' %}
             {% set sigfn = '' %}
 {% call util_macro.ifdef(fn.flags) %}
+    {% if fn.min_passed_count > 0 %}
     if (argCount >= {{fn.min_passed_count}}{{sigfn}}) {
         {{ 'return %s%sFunction(state, thisValue, argc, argv, isNewExpression);'|format(fn.name, fn.id) }}
     }
+    {% else %}
+        {% set generate_exception.flag = false %}
+    {{ 'return %s%sFunction(state, thisValue, argc, argv, isNewExpression);'|format(fn.name, fn.id) }}
+    {% endif %}
 {% endcall %}
         {% endif %}
     {% endfor %}
+    {% if generate_exception.flag == true %}
     COMPOSE_MESSAGE(msg, FAILED_TO_EXECUTE, "{{ fnname }}", "{{ name }}", SIGNATURE_NOT_FOUND);
     THROW_EXCEPTION(msg);
+    {% endif %}
 }
 
 
