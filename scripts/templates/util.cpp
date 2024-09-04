@@ -110,6 +110,22 @@
 {%- endmacro -%}
 
 {################## 'HANDLE ARGUMENTS' ##################}
+{% macro is_primitive_non_gc_type(type) -%}
+  {% if type.name == 'boolean' %}
+    {{ True }}
+  {% elif type.name in ['byte', 'short', 'long'] %}
+    {{ True }}
+  {% elif type.name in ['octet', 'unsigned short', 'unsigned long'] %}
+     {{ True }}
+  {% elif type.name == 'unsigned long long' %}
+     {{ True }}
+  {% elif type.name == 'long long' %}
+     {{ True }}
+  {% elif type.name in ['float', 'double'] %}
+     {{ True }}
+  {% endif %}
+{%- endmacro %}
+
 {% macro gen_primitive_type_str(type) -%}
   {% if type.name == 'boolean' %}
 bool
@@ -236,7 +252,7 @@ if (!{{ aname }}->isUndefinedOrNull()) {
     {% elif type.kind == 'PrimitiveType' %}
         {% set type_str  = gen_primitive_type_str(type)|trim %}
     {% elif type.kind.startswith('SequenceOf') %}
-        {% if type.data.kind == 'PrimitiveType' %}
+        {% if is_primitive_non_gc_type(type.data) %}
             {% set type_str  = 'GCAtomicVector<%s>'|format(gen_type_str(type.data, is_non_nullable_type(type.data.kind) and type.data.nullable)) %}
         {% else %}
             {% set type_str  = 'GCVector<%s>'|format(gen_type_str(type.data, is_non_nullable_type(type.data.kind) and type.data.nullable)) %}
