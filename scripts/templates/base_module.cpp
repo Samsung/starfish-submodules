@@ -234,23 +234,29 @@ static ValueRef* forEachFunction(ExecutionStateRef* state, ValueRef* thisValue, 
         receiver = argv[1];
     }
 
-    IteratorObjectRef* obj = ((ArrayObjectRef*)thisValue->toObject(state))->entries(state);
-    ObjectRef* fn = (ObjectRef*)arg;
+    ScriptBindingInstance* instance = fetchScriptBindingInstance(state->context());
+    ObjectRef* iterator = thisValue->toObject(state)->get(state, state->context()->vmInstance()->iteratorSymbol())->toObject(state);
+    ObjectRef* fn = arg->asObject();
+    ValueRef** funcArgv = ALLOCA(sizeof(ValueRef*) * 3, ValueRef*);
 
-    ObjectRef* next = obj->next(state)->asObject();
-    ValueRef* doneString = StringRef::createFromASCII("done");
-    ValueRef* valueString = StringRef::createFromASCII("value");
+    ValueRef* nextString = instance->stringNext();
+    ValueRef* doneString = instance->stringDone();
+    ValueRef* valueString = instance->stringValue();
     ValueRef* keyIndex = ValueRef::create(0);
     ValueRef* valIndex = ValueRef::create(1);
-    while (!next->get(state, doneString)->toBoolean(state)) {
-        ValueRef** funcArgv = ALLOCA(sizeof(ValueRef*) * 3, ValueRef*);
-        ObjectRef* valRef = next->get(state, valueString)->asObject();
-        funcArgv[0] = valRef->get(state, valIndex);
-        funcArgv[1] = valRef->get(state, keyIndex);
+
+    while (true) {
+        ObjectRef* result = iterator->get(state, nextString)->toObject(state);
+        if (result->get(state, doneString)->toBoolean(state)) {
+            break;
+        }
+        ValueRef* value = result->get(state, valueString);
+        funcArgv[0] = result->get(state, valIndex);
+        funcArgv[1] = result->get(state, keyIndex);
         funcArgv[2] = originalObj->scriptValue();
         fn->call(state, receiver, 3, funcArgv);
-        next = obj->next(state)->asObject();
     }
+
     return ValueRef::createUndefined();
 }
 
@@ -366,8 +372,9 @@ static ValueRef* forEachFunction(ExecutionStateRef* state, ValueRef* thisValue, 
     {{ keyType }} k;
     {{ valueType }} v;
     IterationSource<{{ keyType }}, {{ valueType }}>* obj = originalObj->startIteration(state);
+    ValueRef** funcArgv = ALLOCA(sizeof(ValueRef*) * 3, ValueRef*);
+
     while (obj->next(state, k, v)) {
-        ValueRef** funcArgv = ALLOCA(sizeof(ValueRef*) * 3, ValueRef*);
         if (!k.hasValue()) {
             funcArgv[1] = ValueRef::createNull();
         } else {

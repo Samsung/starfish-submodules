@@ -212,7 +212,7 @@ ScriptObject
 {{ gen_type_str(seq, False) }} {{ vector_name }};
 {% endif %}
 if (!{{ aname }}->isUndefinedOrNull()) {
-    int {{ aname }}Size = (int){{ aname }}->asObject()->get(state, ValueRef::create(StringRef::createFromASCII("length")))->toNumber(state);
+    int {{ aname }}Size = (int){{ aname }}->asObject()->get(state, scriptStringLength(fetchScriptBindingInstance(state->context())))->toNumber(state);
     for (int i = 0; i < {{ aname }}Size; i++) {
         {% set use_nullable = is_non_nullable_type(seq.data.kind) and seq.data.nullable %}
         {% set type_exp = gen_type_str(seq.data, use_nullable) %}

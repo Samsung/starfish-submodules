@@ -96,7 +96,7 @@ static ValueRef* {{ name|lower }}Constructor(ExecutionStateRef* state, ValueRef*
         if (newTarget->isFunctionObject()) {
             proto = newTarget->asFunctionObject()->getFunctionPrototype(state);
         } else {
-            proto = newTarget->get(state, StringRef::createFromASCII("prototype"));
+            proto = newTarget->get(state, scriptStringPrototype(fetchScriptBindingInstance(state->context())));
         }
         result->scriptObject()->setPrototype(state, proto);
     }
