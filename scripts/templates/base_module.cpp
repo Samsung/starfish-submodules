@@ -191,29 +191,23 @@ void bindUnscopables{{ name }}(ScriptBindingInstance* instance, ObjectRef* targe
 {% if iterable|length == 1 %}
 static ValueRef* entriesFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
-    ObjectRef* result = ((ArrayObjectRef*)thisValue->toObject(state))->entries(state);
-    if (result == nullptr) {
-        return ValueRef::createNull();
-    }
-    return result;
+    ObjectRef* obj = thisValue->toObject(state);
+    ValueRef* fn = state->context()->globalObject()->arrayPrototype()->getOwnProperty(state, StringRef::createFromASCII("entries"));
+    return fn->call(state, obj, 0, nullptr);
 }
 
 static ValueRef* keysFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
-    ObjectRef* result = ((ArrayObjectRef*)thisValue->toObject(state))->keys(state);
-    if (result == nullptr) {
-        return ValueRef::createNull();
-    }
-    return result;
+    ObjectRef* obj = thisValue->toObject(state);
+    ValueRef* fn = state->context()->globalObject()->arrayPrototype()->getOwnProperty(state, StringRef::createFromASCII("keys"));
+    return fn->call(state, obj, 0, nullptr);
 }
 
 static ValueRef* valuesFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
-    ObjectRef* result = ((ArrayObjectRef*)thisValue->toObject(state))->values(state);
-    if (result == nullptr) {
-        return ValueRef::createNull();
-    }
-    return result;
+    ObjectRef* obj = thisValue->toObject(state);
+    ValueRef* fn = state->context()->globalObject()->arrayPrototype()->getOwnProperty(state, StringRef::createFromASCII("values"));
+    return fn->call(state, obj, 0, nullptr);
 }
 
 static ValueRef* forEachFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
@@ -235,7 +229,7 @@ static ValueRef* forEachFunction(ExecutionStateRef* state, ValueRef* thisValue, 
     }
 
     ScriptBindingInstance* instance = fetchScriptBindingInstance(state->context());
-    ObjectRef* iterator = thisValue->toObject(state)->get(state, state->context()->vmInstance()->iteratorSymbol())->toObject(state);
+    ObjectRef* iterator = thisValue->toObject(state)->get(state, state->context()->vmInstance()->iteratorSymbol())->call(state, thisValue, 0, nullptr)->toObject(state);
     ObjectRef* fn = arg->asObject();
     ValueRef** funcArgv = ALLOCA(sizeof(ValueRef*) * 3, ValueRef*);
 
@@ -245,14 +239,14 @@ static ValueRef* forEachFunction(ExecutionStateRef* state, ValueRef* thisValue, 
     ValueRef* keyIndex = ValueRef::create(0);
     ValueRef* valIndex = ValueRef::create(1);
 
+    size_t index = 0;
     while (true) {
-        ObjectRef* result = iterator->get(state, nextString)->toObject(state);
+        ObjectRef* result = iterator->get(state, nextString)->call(state, iterator, 0, nullptr)->toObject(state);
         if (result->get(state, doneString)->toBoolean(state)) {
             break;
         }
-        ValueRef* value = result->get(state, valueString);
-        funcArgv[0] = result->get(state, valIndex);
-        funcArgv[1] = result->get(state, keyIndex);
+        funcArgv[0] = result->get(state, valueString);
+        funcArgv[1] = ValueRef::create(index++);
         funcArgv[2] = originalObj->scriptValue();
         fn->call(state, receiver, 3, funcArgv);
     }
