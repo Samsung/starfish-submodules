@@ -615,6 +615,10 @@ FunctionObjectRef* binding{{ name }}(
         {% include 'constructor_bind.cpp' ignore missing %}
 
         ObjectRef* targetObject = {{ name }}PrototypeObj;
+
+        targetObject->defineDataProperty(state, context->vmInstance()->toStringTagSymbol(),
+                ctorInfo.m_name->string(), false, false, true);
+
         {% if has_unscopable %}
         bindUnscopables{{ name }}(scriptBindingInstance, targetObject);
         {% endif %}
@@ -644,8 +648,6 @@ void {{ name }}::init(ScriptBindingInstance* instance, void* domObjectPointer)
         self->m_object = ObjectRef::create(state);
         {% endif %}
         self->m_object->setExtraData(domObjectPointer);
-        self->m_object->defineDataProperty(state, context->vmInstance()->toStringTagSymbol(),
-                StringRef::createFromASCII("{{ name }}"), false, false, true);
 
         self->scriptObject()->setObjectPrototype(state, instance->fn{{ name }}()->getFunctionPrototype(state));
         ObjectRef* targetObject = self->scriptObject();
