@@ -15,7 +15,7 @@ try:
 except ImportError:
   print("Error: Jinja2 not found")
   print("Exiting...")
-  os._exit(0)
+  sys.exit(1)
 
 STRICT_MODE = False
 
