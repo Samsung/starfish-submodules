@@ -214,6 +214,10 @@ extern ValueRef* {{ gen_function_name(function) }}(ExecutionStateRef* state, Val
     {% else %}
 static ValueRef* {{ gen_function_name(function) }}(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression)
 {
+    {% if function.cereactions %}
+    CustomElementReactionStack reactionStack;
+    {% endif %}
+
     {% if function.is_item_getter and
         function.arguments[0].type.name in ['unsigned long', 'unsigned short']  %}
     {{- function_code_getter_index() -}}

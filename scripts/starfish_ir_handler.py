@@ -85,12 +85,17 @@ class StarfishIRHandler():
       if not unimpl:
         self._add_used_dictionary(dictionary)
 
-  def _udpate_has_exception(self, op):
+  def _update_has_exception(self, op):
     if op.get('raises_exception'):
        self.has_exception = True
     return
 
-  def _udpate_has_cross_origin(self, op):
+  def _update_cereactions(self, op):
+    if op.get('cereactions'):
+       self.has_cereactions = True
+    return
+
+  def _update_has_cross_origin(self, op):
     if op.get('cross_origin'):
        self.has_cross_origin = True
     return
@@ -98,12 +103,13 @@ class StarfishIRHandler():
   def _check_attr(self, attr):
     unimpl = attr.get('unimplemented', False)
     self._change_types(attr.get('getter'), 'return', unimpl)
-    self._udpate_has_exception(attr['getter'])
-    self._udpate_has_cross_origin(attr['getter'])
+    self._update_has_exception(attr['getter'])
+    self._update_cereactions(attr['getter'])
+    self._update_has_cross_origin(attr['getter'])
     if attr.get('setter'):
       self._change_types(attr.get('setter').get('arguments')[0], 'type', unimpl)
-      self._udpate_has_exception(attr['setter'])
-      self._udpate_has_cross_origin(attr['setter'])
+      self._update_has_exception(attr['setter'])
+      self._update_has_cross_origin(attr['setter'])
     if attr.get('put_forwards', False) and \
        type(attr['put_forwards']) is str:
       ref_name = attr['getter']['return']['name']
@@ -114,8 +120,9 @@ class StarfishIRHandler():
           if ref_attr['name'] == forward_name:
             attr['put_forwards'] = ref_attr
             if ref_attr.get('setter'):
-              self._udpate_has_exception(ref_attr['setter'])
-              self._udpate_has_cross_origin(ref_attr['setter'])
+              self._update_has_exception(ref_attr['setter'])
+              self._update_cereactions(ref_attr['setter'])
+              self._update_has_cross_origin(ref_attr['setter'])
             break;
     # Validation
     if attr.get('reflect') and self.enable_validation:
@@ -139,8 +146,9 @@ class StarfishIRHandler():
     if not op:
       return
     unimpl = op.get('unimplemented', False)
-    self._udpate_has_exception(op)
-    self._udpate_has_cross_origin(op)
+    self._update_has_exception(op)
+    self._update_cereactions(op)
+    self._update_has_cross_origin(op)
     for arg in op.get('arguments', []):
       self._change_types(arg, 'type', unimpl)
     self._change_types(op, 'return', unimpl)
@@ -181,7 +189,8 @@ class StarfishIRHandler():
           interface['used_unions_flags'][name] = self.unions[name]['flags']
 
   def _check_constructor(self, constructor):
-    self._udpate_has_exception(constructor)
+    self._update_has_exception(constructor)
+    self._update_cereactions(constructor)
     unimpl = constructor.get('unimplemented', False)
     for arg in constructor.get('arguments', []):
       self._change_types(arg, 'type', unimpl)
@@ -360,6 +369,7 @@ class StarfishIRHandler():
     self.used_unions = from_obj['used_unions']
     self.include_paths = from_obj['include_paths']
     self.has_exception = False
+    self.has_cereactions = False
 
   def _flush_using_info(self, to_obj):
     if to_obj == None:
@@ -368,6 +378,8 @@ class StarfishIRHandler():
       self.include_paths.add('binding/ScriptBindingSecurity')
     if self.has_exception or self.has_cross_origin:
       self.include_paths.add('core/dom/DOMException')
+    if self.has_cereactions:
+      self.include_paths.add('core/dom/CustomElementRegistry')
     if self.processing.get('file_path'):
       self.include_paths.discard(self.processing['file_path'])
     self.used_dictionaries = []
@@ -432,6 +444,7 @@ class StarfishIRHandler():
     self.used_unions = set()
     self.include_paths = set()
     self.has_exception = False
+    self.has_cereactions = False
     self.has_cross_origin = False
     self.unions = {}
 

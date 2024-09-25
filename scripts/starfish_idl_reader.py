@@ -407,6 +407,10 @@ class StarfishIDLReader():
     getter_excp = True if (excp is True or excp and 'Getter' in excp) else None
     setter_excp = True if (excp is True or excp and 'Setter' in excp) else None
 
+    cereactions = result.pop('cereactions', None)
+    getter_cereactions = True if (cereactions is True or cereactions and 'Getter' in cereactions) else None
+    setter_cereactions = True if (cereactions is True or cereactions and 'Setter' in cereactions) else None
+
     cross = result.pop('cross_origin', None)
     getter_cross = True if (cross is True or cross and 'Getter' in cross) else None
     setter_cross = True if (cross is True or cross and 'Setter' in cross) else None
@@ -424,6 +428,7 @@ class StarfishIDLReader():
     IRUtils.set_prop_to_dict(getter, 'name', '')
     IRUtils.set_prop_to_dict(getter, 'arguments', [])
     IRUtils.set_prop_to_dict(getter, 'raises_exception', getter_excp)
+    IRUtils.set_prop_to_dict(getter, 'cereactions', getter_cereactions)
     IRUtils.set_prop_to_dict(getter, 'cross_origin', getter_cross)
     IRUtils.set_prop_to_dict(getter, 'custom', getter_custom)
     IRUtils.set_prop_to_dict(type_ir, 'object_option', result.pop('object_option', None))
@@ -442,6 +447,7 @@ class StarfishIDLReader():
       IRUtils.set_prop_to_dict(setter, 'return', {'kind': 'PrimitiveType', 'name': 'void'})
       IRUtils.set_prop_to_dict(setter, 'arguments', [arg_ir])
       IRUtils.set_prop_to_dict(setter, 'raises_exception', setter_excp)
+      IRUtils.set_prop_to_dict(setter, 'cereactions', setter_cereactions)
       IRUtils.set_prop_to_dict(setter, 'cross_origin', setter_cross)
       IRUtils.set_prop_to_dict(setter, 'custom', setter_custom)
       IRUtils.set_prop_to_dict(result, 'setter', setter)
@@ -656,6 +662,7 @@ class StarfishIDLReader():
                           _hd_extattr_serializable,
                           _hd_extattr_transferable,
                           _hd_extattr_raise_expection,
+                          _hd_extattr_cereactions,
                           _hd_extattr_exposed])
       elif _is_class(child, 'Maplike'):
         maplike = {}

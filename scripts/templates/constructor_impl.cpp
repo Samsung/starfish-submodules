@@ -36,6 +36,11 @@ static ValueRef* {{ name|lower }}Constructor(ExecutionStateRef* state, ValueRef*
         COMPOSE_MESSAGE(msg, CALLED_CONSTRUCTOR_WITHOUT_NEW, "{{ name }}");
         THROW_EXCEPTION(msg);
     }
+
+    {% if constructor.cereactions %}
+    CustomElementReactionStack reactionStack;
+    {% endif %}
+
     {% if min_passed_count != 0 %}
     size_t argCount = argc;
     if (argCount < {{ min_passed_count }}) {

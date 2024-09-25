@@ -56,6 +56,10 @@
 
 static ExposableObjectGetOwnPropertyCallbackResult {{ name }}GetOwnPropertyCallback(ExecutionStateRef* state, ObjectRef* jsSelf, ValueRef* key)
 {
+    {% if descriptor.cereactions %}
+    CustomElementReactionStack reactionStack;
+    {% endif %}
+
 {% if igetter or ngetter %}
     {% set exception = true if igetter and igetter.raises_exception else ngetter and ngetter.raises_exception %}
     STARFISH_ASSERT(((ScriptWrappable*)jsSelf->extraData())->is{{name}}());
@@ -87,6 +91,10 @@ static ExposableObjectGetOwnPropertyCallbackResult {{ name }}GetOwnPropertyCallb
 
 static bool {{ name }}DefineOwnPropertyCallback(ExecutionStateRef* state, ObjectRef* jsSelf, ValueRef* key, ValueRef* value)
 {
+    {% if descriptor.cereactions %}
+    CustomElementReactionStack reactionStack;
+    {% endif %}
+
 {% if isetter or nsetter %}
     {% set names = {'name': name, 'fname': 'Setter', 'aname': 'value', 'vname': 'valueTo'} %}
     {% set setarg = isetter.arguments[1] if isetter else nsetter.arguments[1] %}
@@ -127,6 +135,10 @@ static bool {{ name }}DefineOwnPropertyCallback(ExecutionStateRef* state, Object
 
 static bool {{ name }}DeleteOwnPropertyCallback(ExecutionStateRef* state, ObjectRef* jsSelf, ValueRef* key)
 {
+    {% if descriptor.cereactions %}
+    CustomElementReactionStack reactionStack;
+    {% endif %}
+
 {% if ideleter or ndeleter %}
     {% set ideleter_name = 'defaultIndexedDeleter' if ideleter and ideleter.name == '_unnamed_' else (ideleter.name if ideleter else '') %}
     {% set ndeleter_name = 'defaultNamedDeleter' if ndeleter and ndeleter.name == '_unnamed_' else (ndeleter.name if ndeleter else '') %}
@@ -159,6 +171,10 @@ static bool {{ name }}DeleteOwnPropertyCallback(ExecutionStateRef* state, Object
 
 static ExposableObjectEnumerationCallbackResultVector {{ name }}EnumerationCallback(ExecutionStateRef* state, ObjectRef* jsSelf)
 {
+    {% if descriptor.cereactions %}
+    CustomElementReactionStack reactionStack;
+    {% endif %}
+
     STARFISH_ASSERT(((ScriptWrappable*)jsSelf->extraData())->is{{name}}());
     {{name}}* self = ({{name}}*)jsSelf->extraData();
     {% if igetter and igetter.enumerable and ngetter and ngetter.enumerable%}

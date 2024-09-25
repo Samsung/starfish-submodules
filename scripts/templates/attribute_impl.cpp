@@ -53,6 +53,12 @@ static ValueRef* {{ util_macro.gen_getter_function(attribute, name) }}(Execution
     {% endif %}
     {% endif %}
     {% endif %}
+
+    {% if attribute.getter.cereactions %}
+    CustomElementReactionStack reactionStack;
+    {% endif %}
+
+
     {% if attribute.reflect %}
     {% if attribute.getter.return.name == 'boolean' %}
     return ValueRef::create(originalObj->getAttribute(fetchStaticStrings(state->context())->m_{{ attribute.reflect }}).hasValue());
@@ -124,6 +130,11 @@ static ValueRef* {{ util_macro.gen_setter_function(attribute, name) }}(Execution
     {% endif %}
     {% endif %}
     {% endif %}
+
+    {% if attribute.setter.cereactions %}
+    CustomElementReactionStack reactionStack;
+    {% endif %}
+
     {% if attribute.reflect %}
 
     {% if attribute.getter.return.name == 'boolean' %}
