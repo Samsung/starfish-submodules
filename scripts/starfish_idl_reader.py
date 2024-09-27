@@ -216,6 +216,8 @@ class StarfishIDLReader():
     keys = []
     for child in node.GetChildren():
       if _is_class(child, 'Key'):
+        if child.GetProperty("REQUIRED"):
+          result["has_required"] = True
         keys.append(self._gen_ir_argument(child))
       elif _is_class(child, 'Inherit'):
         result['parent'] = child.GetName()
@@ -327,6 +329,7 @@ class StarfishIDLReader():
     # print(dump_node(node))
     result = _gen_basic_named(node)
     _set_boolean_prop(result, node, 'OPTIONAL', 'optional')
+    _set_boolean_prop(result, node, 'REQUIRED', 'required')
     for child in node.GetChildren():
       if _is_class(child, 'Type'):
         result['type'] = self._gen_ir_type(child)

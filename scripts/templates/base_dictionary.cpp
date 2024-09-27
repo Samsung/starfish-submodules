@@ -59,10 +59,12 @@ namespace Starfish {
 {% endif %}
 {{name}} to{{name}}FromValueRef(ExecutionStateRef* state, ValueRef* from)
 {
+{% if not has_required %}
     if (from->isUndefinedOrNull()) {
         // Return empty dictionary
         return {{name}}();
     }
+{% endif %}
     if (!from->isObject()) {
         auto msg = StringRef::createFromASCII("Failed to generate {{name}} from non-object");
         state->throwException(ValueRef::create(TypeErrorObjectRef::create(state, msg)));
