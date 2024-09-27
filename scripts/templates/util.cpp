@@ -393,6 +393,9 @@ if (!std::isfinite({{names.vname}})) {
     {
         bool hasRightValue = false;
         if (false) {}
+        {% if not arg.required %}
+        else if ({{ names.vname }}->equals("")) { hasRightValue = true; }
+        {% endif %}
         {% for data in arg.type.data %}
         else if ({{ names.vname }}->equals("{{ data }}")) { hasRightValue = true; }
         {% endfor %}
