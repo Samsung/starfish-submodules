@@ -291,7 +291,7 @@ if (!{{ aname }}->isUndefinedOrNull()) {
         {% set type_str = '%s'|format(type.name) %}
     {% endif %}
     {% if use_nullable %}
-        {{- 'Nullable<%s>'|format(type_str) -}}
+        {{- 'Optional<%s>'|format(type_str) -}}
     {% else %}
         {{- '%s'|format(type_str) -}}
     {% endif %}

@@ -58,12 +58,11 @@ static ValueRef* {{ util_macro.gen_getter_function(attribute, name) }}(Execution
     CustomElementReactionStack reactionStack;
     {% endif %}
 
-
     {% if attribute.reflect %}
     {% if attribute.getter.return.name == 'boolean' %}
     return ValueRef::create(originalObj->getAttribute(fetchStaticStrings(state->context())->m_{{ attribute.reflect }}).hasValue());
     {% else %}
-    Nullable<String*> result = originalObj->getAttribute(fetchStaticStrings(state->context())->m_{{ attribute.reflect }});
+    Optional<String*> result = originalObj->getAttribute(fetchStaticStrings(state->context())->m_{{ attribute.reflect }});
     return ValueRef::create(toJSString(result.hasValue() ? result.getValue() : String::emptyString));
     {% endif %}
     {% else %}
@@ -136,7 +135,6 @@ static ValueRef* {{ util_macro.gen_setter_function(attribute, name) }}(Execution
     {% endif %}
 
     {% if attribute.reflect %}
-
     {% if attribute.getter.return.name == 'boolean' %}
     bool value = argv[0]->toBoolean(state);
     if (value) {

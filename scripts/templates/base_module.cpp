@@ -275,10 +275,10 @@ static ObjectRef* createPrototype(ExecutionStateRef* state)
 static ValueRef* entriesFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
     ContextRef* context = state->context();
-    IterationSource<Nullable<String*>, {{ valueType }}>* iterationSource = originalObj->startIteration(state);
+    IterationSource<Optional<String*>, {{ valueType }}>* iterationSource = originalObj->startIteration(state);
     GenericIteratorObjectRef* genericIter = GenericIteratorObjectRef::create(state, [](ExecutionStateRef* state, void* data) -> std::pair<ValueRef*, bool> {
-            IterationSource<Nullable<String*>, {{ valueType }}>* iterationSource = static_cast<IterationSource<Nullable<String*>, {{ valueType }}>*> (data);
-            Nullable<String*> key;
+            IterationSource<Optional<String*>, {{ valueType }}>* iterationSource = static_cast<IterationSource<Optional<String*>, {{ valueType }}>*> (data);
+            Optional<String*> key;
             {{ valueType }} value;
             if (iterationSource->next(state, key, value) && key.hasValue() && value.hasValue()) {
                 ArrayObjectRef* arrayObj = ArrayObjectRef::create(state);
@@ -286,9 +286,9 @@ static ValueRef* entriesFunction(ExecutionStateRef* state, ValueRef* thisValue, 
                 arrayObj->set(state, ValueRef::create(0), ValueRef::create(toJSString(key.value())));
 
                 // Set Value
-                {% if valueType == 'Nullable<String*>' %}
+                {% if valueType == 'Optional<String*>' %}
                 arrayObj->set(state, ValueRef::create(1), ValueRef::create(toJSString(value.value())));
-                {% elif valueType == 'Nullable<ScriptValue>' %}
+                {% elif valueType == 'Optional<ScriptValue>' %}
                 arrayObj->set(state, ValueRef::create(1), value.value());
                 {% else %}
                 arrayObj->set(state, ValueRef::create(1), value.value()->scriptValue());
@@ -304,10 +304,10 @@ static ValueRef* entriesFunction(ExecutionStateRef* state, ValueRef* thisValue, 
 static ValueRef* keysFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
     ContextRef* context = state->context();
-    IterationSource<Nullable<String*>, {{ valueType }}>* iterationSource = originalObj->startIteration(state);
+    IterationSource<Optional<String*>, {{ valueType }}>* iterationSource = originalObj->startIteration(state);
     GenericIteratorObjectRef* genericIter = GenericIteratorObjectRef::create(state, [](ExecutionStateRef* state, void* data) -> std::pair<ValueRef*, bool> {
-            IterationSource<Nullable<String*>, {{ valueType }}>* iterationSource = static_cast<IterationSource<Nullable<String*>, {{ valueType }}>*> (data);
-            Nullable<String*> key;
+            IterationSource<Optional<String*>, {{ valueType }}>* iterationSource = static_cast<IterationSource<Optional<String*>, {{ valueType }}>*> (data);
+            Optional<String*> key;
             {{ valueType }} value;
             if (iterationSource->next(state, key, value) && key.hasValue()) {
                 // Set key
@@ -323,16 +323,16 @@ static ValueRef* keysFunction(ExecutionStateRef* state, ValueRef* thisValue, siz
 static ValueRef* valuesFunction(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression) {
     GENERATE_THIS_AND_CHECK_TYPE({{name}});
     ContextRef* context = state->context();
-    IterationSource<Nullable<String*>, {{ valueType }}>* iterationSource = originalObj->startIteration(state);
+    IterationSource<Optional<String*>, {{ valueType }}>* iterationSource = originalObj->startIteration(state);
     GenericIteratorObjectRef* genericIter = GenericIteratorObjectRef::create(state, [](ExecutionStateRef* state, void* data) -> std::pair<ValueRef*, bool> {
-            IterationSource<Nullable<String*>, {{ valueType }}>* iterationSource = static_cast<IterationSource<Nullable<String*>, {{ valueType }}>*> (data);
-            Nullable<String*> key;
+            IterationSource<Optional<String*>, {{ valueType }}>* iterationSource = static_cast<IterationSource<Optional<String*>, {{ valueType }}>*> (data);
+            Optional<String*> key;
             {{ valueType }} value;
             if (iterationSource->next(state, key, value) && value.hasValue()) {
                 // Set Value
-                {% if valueType == 'Nullable<String*>' %}
+                {% if valueType == 'Optional<String*>' %}
                 return std::make_pair(ValueRef::create(toJSString(value.value())), false);
-                {% elif valueType == 'Nullable<ScriptValue>' %}
+                {% elif valueType == 'Optional<ScriptValue>' %}
                 return std::make_pair(value.value(), false);
                 {% else %}
                 return std::make_pair(value.value()->scriptValue(), false);
@@ -372,7 +372,7 @@ static ValueRef* forEachFunction(ExecutionStateRef* state, ValueRef* thisValue, 
         if (!k.hasValue()) {
             funcArgv[1] = ValueRef::createNull();
         } else {
-        {% if keyType == 'Nullable<String*>' %}
+        {% if keyType == 'Optional<String*>' %}
             funcArgv[1] = createScriptString(k.value());
         {% else %}
             funcArgv[1] = k.value()->scriptValue();
@@ -381,9 +381,9 @@ static ValueRef* forEachFunction(ExecutionStateRef* state, ValueRef* thisValue, 
         if (!v.hasValue()) {
             funcArgv[0] = ValueRef::createNull();
         } else {
-        {% if valueType == 'Nullable<String*>' %}
+        {% if valueType == 'Optional<String*>' %}
             funcArgv[0] = createScriptString(v.value());
-        {% elif valueType == 'Nullable<ScriptValue>' %}
+        {% elif valueType == 'Optional<ScriptValue>' %}
             funcArgv[0] = v.value();
         {% else %}
             funcArgv[0] = v.value()->scriptValue();
@@ -463,9 +463,9 @@ static ValueRef* getFunction(ExecutionStateRef* state, ValueRef* thisValue, size
         return ValueRef::createNull();
     }
 
-    {% if valueType == 'Nullable<String*>' %}
+    {% if valueType == 'Optional<String*>' %}
     return createScriptString(result.value());
-    {% elif valueType == 'Nullable<ScriptValue>' %}
+    {% elif valueType == 'Optional<ScriptValue>' %}
     return result.value();
     {% else %}
     return result.value()->scriptValue();

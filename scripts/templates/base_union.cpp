@@ -99,7 +99,7 @@ extern ValueRef* toValueRefFrom{{ subtype.name }}(ExecutionStateRef* state, cons
             }
             {% endif %}
         {% elif use_nullable %}
-        return {{ name }}::create{{ subtype.name }}(Nullable<{{ type_exp }}>({{ util_macro.gen_esvalue_to_native(subtype, 'from', False) }}));
+        return {{ name }}::create{{ subtype.name }}(Optional<{{ type_exp }}>({{ util_macro.gen_esvalue_to_native(subtype, 'from', False) }}));
         {% else %}
         return {{ name }}::create{{- util_macro.getTrimmedName(subtype) -}}({{ util_macro.gen_esvalue_to_native(subtype, 'from', False) }});
         {% endif %}
