@@ -388,23 +388,6 @@ if (!std::isfinite({{names.vname}})) {
     {% else %}
     {% set assign_exp = '%s = %s;'|format(names.vname, gen_esvalue_to_native(arg.type, names.aname, fromattr)) %}
     {% endif %}
-    {###### enum check ######}
-    {% if arg.type.kind == "Enum" %}
-    {
-        bool hasRightValue = false;
-        if (false) {}
-        {% if not arg.required %}
-        else if ({{ names.vname }}->equals("")) { hasRightValue = true; }
-        {% endif %}
-        {% for data in arg.type.data %}
-        else if ({{ names.vname }}->equals("{{ data }}")) { hasRightValue = true; }
-        {% endfor %}
-
-        if (!hasRightValue) {
-            state->throwException(TypeErrorObjectRef::create(state, StringRef::createFromASCII("the provided value for {{ arg.type.name }} is not valid")));
-        }
-    }
-    {% endif %}
     {% set check_finite_number = gen_check_finite_number(arg, names) %}
     {% set assign_exp_with_check = '%s\n%s\n%s'|format(check_type, assign_exp, check_finite_number)|trim %}
     {% if (arg.type.kind == 'Callback') and fromattr %}
@@ -463,6 +446,24 @@ if (!std::isfinite({{names.vname}})) {
         {# '(7) Non-optional + Non-Nullable (RefTypes)' #}
     {{ assign_exp_with_check|indent(4) }}
         {% endif %}
+    {% endif %}
+
+    {###### enum check ######}
+    {% if arg.type.kind == "Enum" %}
+    {
+        bool hasRightValue = false;
+        if (false) {}
+        {% if not arg.required %}
+        else if ({{ names.vname }}->equals("")) { hasRightValue = true; }
+        {% endif %}
+        {% for data in arg.type.data %}
+        else if ({{ names.vname }}->equals("{{ data }}")) { hasRightValue = true; }
+        {% endfor %}
+
+        if (!hasRightValue) {
+            state->throwException(TypeErrorObjectRef::create(state, StringRef::createFromASCII("the provided value for {{ arg.type.name }} is not valid")));
+        }
+    }
     {% endif %}
 {% endmacro -%}
 
