@@ -449,7 +449,7 @@ if (!std::isfinite({{names.vname}})) {
     {% endif %}
 
     {###### enum check ######}
-    {% if arg.type.kind == "Enum" %}
+    {% if arg.type.kind == "Enum" and fromattr == False %}
     {
         bool hasRightValue = false;
         if (false) {}
