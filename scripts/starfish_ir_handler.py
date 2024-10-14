@@ -127,7 +127,8 @@ class StarfishIRHandler():
     # Validation
     if attr.get('reflect') and self.enable_validation:
       if attr['getter']['return'].get('nullable') or \
-        not (self.processing['name'] == 'HTMLElement' or \
+        not (self.processing['name'] == 'Element' or \
+             self.processing['name'] == 'HTMLElement' or \
              self.processing.get('_inherited_htmlelement') or \
              self.processing.get('_inherited_svgelement')) or \
         not (attr['getter']['return']['kind'] == 'StringType' or \
