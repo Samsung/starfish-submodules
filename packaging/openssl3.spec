@@ -3,7 +3,7 @@
 
 Summary:    Secure Sockets Layer and cryptography libraries and tools
 Name:       openssl3
-Version:    3.0.16
+Version:    3.5.0
 Release:    0
 License:    Apache-2.0
 Group:      Security/Crypto Libraries
@@ -90,6 +90,15 @@ rm -rf ${RPM_BUILD_ROOT}
 make DESTDIR=${RPM_BUILD_ROOT} install_sw install_ssldirs
 mv ${RPM_BUILD_ROOT}%{openssldir}/openssl.cnf ${RPM_BUILD_ROOT}%{openssldir}/openssl3.cnf
 
+### rename .pc file
+mv ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/libcrypto.pc ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/libcrypto3.pc
+mv ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/libssl.pc ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/libssl3.pc
+mv ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/openssl.pc ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/openssl3.pc
+
+### modify content of .pc file
+sed -i 's/Requires.private: libcrypto/Requires.private: libcrypto3/g' ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/libssl3.pc
+sed -i 's/Requires: libssl libcrypto/Requires: libssl3 libcrypto3/g' ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/openssl3.pc
+
 %files
 %manifest %{name}.manifest
 %license LICENSE.txt
@@ -116,4 +125,6 @@ mv ${RPM_BUILD_ROOT}%{openssldir}/openssl.cnf ${RPM_BUILD_ROOT}%{openssldir}/ope
 %{_libdir}/*.so
 %exclude %{_libdir}/*.a
 %{_libdir}/pkgconfig/*.pc
+%{_libdir}/cmake/OpenSSL/OpenSSLConfig.cmake
+%{_libdir}/cmake/OpenSSL/OpenSSLConfigVersion.cmake
 
