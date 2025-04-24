@@ -79,6 +79,9 @@ OPENSSL_CONFIG_ARGS+=" threads shared no-idea no-rc5 no-camellia enable-md2 enab
 OPENSSL_CONFIG_ARGS+=" no-asm "
 %endif
 
+### modify header file to use openssl3.cnf
+sed -i 's/openssl.cnf/openssl3.cnf/g' include/internal/common.h
+
 ./Configure ${OPENSSL_CONFIG_ARGS} ${OPENSSL_ARCH} ${RPM_OPT_FLAGS}
 make %{?_smp_mflags} build_sw
 

@@ -78,7 +78,7 @@ __owur static ossl_inline int ossl_assert_int(int expr, const char *exprstr,
     ossl_uintmax_t align_int;   \
     void *align_ptr
 
-# define OPENSSL_CONF             "openssl3.cnf"
+# define OPENSSL_CONF             "openssl.cnf"
 
 # ifndef OPENSSL_SYS_VMS
 #  define X509_CERT_AREA          OPENSSLDIR
