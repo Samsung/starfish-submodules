@@ -178,6 +178,9 @@ _lws_plat_service_tsi(struct lws_context *context, int timeout_ms, int tsi)
 		struct lws_pollfd *pfd;
 
 		next = ftp->next;
+
+		lwsl_err("fd_index: %d (max: %d)\n", ftp->fd_index, pt->fds_count);
+
 		pfd = &vpt->fds[ftp->fd_index];
 		if (lws_socket_is_valid(pfd->fd)) {
 			wsi = wsi_from_fd(context, pfd->fd);
