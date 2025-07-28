@@ -16,7 +16,8 @@
 #include "internal/cryptlib.h"
 #include "testutil.h"
 
-struct testdata {
+struct testdata
+{
     const char *in;
     const unsigned char *expected;
     size_t expected_len;

@@ -3,7 +3,7 @@
 
 Summary:    Secure Sockets Layer and cryptography libraries and tools
 Name:       openssl3
-Version:    3.5.0
+Version:    3.0.16
 Release:    0
 License:    Apache-2.0
 Group:      Security/Crypto Libraries
@@ -79,9 +79,6 @@ OPENSSL_CONFIG_ARGS+=" threads shared no-idea no-rc5 no-camellia enable-md2 enab
 OPENSSL_CONFIG_ARGS+=" no-asm "
 %endif
 
-### modify header file to use openssl3.cnf
-sed -i 's/openssl.cnf/openssl3.cnf/g' include/internal/common.h
-
 ./Configure ${OPENSSL_CONFIG_ARGS} ${OPENSSL_ARCH} ${RPM_OPT_FLAGS}
 make %{?_smp_mflags} build_sw
 
@@ -92,15 +89,6 @@ make test
 rm -rf ${RPM_BUILD_ROOT}
 make DESTDIR=${RPM_BUILD_ROOT} install_sw install_ssldirs
 mv ${RPM_BUILD_ROOT}%{openssldir}/openssl.cnf ${RPM_BUILD_ROOT}%{openssldir}/openssl3.cnf
-
-### rename .pc file
-mv ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/libcrypto.pc ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/libcrypto3.pc
-mv ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/libssl.pc ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/libssl3.pc
-mv ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/openssl.pc ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/openssl3.pc
-
-### modify content of .pc file
-sed -i 's/Requires.private: libcrypto/Requires.private: libcrypto3/g' ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/libssl3.pc
-sed -i 's/Requires: libssl libcrypto/Requires: libssl3 libcrypto3/g' ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/openssl3.pc
 
 %files
 %manifest %{name}.manifest
@@ -128,6 +116,4 @@ sed -i 's/Requires: libssl libcrypto/Requires: libssl3 libcrypto3/g' ${RPM_BUILD
 %{_libdir}/*.so
 %exclude %{_libdir}/*.a
 %{_libdir}/pkgconfig/*.pc
-%{_libdir}/cmake/OpenSSL/OpenSSLConfig.cmake
-%{_libdir}/cmake/OpenSSL/OpenSSLConfigVersion.cmake
 
