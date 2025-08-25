@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+#include <gc/gc.h>
+
 #include "XW_Extension.h"
 #include "XW_Extension_SyncMessage.h"
 #include "XW_Extension_Data.h"
@@ -201,8 +203,14 @@ public:
     static ESPostMessageListener* create(Escargot::ContextRef* context,
                                          Escargot::ObjectRef* listener)
     {
-        return new ESPostMessageListener(context, listener);
+        return new (GC_MALLOC_UNCOLLECTABLE(sizeof(ESPostMessageListener))) ESPostMessageListener(context, listener);
     }
+
+    inline void operator delete(void* ptr)
+    {
+        GC_FREE(ptr);
+    }
+
     void PostMessageToJS(const std::string& msg);
 
 private:
@@ -219,8 +227,14 @@ public:
     static ESPostDataListener* create(Escargot::ContextRef* context,
                                       Escargot::ObjectRef* listener)
     {
-        return new ESPostDataListener(context, listener);
+        return new (GC_MALLOC_UNCOLLECTABLE(sizeof(ESPostMessageListener))) ESPostDataListener(context, listener);
     }
+
+    inline void operator delete(void* ptr)
+    {
+        GC_FREE(ptr);
+    }
+
     void PostDataToJS(const std::string& msg, uint8_t* buffer, size_t len);
 
 private:
