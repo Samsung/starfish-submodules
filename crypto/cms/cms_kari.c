@@ -405,9 +405,7 @@ int ossl_cms_RecipientInfo_kari_init(CMS_RecipientInfo *ri,  X509 *recip,
             return 0;
     }
 
-    if (!EVP_PKEY_up_ref(recipPubKey))
-        return 0;
-
+    EVP_PKEY_up_ref(recipPubKey);
     rek->pkey = recipPubKey;
     return 1;
 }
