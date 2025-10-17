@@ -597,6 +597,7 @@ static void *xor_gen_init(void *provctx, int selection,
     if ((gctx = OPENSSL_zalloc(sizeof(*gctx))) != NULL)
         gctx->selection = selection;
 
+    gctx->selection = selection;
     /* Our provctx is really just an OSSL_LIB_CTX */
     gctx->libctx = (OSSL_LIB_CTX *)provctx;
 

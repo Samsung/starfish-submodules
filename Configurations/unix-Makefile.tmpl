@@ -3,6 +3,8 @@
 ##
 ## {- join("\n## ", @autowarntext) -}
 {-
+     use Time::Piece;
+
      use OpenSSL::Util;
 
      our $makedep_scheme = $config{makedep_scheme};
@@ -68,6 +70,15 @@ FIPSKEY={- $config{FIPSKEY} -}
 
 VERSION={- "$config{full_version}" -}
 VERSION_NUMBER={- "$config{version}" -}
+RELEASE_DATE={- my $t = localtime;
+		if ($config{"release_date"}) {
+			# Provide the user with a more meaningful error message
+			# than the default internal parsing error from
+			# `Time::Piece->strptime(..)`.
+			eval { $t = Time::Piece->strptime($config{"release_date"}, "%d %b %Y"); } ||
+				die "Parsing \$config{release_date} ('$config{release_date}') failed: $@";
+		}
+		$t->strftime("%Y-%m-%d") -}
 MAJOR={- $config{major} -}
 MINOR={- $config{minor} -}
 SHLIB_VERSION_NUMBER={- $config{shlib_version} -}
@@ -507,7 +518,10 @@ build_man_docs: $(MANDOCS1) $(MANDOCS3) $(MANDOCS5) $(MANDOCS7)
 build_html_docs: $(HTMLDOCS1) $(HTMLDOCS3) $(HTMLDOCS5) $(HTMLDOCS7)
 
 build_generated: $(GENERATED_MANDATORY)
+
+# /* TIZEN CUSTOMIZED */
 build_libs_nodep: libcrypto3.pc libssl3.pc openssl3.pc
+
 build_modules_nodep: $(MODULES)
 build_programs_nodep: $(PROGRAMS) $(SCRIPTS)
 
@@ -574,6 +588,7 @@ libclean:
 	$(RM) $(LIBS)
 	$(RM) *{- platform->defext() -}
 
+# /* TIZEN CUSTOMIZED */
 clean: libclean
 	$(RM) $(HTMLDOCS1)
 	$(RM) $(HTMLDOCS3)
@@ -691,6 +706,8 @@ install_ssldirs:
 		chmod 644 "$(DESTDIR)$(OPENSSLDIR)/ct_log_list.cnf"; \
 	fi
 
+
+# /* TIZEN CUSTOMIZED */
 install_dev: install_runtime_libs
 	@[ -n "$(INSTALLTOP)" ] || (echo INSTALLTOP should not be empty; exit 1)
 	@$(ECHO) "*** Installing development files"
@@ -767,6 +784,7 @@ install_dev: install_runtime_libs
 	@cp openssl3.pc "$(DESTDIR)$(libdir)/pkgconfig"
 	@chmod 644 "$(DESTDIR)$(libdir)/pkgconfig/openssl3.pc"
 
+# /* TIZEN CUSTOMIZED */
 uninstall_dev: uninstall_runtime_libs
 	@$(ECHO) "*** Uninstalling development files"
 	@ : {- output_off() if $disabled{uplink}; "" -}
@@ -1389,9 +1407,10 @@ $(BLDDIR)/apps/openssl.cnf: Makefile
 FORCE:
 
 # Building targets ###################################################
-
+# /* TIZEN CUSTOMIZED */
 libcrypto3.pc libssl3.pc openssl3.pc: Makefile $(LIBS) {- join(" ",map { platform->sharedlib_simple($_) // platform->sharedlib_import($_) // platform->sharedlib($_) // () } @{$unified_info{libraries}}) -}
 
+# /* TIZEN CUSTOMIZED */
 libcrypto3.pc:
 	@ ( echo 'prefix=$(INSTALLTOP)'; \
 	    echo 'exec_prefix=$${prefix}'; \
@@ -1411,6 +1430,7 @@ libcrypto3.pc:
 	    echo 'Libs.private: $(LIB_EX_LIBS)'; \
 	    echo 'Cflags: -I$${includedir}' ) > libcrypto3.pc
 
+# /* TIZEN CUSTOMIZED */
 libssl3.pc:
 	@ ( echo 'prefix=$(INSTALLTOP)'; \
 	    echo 'exec_prefix=$${prefix}'; \
@@ -1428,6 +1448,7 @@ libssl3.pc:
 	    echo 'Libs: -L$${libdir} -lssl'; \
 	    echo 'Cflags: -I$${includedir}' ) > libssl3.pc
 
+# /* TIZEN CUSTOMIZED */
 openssl3.pc:
 	@ ( echo 'prefix=$(INSTALLTOP)'; \
 	    echo 'exec_prefix=$${prefix}'; \
@@ -1540,7 +1561,8 @@ EOF
           return <<"EOF";
 $args{src}: $pod
 	pod2man --name=$name --section=$section\$(MANSUFFIX) --center=OpenSSL \\
-		--release=\$(VERSION) $pod >\$\@
+		--date=\$(RELEASE_DATE) --release=\$(VERSION) \\
+		$pod >\$\@
 EOF
       } elsif (platform->isdef($args{src})) {
           #

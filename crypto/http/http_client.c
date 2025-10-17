@@ -1156,6 +1156,9 @@ BIO *OSSL_HTTP_get(const char *url, const char *proxy, const char *no_proxy,
         return NULL;
 
     for (;;) {
+        char *redirection_url;
+        OSSL_HTTP_REQ_CTX *rctx;
+
         if (!OSSL_HTTP_parse_url(current_url, &use_ssl, NULL /* user */, &host,
                                  &port, NULL /* port_num */, &path, NULL, NULL))
             break;
