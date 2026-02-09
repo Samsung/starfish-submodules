@@ -12,11 +12,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <openssl/bio.h>
+#include "internal/nelem.h"
 #include "internal/numbers.h"
 #include "testutil.h"
 #include "testutil/output.h"
-
-#define nelem(x) (int)(sizeof(x) / sizeof((x)[0]))
 
 static int justprint = 0;
 
@@ -121,16 +120,14 @@ typedef struct z_data_st {
 } z_data;
 
 static z_data zu_data[] = {
-    { SIZE_MAX, "%zu", (sizeof(size_t) == 4 ? "4294967295"
-                        : sizeof(size_t) == 8 ? "18446744073709551615"
-                        : "") },
+    { SIZE_MAX, "%zu", (sizeof(size_t) == 4 ? "4294967295" : sizeof(size_t) == 8 ? "18446744073709551615"
+                                                                                 : "") },
     /*
      * in 2-complement, the unsigned number divided by two plus one becomes the
      * smallest possible negative signed number of the corresponding type
      */
-    { SIZE_MAX / 2 + 1, "%zi", (sizeof(size_t) == 4 ? "-2147483648"
-                                : sizeof(size_t) == 8 ? "-9223372036854775808"
-                                : "") },
+    { SIZE_MAX / 2 + 1, "%zi", (sizeof(size_t) == 4 ? "-2147483648" : sizeof(size_t) == 8 ? "-9223372036854775808"
+                                                                                          : "") },
     { 0, "%zu", "0" },
     { 0, "%zi", "0" },
 };
@@ -157,7 +154,7 @@ static j_data jf_data[] = {
     { 0xffffffffffffffffULL, "%jx", "ffffffffffffffff" },
     { 0x8000000000000000ULL, "%ju", "9223372036854775808" },
     /*
-     * These tests imply two's-complement, but it's the only binary
+     * These tests imply two's complement, but it's the only binary
      * representation we support, see test/sanitytest.c...
      */
     { 0x8000000000000000ULL, "%ji", "-9223372036854775808" },
@@ -173,7 +170,6 @@ static int test_j(int i)
         return 0;
     return 1;
 }
-
 
 /* Precision and width. */
 typedef struct pw_st {
@@ -199,12 +195,12 @@ static int dofptest(int test, int sub, double val, const char *width, int prec)
     char format[80], result[80];
     int ret = 1, i;
 
-    for (i = 0; i < nelem(fspecs); i++) {
+    for (i = 0; i < (int)OSSL_NELEM(fspecs); i++) {
         const char *fspec = fspecs[i];
 
         if (prec >= 0)
             BIO_snprintf(format, sizeof(format), "%%%s.%d%s", width, prec,
-                         fspec);
+                fspec);
         else
             BIO_snprintf(format, sizeof(format), "%%%s%s", width, fspec);
         BIO_snprintf(result, sizeof(result), format, val);
@@ -216,7 +212,7 @@ static int dofptest(int test, int sub, double val, const char *width, int prec)
                 printf(", \"%s\"", result);
         } else if (!TEST_str_eq(fpexpected[test][sub][i], result)) {
             TEST_info("test %d format=|%s| exp=|%s|, ret=|%s|",
-                    test, format, fpexpected[test][sub][i], result);
+                test, format, fpexpected[test][sub][i], result);
             ret = 0;
         }
     }
@@ -255,7 +251,8 @@ static int test_big(void)
 
     /* Test excessively big number. Should fail */
     if (!TEST_int_eq(BIO_snprintf(buf, sizeof(buf),
-                                  "%f\n", 2 * (double)ULONG_MAX), -1))
+                         "%f\n", 2 * (double)ULONG_MAX),
+            -1))
         return 0;
 
     return 1;
@@ -295,9 +292,9 @@ int setup_tests(void)
     }
 
     ADD_TEST(test_big);
-    ADD_ALL_TESTS(test_fp, nelem(pw_params));
-    ADD_ALL_TESTS(test_zu, nelem(zu_data));
-    ADD_ALL_TESTS(test_j, nelem(jf_data));
+    ADD_ALL_TESTS(test_fp, OSSL_NELEM(pw_params));
+    ADD_ALL_TESTS(test_zu, OSSL_NELEM(zu_data));
+    ADD_ALL_TESTS(test_j, OSSL_NELEM(jf_data));
     return 1;
 }
 
@@ -367,4 +364,3 @@ int test_flush_taperr(void)
 {
     return fflush(stderr);
 }
-
