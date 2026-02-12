@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2020-2023 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -7,7 +7,7 @@
  * https://www.openssl.org/source/license.html
  */
 
-#include "internal/e_os.h"
+#include "e_os.h"
 #include <string.h>
 
 #include <openssl/core.h>
@@ -20,7 +20,6 @@
 #include <openssl/store.h>
 #include "internal/provider.h"
 #include "internal/passphrase.h"
-#include "crypto/decoder.h"
 #include "crypto/evp.h"
 #include "crypto/x509.h"
 #include "store_local.h"
@@ -63,7 +62,6 @@
 struct extracted_param_data_st {
     int object_type;
     const char *data_type;
-    const char *input_type;
     const char *data_structure;
     const char *utf8_data;
     const void *octet_data;
@@ -115,10 +113,6 @@ int ossl_store_handle_load_result(const OSSL_PARAM params[], void *arg)
     if (p != NULL
         && !OSSL_PARAM_get_utf8_string_ptr(p, &helper_data.data_structure))
         return 0;
-    p = OSSL_PARAM_locate_const(params, OSSL_OBJECT_PARAM_INPUT_TYPE);
-    if (p != NULL
-        && !OSSL_PARAM_get_utf8_string_ptr(p, &helper_data.input_type))
-        return 0;
     p = OSSL_PARAM_locate_const(params, OSSL_OBJECT_PARAM_REFERENCE);
     if (p != NULL && !OSSL_PARAM_get_octet_string_ptr(p, &helper_data.ref, &helper_data.ref_size))
         return 0;
@@ -151,19 +145,8 @@ int ossl_store_handle_load_result(const OSSL_PARAM params[], void *arg)
         goto err;
     ERR_pop_to_mark();
 
-    if (*v == NULL) {
-        const char *hint = "";
-
-        if (!OSSL_PROVIDER_available(libctx, "default"))
-            hint = ":maybe need to load the default provider?";
-        if (provider != NULL)
-            ERR_raise_data(ERR_LIB_OSSL_STORE, ERR_R_UNSUPPORTED, "provider=%s%s",
-                OSSL_PROVIDER_get0_name(provider), hint);
-        else if (hint[0] != '\0')
-            ERR_raise_data(ERR_LIB_OSSL_STORE, ERR_R_UNSUPPORTED, "%s", hint);
-        else
-            ERR_raise(ERR_LIB_OSSL_STORE, ERR_R_UNSUPPORTED);
-    }
+    if (*v == NULL)
+        ERR_raise(ERR_LIB_OSSL_STORE, ERR_R_UNSUPPORTED);
 
     return (*v != NULL);
 err:
@@ -273,8 +256,7 @@ static EVP_PKEY *try_key_ref(struct extracted_param_data_st *data,
 static EVP_PKEY *try_key_value(struct extracted_param_data_st *data,
     OSSL_STORE_CTX *ctx,
     OSSL_PASSPHRASE_CALLBACK *cb, void *cbarg,
-    OSSL_LIB_CTX *libctx, const char *propq,
-    int *harderr)
+    OSSL_LIB_CTX *libctx, const char *propq)
 {
     EVP_PKEY *pk = NULL;
     OSSL_DECODER_CTX *decoderctx = NULL;
@@ -299,7 +281,7 @@ static EVP_PKEY *try_key_value(struct extracted_param_data_st *data,
         return NULL;
     }
 
-    decoderctx = OSSL_DECODER_CTX_new_for_pkey(&pk, data->input_type, data->data_structure,
+    decoderctx = OSSL_DECODER_CTX_new_for_pkey(&pk, NULL, data->data_structure,
         data->data_type, selection, libctx,
         propq);
     (void)OSSL_DECODER_CTX_set_passphrase_cb(decoderctx, cb, cbarg);
@@ -307,8 +289,6 @@ static EVP_PKEY *try_key_value(struct extracted_param_data_st *data,
     /* No error if this couldn't be decoded */
     (void)OSSL_DECODER_from_data(decoderctx, &pdata, &pdatalen);
 
-    /* Save the hard error state. */
-    *harderr = ossl_decoder_ctx_get_harderr(decoderctx);
     OSSL_DECODER_CTX_free(decoderctx);
 
     return pk;
@@ -403,7 +383,6 @@ static int try_key(struct extracted_param_data_st *data, OSSL_STORE_INFO **v,
     OSSL_LIB_CTX *libctx, const char *propq)
 {
     store_info_new_fn *store_info_new = NULL;
-    int harderr = 0;
 
     if (data->object_type == OSSL_OBJECT_UNKNOWN
         || data->object_type == OSSL_OBJECT_PKEY) {
@@ -425,7 +404,7 @@ static int try_key(struct extracted_param_data_st *data, OSSL_STORE_INFO **v,
             OSSL_PASSPHRASE_CALLBACK *cb = ossl_pw_passphrase_callback_dec;
             void *cbarg = &ctx->pwdata;
 
-            pk = try_key_value(data, ctx, cb, cbarg, libctx, propq, &harderr);
+            pk = try_key_value(data, ctx, cb, cbarg, libctx, propq);
 
             /*
              * Desperate last maneuver, in case the decoders don't support
@@ -434,7 +413,7 @@ static int try_key(struct extracted_param_data_st *data, OSSL_STORE_INFO **v,
              * This is the same as der2key_decode() does, but in a limited
              * way and within the walls of libcrypto.
              */
-            if (pk == NULL && harderr == 0)
+            if (pk == NULL)
                 pk = try_key_value_legacy(data, &store_info_new, ctx,
                     cb, cbarg, libctx, propq);
         }
@@ -466,7 +445,7 @@ static int try_key(struct extracted_param_data_st *data, OSSL_STORE_INFO **v,
             EVP_PKEY_free(pk);
     }
 
-    return harderr == 0;
+    return 1;
 }
 
 static int try_cert(struct extracted_param_data_st *data, OSSL_STORE_INFO **v,
@@ -646,7 +625,7 @@ static int try_pkcs12(struct extracted_param_data_st *data, OSSL_STORE_INFO **v,
                 }
                 EVP_PKEY_free(pkey);
                 X509_free(cert);
-                OSSL_STACK_OF_X509_free(chain);
+                sk_X509_pop_free(chain, X509_free);
                 OSSL_STORE_INFO_free(osi_pkey);
                 OSSL_STORE_INFO_free(osi_cert);
                 OSSL_STORE_INFO_free(osi_ca);

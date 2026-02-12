@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2019-2023 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -65,8 +65,10 @@ static void *siv_dupctx(void *vctx)
         return NULL;
 
     ret = OPENSSL_malloc(sizeof(*ret));
-    if (ret == NULL)
+    if (ret == NULL) {
+        ERR_raise(ERR_LIB_PROV, ERR_R_MALLOC_FAILURE);
         return NULL;
+    }
     if (!in->hw->dupctx(in, ret)) {
         OPENSSL_free(ret);
         ret = NULL;
@@ -118,9 +120,18 @@ static int siv_cipher(void *vctx, unsigned char *out, size_t *outl,
     if (!ossl_prov_is_running())
         return 0;
 
-    if (out != NULL && outsize < inl) {
-        ERR_raise(ERR_LIB_PROV, PROV_R_OUTPUT_BUFFER_TOO_SMALL);
-        return 0;
+    /* Ignore just empty encryption/decryption call and not AAD. */
+    if (out != NULL) {
+        if (inl == 0) {
+            if (outl != NULL)
+                *outl = 0;
+            return 1;
+        }
+
+        if (outsize < inl) {
+            ERR_raise(ERR_LIB_PROV, PROV_R_OUTPUT_BUFFER_TOO_SMALL);
+            return 0;
+        }
     }
 
     if (ctx->hw->cipher(ctx, out, in, inl) <= 0)
@@ -193,7 +204,7 @@ static int aes_siv_set_ctx_params(void *vctx, const OSSL_PARAM params[])
     const OSSL_PARAM *p;
     unsigned int speed = 0;
 
-    if (ossl_param_is_empty(params))
+    if (params == NULL)
         return 1;
 
     p = OSSL_PARAM_locate_const(params, OSSL_CIPHER_PARAM_AEAD_TAG);
@@ -288,7 +299,7 @@ static const OSSL_PARAM *aes_siv_settable_ctx_params(ossl_unused void *cctx,
             (void (*)(void))alg##_##lc##_set_ctx_params },                       \
         { OSSL_FUNC_CIPHER_SETTABLE_CTX_PARAMS,                                  \
             (void (*)(void))alg##_##lc##_settable_ctx_params },                  \
-        OSSL_DISPATCH_END                                                        \
+        { 0, NULL }                                                              \
     };
 
 IMPLEMENT_cipher(aes, siv, SIV, SIV_FLAGS, 128, 8, 0)

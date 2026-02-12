@@ -82,7 +82,8 @@ void RC4(RC4_KEY *key, size_t len, const unsigned char *indata,
             if (--i == 0)
                 break;
             LOOP(indata[6], outdata[6]);
-            break;
+            if (--i == 0)
+                break;
         }
     }
     key->x = x;

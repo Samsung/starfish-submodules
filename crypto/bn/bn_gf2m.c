@@ -465,8 +465,10 @@ int BN_GF2m_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     bn_check_top(p);
 
     arr = OPENSSL_malloc(sizeof(*arr) * max);
-    if (arr == NULL)
+    if (arr == NULL) {
+        ERR_raise(ERR_LIB_BN, ERR_R_MALLOC_FAILURE);
         return 0;
+    }
     ret = BN_GF2m_poly2arr(p, arr, max);
     if (!ret || ret > max) {
         ERR_raise(ERR_LIB_BN, BN_R_INVALID_LENGTH);
@@ -525,8 +527,10 @@ int BN_GF2m_mod_sqr(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
     bn_check_top(p);
 
     arr = OPENSSL_malloc(sizeof(*arr) * max);
-    if (arr == NULL)
+    if (arr == NULL) {
+        ERR_raise(ERR_LIB_BN, ERR_R_MALLOC_FAILURE);
         return 0;
+    }
     ret = BN_GF2m_poly2arr(p, arr, max);
     if (!ret || ret > max) {
         ERR_raise(ERR_LIB_BN, BN_R_INVALID_LENGTH);
@@ -908,8 +912,10 @@ int BN_GF2m_mod_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     bn_check_top(p);
 
     arr = OPENSSL_malloc(sizeof(*arr) * max);
-    if (arr == NULL)
+    if (arr == NULL) {
+        ERR_raise(ERR_LIB_BN, ERR_R_MALLOC_FAILURE);
         return 0;
+    }
     ret = BN_GF2m_poly2arr(p, arr, max);
     if (!ret || ret > max) {
         ERR_raise(ERR_LIB_BN, BN_R_INVALID_LENGTH);
@@ -970,8 +976,10 @@ int BN_GF2m_mod_sqrt(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
     bn_check_top(p);
 
     arr = OPENSSL_malloc(sizeof(*arr) * max);
-    if (arr == NULL)
+    if (arr == NULL) {
+        ERR_raise(ERR_LIB_BN, ERR_R_MALLOC_FAILURE);
         return 0;
+    }
     ret = BN_GF2m_poly2arr(p, arr, max);
     if (!ret || ret > max) {
         ERR_raise(ERR_LIB_BN, BN_R_INVALID_LENGTH);
@@ -1104,8 +1112,10 @@ int BN_GF2m_mod_solve_quad(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
     bn_check_top(p);
 
     arr = OPENSSL_malloc(sizeof(*arr) * max);
-    if (arr == NULL)
+    if (arr == NULL) {
+        ERR_raise(ERR_LIB_BN, ERR_R_MALLOC_FAILURE);
         goto err;
+    }
     ret = BN_GF2m_poly2arr(p, arr, max);
     if (!ret || ret > max) {
         ERR_raise(ERR_LIB_BN, BN_R_INVALID_LENGTH);

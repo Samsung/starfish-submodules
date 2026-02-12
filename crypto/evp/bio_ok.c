@@ -133,8 +133,10 @@ static int ok_new(BIO *bi)
 {
     BIO_OK_CTX *ctx;
 
-    if ((ctx = OPENSSL_zalloc(sizeof(*ctx))) == NULL)
+    if ((ctx = OPENSSL_zalloc(sizeof(*ctx))) == NULL) {
+        ERR_raise(ERR_LIB_EVP, ERR_R_MALLOC_FAILURE);
         return 0;
+    }
 
     ctx->cont = 1;
     ctx->sigio = 1;
@@ -371,7 +373,6 @@ static long ok_ctrl(BIO *b, int cmd, long num, void *ptr)
 
         /* Finally flush the underlying BIO */
         ret = BIO_ctrl(next, cmd, num, ptr);
-        BIO_copy_next_retry(b);
         break;
     case BIO_C_DO_STATE_MACHINE:
         BIO_clear_retry_flags(b);
@@ -442,8 +443,6 @@ static int sig_out(BIO *b)
     md_size = EVP_MD_get_size(digest);
     md_data = EVP_MD_CTX_get0_md_data(md);
 
-    if (md_size <= 0)
-        goto berr;
     if (ctx->buf_len + 2 * md_size > OK_BLOCK_SIZE)
         return 1;
 
@@ -486,7 +485,7 @@ static int sig_in(BIO *b)
     if ((md = ctx->md) == NULL)
         goto berr;
     digest = EVP_MD_CTX_get0_md(md);
-    if ((md_size = EVP_MD_get_size(digest)) <= 0)
+    if ((md_size = EVP_MD_get_size(digest)) < 0)
         goto berr;
     md_data = EVP_MD_CTX_get0_md_data(md);
 
@@ -534,8 +533,6 @@ static int block_out(BIO *b)
     md = ctx->md;
     digest = EVP_MD_CTX_get0_md(md);
     md_size = EVP_MD_get_size(digest);
-    if (md_size <= 0)
-        goto berr;
 
     tl = ctx->buf_len - OK_BLOCK_BLOCK;
     ctx->buf[0] = (unsigned char)(tl >> 24);
@@ -566,7 +563,7 @@ static int block_in(BIO *b)
     ctx = BIO_get_data(b);
     md = ctx->md;
     md_size = EVP_MD_get_size(EVP_MD_CTX_get0_md(md));
-    if (md_size <= 0)
+    if (md_size < 0)
         goto berr;
 
     assert(sizeof(tl) >= OK_BLOCK_BLOCK); /* always true */

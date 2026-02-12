@@ -37,7 +37,6 @@
 #include <openssl/bio.h>
 #include <openssl/evp.h>
 #include <openssl/ssl.h>
-#include <openssl/x509_acert.h>
 #include "internal/nelem.h"
 #include "fuzzer.h"
 
@@ -175,7 +174,6 @@ static ASN1_ITEM_EXP *item_type[] = {
 #endif
     ASN1_ITEM_ref(SXNET),
     ASN1_ITEM_ref(SXNETID),
-    ASN1_ITEM_ref(OSSL_TARGETING_INFORMATION),
     ASN1_ITEM_ref(USERNOTICE),
     ASN1_ITEM_ref(X509),
     ASN1_ITEM_ref(X509_ALGOR),

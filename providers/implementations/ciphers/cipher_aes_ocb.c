@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2019-2021 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -338,8 +338,10 @@ static void *aes_ocb_dupctx(void *vctx)
         return NULL;
 
     ret = OPENSSL_malloc(sizeof(*ret));
-    if (ret == NULL)
+    if (ret == NULL) {
+        ERR_raise(ERR_LIB_PROV, ERR_R_MALLOC_FAILURE);
         return NULL;
+    }
     *ret = *in;
     if (!aes_generic_ocb_copy_ctx(ret, in)) {
         OPENSSL_free(ret);
@@ -354,7 +356,7 @@ static int aes_ocb_set_ctx_params(void *vctx, const OSSL_PARAM params[])
     const OSSL_PARAM *p;
     size_t sz;
 
-    if (ossl_param_is_empty(params))
+    if (params == NULL)
         return 1;
 
     p = OSSL_PARAM_locate_const(params, OSSL_CIPHER_PARAM_AEAD_TAG);
@@ -558,7 +560,7 @@ static int aes_ocb_cipher(void *vctx, unsigned char *out, size_t *outl,
             (void (*)(void))cipher_ocb_gettable_ctx_params },                   \
         { OSSL_FUNC_CIPHER_SETTABLE_CTX_PARAMS,                                 \
             (void (*)(void))cipher_ocb_settable_ctx_params },                   \
-        OSSL_DISPATCH_END                                                       \
+        { 0, NULL }                                                             \
     }
 
 IMPLEMENT_cipher(ocb, OCB, AES_OCB_FLAGS, 256, 128, OCB_DEFAULT_IV_LEN * 8);

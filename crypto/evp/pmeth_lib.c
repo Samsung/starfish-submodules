@@ -66,9 +66,11 @@ static pmeth_fn standard_methods[] = {
 #ifndef OPENSSL_NO_DH
     ossl_dhx_pkey_method,
 #endif
-#ifndef OPENSSL_NO_ECX
+#ifndef OPENSSL_NO_EC
     ossl_ecx25519_pkey_method,
     ossl_ecx448_pkey_method,
+#endif
+#ifndef OPENSSL_NO_EC
     ossl_ed25519_pkey_method,
     ossl_ed448_pkey_method,
 #endif
@@ -126,12 +128,32 @@ EVP_PKEY_METHOD *EVP_PKEY_meth_new(int id, int flags)
     EVP_PKEY_METHOD *pmeth;
 
     pmeth = OPENSSL_zalloc(sizeof(*pmeth));
-    if (pmeth == NULL)
+    if (pmeth == NULL) {
+        ERR_raise(ERR_LIB_EVP, ERR_R_MALLOC_FAILURE);
         return NULL;
+    }
 
     pmeth->pkey_id = id;
     pmeth->flags = flags | EVP_PKEY_FLAG_DYNAMIC;
     return pmeth;
+}
+
+static void help_get_legacy_alg_type_from_keymgmt(const char *keytype,
+    void *arg)
+{
+    int *type = arg;
+
+    if (*type == NID_undef)
+        *type = evp_pkey_name2type(keytype);
+}
+
+static int get_legacy_alg_type_from_keymgmt(const EVP_KEYMGMT *keymgmt)
+{
+    int type = NID_undef;
+
+    EVP_KEYMGMT_names_do_all(keymgmt, help_get_legacy_alg_type_from_keymgmt,
+        &type);
+    return type;
 }
 #endif /* FIPS_MODULE */
 
@@ -270,7 +292,7 @@ common:
          * directly.
          */
         if (keymgmt != NULL) {
-            int tmp_id = evp_keymgmt_get_legacy_alg(keymgmt);
+            int tmp_id = get_legacy_alg_type_from_keymgmt(keymgmt);
 
             if (tmp_id != NID_undef) {
                 if (id == -1) {
@@ -295,6 +317,8 @@ common:
         ERR_raise(ERR_LIB_EVP, EVP_R_UNSUPPORTED_ALGORITHM);
     } else {
         ret = OPENSSL_zalloc(sizeof(*ret));
+        if (ret == NULL)
+            ERR_raise(ERR_LIB_EVP, ERR_R_MALLOC_FAILURE);
     }
 
 #if !defined(OPENSSL_NO_ENGINE) && !defined(FIPS_MODULE)
@@ -321,13 +345,9 @@ common:
     ret->engine = e;
     ret->pmeth = pmeth;
     ret->operation = EVP_PKEY_OP_UNDEFINED;
-
-    if (pkey != NULL && !EVP_PKEY_up_ref(pkey)) {
-        EVP_PKEY_CTX_free(ret);
-        return NULL;
-    }
-
     ret->pkey = pkey;
+    if (pkey != NULL)
+        EVP_PKEY_up_ref(pkey);
 
     if (pmeth != NULL && pmeth->init != NULL) {
         if (pmeth->init(ret) <= 0) {
@@ -461,12 +481,13 @@ EVP_PKEY_CTX *EVP_PKEY_CTX_dup(const EVP_PKEY_CTX *pctx)
     }
 #endif
     rctx = OPENSSL_zalloc(sizeof(*rctx));
-    if (rctx == NULL)
+    if (rctx == NULL) {
+        ERR_raise(ERR_LIB_EVP, ERR_R_MALLOC_FAILURE);
         return NULL;
+    }
 
-    if (pctx->pkey != NULL && !EVP_PKEY_up_ref(pctx->pkey))
-        goto err;
-
+    if (pctx->pkey != NULL)
+        EVP_PKEY_up_ref(pctx->pkey);
     rctx->pkey = pctx->pkey;
     rctx->operation = pctx->operation;
     rctx->libctx = pctx->libctx;
@@ -579,9 +600,8 @@ EVP_PKEY_CTX *EVP_PKEY_CTX_dup(const EVP_PKEY_CTX *pctx)
     rctx->engine = pctx->engine;
 #endif
 
-    if (pctx->peerkey != NULL && !EVP_PKEY_up_ref(pctx->peerkey))
-        goto err;
-
+    if (pctx->peerkey != NULL)
+        EVP_PKEY_up_ref(pctx->peerkey);
     rctx->peerkey = pctx->peerkey;
 
     if (pctx->pmeth == NULL) {
@@ -616,12 +636,12 @@ int EVP_PKEY_meth_add0(const EVP_PKEY_METHOD *pmeth)
     if (app_pkey_methods == NULL) {
         app_pkey_methods = sk_EVP_PKEY_METHOD_new(pmeth_cmp);
         if (app_pkey_methods == NULL) {
-            ERR_raise(ERR_LIB_EVP, ERR_R_CRYPTO_LIB);
+            ERR_raise(ERR_LIB_EVP, ERR_R_MALLOC_FAILURE);
             return 0;
         }
     }
     if (!sk_EVP_PKEY_METHOD_push(app_pkey_methods, pmeth)) {
-        ERR_raise(ERR_LIB_EVP, ERR_R_CRYPTO_LIB);
+        ERR_raise(ERR_LIB_EVP, ERR_R_MALLOC_FAILURE);
         return 0;
     }
     sk_EVP_PKEY_METHOD_sort(app_pkey_methods);
@@ -738,11 +758,6 @@ int EVP_PKEY_CTX_get_params(EVP_PKEY_CTX *ctx, OSSL_PARAM *params)
             && ctx->op.encap.kem->get_ctx_params != NULL)
             return ctx->op.encap.kem->get_ctx_params(ctx->op.encap.algctx,
                 params);
-        if (EVP_PKEY_CTX_IS_GEN_OP(ctx)
-            && ctx->keymgmt != NULL
-            && ctx->keymgmt->gen_get_params != NULL)
-            return evp_keymgmt_gen_get_params(ctx->keymgmt, ctx->op.keymgmt.genctx,
-                params);
         break;
     case EVP_PKEY_STATE_UNKNOWN:
         break;
@@ -787,13 +802,6 @@ const OSSL_PARAM *EVP_PKEY_CTX_gettable_params(const EVP_PKEY_CTX *ctx)
         && ctx->op.encap.kem->gettable_ctx_params != NULL) {
         provctx = ossl_provider_ctx(EVP_KEM_get0_provider(ctx->op.encap.kem));
         return ctx->op.encap.kem->gettable_ctx_params(ctx->op.encap.algctx,
-            provctx);
-    }
-    if (EVP_PKEY_CTX_IS_GEN_OP(ctx)
-        && ctx->keymgmt != NULL
-        && ctx->keymgmt->gen_gettable_params != NULL) {
-        provctx = ossl_provider_ctx(EVP_KEYMGMT_get0_provider(ctx->keymgmt));
-        return ctx->keymgmt->gen_gettable_params(ctx->op.keymgmt.genctx,
             provctx);
     }
     return NULL;
@@ -1277,10 +1285,75 @@ int EVP_PKEY_CTX_set_kem_op(EVP_PKEY_CTX *ctx, const char *op)
     return EVP_PKEY_CTX_set_params(ctx, params);
 }
 
+int evp_pkey_ctx_set1_id_prov(EVP_PKEY_CTX *ctx, const void *id, int len)
+{
+    OSSL_PARAM params[2], *p = params;
+    int ret;
+
+    if (!EVP_PKEY_CTX_IS_SIGNATURE_OP(ctx)) {
+        ERR_raise(ERR_LIB_EVP, EVP_R_COMMAND_NOT_SUPPORTED);
+        /* Uses the same return values as EVP_PKEY_CTX_ctrl */
+        return -2;
+    }
+
+    *p++ = OSSL_PARAM_construct_octet_string(OSSL_PKEY_PARAM_DIST_ID,
+        /*
+         * Cast away the const. This is
+         * read only so should be safe
+         */
+        (void *)id, (size_t)len);
+    *p++ = OSSL_PARAM_construct_end();
+
+    ret = evp_pkey_ctx_set_params_strict(ctx, params);
+    if (ret == -2)
+        ERR_raise(ERR_LIB_EVP, EVP_R_COMMAND_NOT_SUPPORTED);
+    return ret;
+}
+
 int EVP_PKEY_CTX_set1_id(EVP_PKEY_CTX *ctx, const void *id, int len)
 {
     return EVP_PKEY_CTX_ctrl(ctx, -1, -1,
         EVP_PKEY_CTRL_SET1_ID, (int)len, (void *)(id));
+}
+
+static int get1_id_data(EVP_PKEY_CTX *ctx, void *id, size_t *id_len)
+{
+    int ret;
+    void *tmp_id = NULL;
+    OSSL_PARAM params[2], *p = params;
+
+    if (!EVP_PKEY_CTX_IS_SIGNATURE_OP(ctx)) {
+        ERR_raise(ERR_LIB_EVP, EVP_R_COMMAND_NOT_SUPPORTED);
+        /* Uses the same return values as EVP_PKEY_CTX_ctrl */
+        return -2;
+    }
+
+    *p++ = OSSL_PARAM_construct_octet_ptr(OSSL_PKEY_PARAM_DIST_ID,
+        &tmp_id, 0);
+    *p++ = OSSL_PARAM_construct_end();
+
+    ret = evp_pkey_ctx_get_params_strict(ctx, params);
+    if (ret == -2) {
+        ERR_raise(ERR_LIB_EVP, EVP_R_COMMAND_NOT_SUPPORTED);
+    } else if (ret > 0) {
+        size_t tmp_id_len = params[0].return_size;
+
+        if (id != NULL)
+            memcpy(id, tmp_id, tmp_id_len);
+        if (id_len != NULL)
+            *id_len = tmp_id_len;
+    }
+    return ret;
+}
+
+int evp_pkey_ctx_get1_id_prov(EVP_PKEY_CTX *ctx, void *id)
+{
+    return get1_id_data(ctx, id, NULL);
+}
+
+int evp_pkey_ctx_get1_id_len_prov(EVP_PKEY_CTX *ctx, size_t *id_len)
+{
+    return get1_id_data(ctx, NULL, id_len);
 }
 
 int EVP_PKEY_CTX_get1_id(EVP_PKEY_CTX *ctx, void *id)
@@ -1497,13 +1570,17 @@ static int evp_pkey_ctx_store_cached_data(EVP_PKEY_CTX *ctx,
         evp_pkey_ctx_free_cached_data(ctx, cmd, name);
         if (name != NULL) {
             ctx->cached_parameters.dist_id_name = OPENSSL_strdup(name);
-            if (ctx->cached_parameters.dist_id_name == NULL)
+            if (ctx->cached_parameters.dist_id_name == NULL) {
+                ERR_raise(ERR_LIB_EVP, ERR_R_MALLOC_FAILURE);
                 return 0;
+            }
         }
         if (data_len > 0) {
             ctx->cached_parameters.dist_id = OPENSSL_memdup(data, data_len);
-            if (ctx->cached_parameters.dist_id == NULL)
+            if (ctx->cached_parameters.dist_id == NULL) {
+                ERR_raise(ERR_LIB_EVP, ERR_R_MALLOC_FAILURE);
                 return 0;
+            }
         }
         ctx->cached_parameters.dist_id_set = 1;
         ctx->cached_parameters.dist_id_len = data_len;

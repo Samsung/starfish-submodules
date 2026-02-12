@@ -26,10 +26,9 @@ unsigned char *PKCS12_pbe_crypt_ex(const X509_ALGOR *algor,
     int outlen, i;
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     int max_out_len, mac_len = 0;
-    int block_size;
 
     if (ctx == NULL) {
-        ERR_raise(ERR_LIB_PKCS12, ERR_R_EVP_LIB);
+        ERR_raise(ERR_LIB_PKCS12, ERR_R_MALLOC_FAILURE);
         goto err;
     }
 
@@ -44,14 +43,7 @@ unsigned char *PKCS12_pbe_crypt_ex(const X509_ALGOR *algor,
      * It's appended to encrypted text on encrypting
      * MAC should be processed on decrypting separately from plain text
      */
-    block_size = EVP_CIPHER_CTX_get_block_size(ctx);
-
-    if (block_size == 0) {
-        ERR_raise(ERR_LIB_PKCS12, ERR_R_PASSED_NULL_PARAMETER);
-        goto err;
-    }
-
-    max_out_len = inlen + block_size;
+    max_out_len = inlen + EVP_CIPHER_CTX_get_block_size(ctx);
     if ((EVP_CIPHER_get_flags(EVP_CIPHER_CTX_get0_cipher(ctx))
             & EVP_CIPH_FLAG_CIPHER_WITH_MAC)
         != 0) {
@@ -77,8 +69,10 @@ unsigned char *PKCS12_pbe_crypt_ex(const X509_ALGOR *algor,
         }
     }
 
-    if ((out = OPENSSL_zalloc(max_out_len)) == NULL)
+    if ((out = OPENSSL_malloc(max_out_len)) == NULL) {
+        ERR_raise(ERR_LIB_PKCS12, ERR_R_MALLOC_FAILURE);
         goto err;
+    }
 
     if (!EVP_CipherUpdate(ctx, out, &i, in, inlen)) {
         OPENSSL_free(out);
@@ -196,7 +190,7 @@ ASN1_OCTET_STRING *PKCS12_item_i2d_encrypt_ex(X509_ALGOR *algor,
     int inlen;
 
     if ((oct = ASN1_OCTET_STRING_new()) == NULL) {
-        ERR_raise(ERR_LIB_PKCS12, ERR_R_ASN1_LIB);
+        ERR_raise(ERR_LIB_PKCS12, ERR_R_MALLOC_FAILURE);
         goto err;
     }
     inlen = ASN1_item_i2d(obj, &in, it);

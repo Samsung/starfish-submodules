@@ -231,14 +231,15 @@ static int do_buf(unsigned char *buf, int buflen,
 static int do_hex_dump(char_io *io_ch, void *arg, unsigned char *buf,
     int buflen)
 {
+    static const char hexdig[] = "0123456789ABCDEF";
     unsigned char *p, *q;
     char hextmp[2];
-
     if (arg) {
         p = buf;
         q = buf + buflen;
         while (p != q) {
-            ossl_to_hex(hextmp, *p);
+            hextmp[0] = hexdig[*p >> 4];
+            hextmp[1] = hexdig[*p & 0xf];
             if (!io_ch(arg, hextmp, 2))
                 return -1;
             p++;
@@ -278,8 +279,10 @@ static int do_dump(unsigned long lflags, char_io *io_ch, void *arg,
     der_len = i2d_ASN1_TYPE(&t, NULL);
     if (der_len <= 0)
         return -1;
-    if ((der_buf = OPENSSL_malloc(der_len)) == NULL)
+    if ((der_buf = OPENSSL_malloc(der_len)) == NULL) {
+        ERR_raise(ERR_LIB_ASN1, ERR_R_MALLOC_FAILURE);
         return -1;
+    }
     p = der_buf;
     i2d_ASN1_TYPE(&t, &p);
     outlen = do_hex_dump(io_ch, arg, der_buf, der_len);

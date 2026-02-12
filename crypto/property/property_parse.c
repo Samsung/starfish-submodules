@@ -18,7 +18,7 @@
 #include "crypto/ctype.h"
 #include "internal/nelem.h"
 #include "property_local.h"
-#include "internal/e_os.h"
+#include "e_os.h"
 
 DEFINE_STACK_OF(OSSL_PROPERTY_DEFINITION)
 
@@ -567,7 +567,8 @@ OSSL_PROPERTY_LIST *ossl_property_merge(const OSSL_PROPERTY_LIST *a,
         r->has_optional |= copy->optional;
     }
     r->num_properties = n;
-
+    if (n != t)
+        r = OPENSSL_realloc(r, sizeof(*r) + (n - 1) * sizeof(r->properties[0]));
     return r;
 }
 

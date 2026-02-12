@@ -37,8 +37,7 @@
     }                                                                                  \
     static int nm##_final(EVP_MD_CTX *ctx, unsigned char *md)                          \
     {                                                                                  \
-        KECCAK1600_CTX *kctx = EVP_MD_CTX_get0_md_data(ctx);                           \
-        return fn##_final(kctx, md, kctx->md_size);                                    \
+        return fn##_final(md, EVP_MD_CTX_get0_md_data(ctx));                           \
     }
 #define IMPLEMENT_LEGACY_EVP_MD_METH_SHAKE(nm, fn, tag)                                \
     static int nm##_init(EVP_MD_CTX *ctx)                                              \
