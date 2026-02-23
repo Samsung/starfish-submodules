@@ -3,7 +3,7 @@
 
 Summary:    Secure Sockets Layer and cryptography libraries and tools
 Name:       openssl3
-Version:    3.0.18
+Version:    3.0.19
 Release:    0
 License:    Apache-2.0
 Group:      Security/Crypto Libraries
@@ -74,10 +74,13 @@ OPENSSL_ARCH=linux64-riscv64
 RPM_OPT_FLAGS="${RPM_OPT_FLAGS} -std=gnu99 -fPIC -pie"
 
 OPENSSL_CONFIG_ARGS+=" --prefix=%{_prefix} --openssldir=%{openssldir} --libdir=%{_lib} "
-OPENSSL_CONFIG_ARGS+=" threads shared no-idea no-rc5 no-camellia enable-md2 enable-weak-ssl-ciphers no-afalgeng "
+OPENSSL_CONFIG_ARGS+=" threads shared no-idea no-rc5 no-camellia enable-md2 enable-weak-ssl-ciphers no-afalgeng enable-legacy "
 %if %{OPENSSL_ASM_ENABLED} == OFF
 OPENSSL_CONFIG_ARGS+=" no-asm "
 %endif
+
+### modify *.h, *.c, *.cpp file to use openssl3.cnf file
+find . -type f \( -name "*.h" -o -name "*.c" -o -name "*.cpp" \) -exec sed -i 's/"openssl\.cnf"/"openssl3.cnf"/g' {} \;
 
 ./Configure ${OPENSSL_CONFIG_ARGS} ${OPENSSL_ARCH} ${RPM_OPT_FLAGS}
 make %{?_smp_mflags} build_sw
@@ -89,6 +92,16 @@ make test
 rm -rf ${RPM_BUILD_ROOT}
 make DESTDIR=${RPM_BUILD_ROOT} install_sw install_ssldirs
 mv ${RPM_BUILD_ROOT}%{openssldir}/openssl.cnf ${RPM_BUILD_ROOT}%{openssldir}/openssl3.cnf
+
+### rename .pc file
+mv ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/libcrypto.pc ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/libcrypto3.pc
+mv ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/libssl.pc ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/libssl3.pc
+mv ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/openssl.pc ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/openssl3.pc
+
+### modify content of .pc file
+sed -i 's/Requires.private: libcrypto/Requires.private: libcrypto3/g' ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/libssl3.pc
+sed -i 's/Requires: libssl libcrypto/Requires: libssl3 libcrypto3/g' ${RPM_BUILD_ROOT}%{_libdir}/pkgconfig/openssl3.pc
+
 
 %files
 %manifest %{name}.manifest

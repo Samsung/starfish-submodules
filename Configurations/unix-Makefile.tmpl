@@ -518,10 +518,7 @@ build_man_docs: $(MANDOCS1) $(MANDOCS3) $(MANDOCS5) $(MANDOCS7)
 build_html_docs: $(HTMLDOCS1) $(HTMLDOCS3) $(HTMLDOCS5) $(HTMLDOCS7)
 
 build_generated: $(GENERATED_MANDATORY)
-
-# /* TIZEN CUSTOMIZED */
-build_libs_nodep: libcrypto3.pc libssl3.pc openssl3.pc
-
+build_libs_nodep: libcrypto.pc libssl.pc openssl.pc
 build_modules_nodep: $(MODULES)
 build_programs_nodep: $(PROGRAMS) $(SCRIPTS)
 
@@ -588,7 +585,6 @@ libclean:
 	$(RM) $(LIBS)
 	$(RM) *{- platform->defext() -}
 
-# /* TIZEN CUSTOMIZED */
 clean: libclean
 	$(RM) $(HTMLDOCS1)
 	$(RM) $(HTMLDOCS3)
@@ -606,7 +602,7 @@ clean: libclean
 	$(RM) tags TAGS doc-nits md-nits
 	$(RM) -r test/test-runs
 	$(RM) providers/fips*.new
-	$(RM) openssl3.pc libcrypto3.pc libssl3.pc
+	$(RM) openssl.pc libcrypto.pc libssl.pc
 	-find . -type l \! -name '.*' -exec $(RM) {} \;
 
 distclean: clean
@@ -706,8 +702,6 @@ install_ssldirs:
 		chmod 644 "$(DESTDIR)$(OPENSSLDIR)/ct_log_list.cnf"; \
 	fi
 
-
-# /* TIZEN CUSTOMIZED */
 install_dev: install_runtime_libs
 	@[ -n "$(INSTALLTOP)" ] || (echo INSTALLTOP should not be empty; exit 1)
 	@$(ECHO) "*** Installing development files"
@@ -774,17 +768,16 @@ install_dev: install_runtime_libs
 	done
 	@ : {- output_on() if $disabled{shared}; "" -}
 	@$(PERL) $(SRCDIR)/util/mkdir-p.pl "$(DESTDIR)$(libdir)/pkgconfig"
-	@$(ECHO) "install libcrypto3.pc -> $(DESTDIR)$(libdir)/pkgconfig/libcrypto3.pc"
-	@cp libcrypto3.pc "$(DESTDIR)$(libdir)/pkgconfig"
-	@chmod 644 "$(DESTDIR)$(libdir)/pkgconfig/libcrypto3.pc"
-	@$(ECHO) "install libssl3.pc -> $(DESTDIR)$(libdir)/pkgconfig/libssl3.pc"
-	@cp libssl3.pc "$(DESTDIR)$(libdir)/pkgconfig"
-	@chmod 644 "$(DESTDIR)$(libdir)/pkgconfig/libssl3.pc"
-	@$(ECHO) "install openssl3.pc -> $(DESTDIR)$(libdir)/pkgconfig/openssl3.pc"
-	@cp openssl3.pc "$(DESTDIR)$(libdir)/pkgconfig"
-	@chmod 644 "$(DESTDIR)$(libdir)/pkgconfig/openssl3.pc"
+	@$(ECHO) "install libcrypto.pc -> $(DESTDIR)$(libdir)/pkgconfig/libcrypto.pc"
+	@cp libcrypto.pc "$(DESTDIR)$(libdir)/pkgconfig"
+	@chmod 644 "$(DESTDIR)$(libdir)/pkgconfig/libcrypto.pc"
+	@$(ECHO) "install libssl.pc -> $(DESTDIR)$(libdir)/pkgconfig/libssl.pc"
+	@cp libssl.pc "$(DESTDIR)$(libdir)/pkgconfig"
+	@chmod 644 "$(DESTDIR)$(libdir)/pkgconfig/libssl.pc"
+	@$(ECHO) "install openssl.pc -> $(DESTDIR)$(libdir)/pkgconfig/openssl.pc"
+	@cp openssl.pc "$(DESTDIR)$(libdir)/pkgconfig"
+	@chmod 644 "$(DESTDIR)$(libdir)/pkgconfig/openssl.pc"
 
-# /* TIZEN CUSTOMIZED */
 uninstall_dev: uninstall_runtime_libs
 	@$(ECHO) "*** Uninstalling development files"
 	@ : {- output_off() if $disabled{uplink}; "" -}
@@ -827,9 +820,9 @@ uninstall_dev: uninstall_runtime_libs
 		: {- output_on() unless windowsdll(); "" -}; \
 	done
 	@ : {- output_on() if $disabled{shared}; "" -}
-	$(RM) "$(DESTDIR)$(libdir)/pkgconfig/libcrypto3.pc"
-	$(RM) "$(DESTDIR)$(libdir)/pkgconfig/libssl3.pc"
-	$(RM) "$(DESTDIR)$(libdir)/pkgconfig/openssl3.pc"
+	$(RM) "$(DESTDIR)$(libdir)/pkgconfig/libcrypto.pc"
+	$(RM) "$(DESTDIR)$(libdir)/pkgconfig/libssl.pc"
+	$(RM) "$(DESTDIR)$(libdir)/pkgconfig/openssl.pc"
 	-$(RMDIR) "$(DESTDIR)$(libdir)/pkgconfig"
 	-$(RMDIR) "$(DESTDIR)$(libdir)"
 
@@ -1407,11 +1400,10 @@ $(BLDDIR)/apps/openssl.cnf: Makefile
 FORCE:
 
 # Building targets ###################################################
-# /* TIZEN CUSTOMIZED */
-libcrypto3.pc libssl3.pc openssl3.pc: Makefile $(LIBS) {- join(" ",map { platform->sharedlib_simple($_) // platform->sharedlib_import($_) // platform->sharedlib($_) // () } @{$unified_info{libraries}}) -}
 
-# /* TIZEN CUSTOMIZED */
-libcrypto3.pc:
+libcrypto.pc libssl.pc openssl.pc: Makefile $(LIBS) {- join(" ",map { platform->sharedlib_simple($_) // platform->sharedlib_import($_) // platform->sharedlib($_) // () } @{$unified_info{libraries}}) -}
+
+libcrypto.pc:
 	@ ( echo 'prefix=$(INSTALLTOP)'; \
 	    echo 'exec_prefix=$${prefix}'; \
 	    if [ -n "$(LIBDIR)" ]; then \
@@ -1428,10 +1420,9 @@ libcrypto3.pc:
 	    echo 'Version: '$(VERSION); \
 	    echo 'Libs: -L$${libdir} -lcrypto'; \
 	    echo 'Libs.private: $(LIB_EX_LIBS)'; \
-	    echo 'Cflags: -I$${includedir}' ) > libcrypto3.pc
+	    echo 'Cflags: -I$${includedir}' ) > libcrypto.pc
 
-# /* TIZEN CUSTOMIZED */
-libssl3.pc:
+libssl.pc:
 	@ ( echo 'prefix=$(INSTALLTOP)'; \
 	    echo 'exec_prefix=$${prefix}'; \
 	    if [ -n "$(LIBDIR)" ]; then \
@@ -1444,12 +1435,11 @@ libssl3.pc:
 	    echo 'Name: OpenSSL-libssl'; \
 	    echo 'Description: Secure Sockets Layer and cryptography libraries'; \
 	    echo 'Version: '$(VERSION); \
-	    echo 'Requires.private: libcrypto3'; \
+	    echo 'Requires.private: libcrypto'; \
 	    echo 'Libs: -L$${libdir} -lssl'; \
-	    echo 'Cflags: -I$${includedir}' ) > libssl3.pc
+	    echo 'Cflags: -I$${includedir}' ) > libssl.pc
 
-# /* TIZEN CUSTOMIZED */
-openssl3.pc:
+openssl.pc:
 	@ ( echo 'prefix=$(INSTALLTOP)'; \
 	    echo 'exec_prefix=$${prefix}'; \
 	    if [ -n "$(LIBDIR)" ]; then \
@@ -1462,7 +1452,7 @@ openssl3.pc:
 	    echo 'Name: OpenSSL'; \
 	    echo 'Description: Secure Sockets Layer and cryptography libraries and tools'; \
 	    echo 'Version: '$(VERSION); \
-	    echo 'Requires: libssl3 libcrypto3' ) > openssl3.pc
+	    echo 'Requires: libssl libcrypto' ) > openssl.pc
 
 Makefile: configdata.pm \
           {- join(" \\\n" . ' ' x 10,
