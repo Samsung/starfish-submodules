@@ -56,6 +56,13 @@ endif()
 set(LWS_ROLE_RAW 1)
 set(LWS_WITH_POLL 1)
 
+#
+# STARFISH
+#
+if (${STARFISH_CUSTOM} STREQUAL "1")
+	add_definitions(-DDISABLE_CLEANUP_SSL_RELATED_TO_CONTEXT=1)
+endif()
+
 if (ESP_PLATFORM)
 	set(LWS_ESP_PLATFORM 1)
 	#set(CMAKE_TOOLCHAIN_FILE contrib/cross-esp32.cmake)
@@ -215,7 +222,7 @@ option(LWS_WITH_DRIVERS "With generic drivers for gpio, i2c, display etc" OFF)
 #
 # Static / Dynamic build options
 #
-option(LWS_WITH_STATIC "Build the static version of the library" ON)
+option(LWS_WITH_STATIC "Build the static version of the library" OFF)
 option(LWS_WITH_SHARED "Build the shared version of the library" ON)
 option(LWS_LINK_TESTAPPS_DYNAMIC "Link the test apps to the shared version of the library. Default is to link statically" OFF)
 option(LWS_STATIC_PIC "Build the static version of the library with position-independent code" OFF)
@@ -234,7 +241,7 @@ option(LWS_PLAT_ANDROID "Android flavour of unix platform" OFF)
 #
 option(LWS_WITHOUT_CLIENT "Don't build the client part of the library" OFF)
 option(LWS_WITHOUT_SERVER "Don't build the server part of the library" OFF)
-option(LWS_WITHOUT_TESTAPPS "Don't build the libwebsocket-test-apps" OFF)
+option(LWS_WITHOUT_TESTAPPS "Don't build the libwebsocket-test-apps" ON)
 option(LWS_WITHOUT_TEST_SERVER "Don't build the test server" OFF)
 option(LWS_WITHOUT_TEST_SERVER_EXTPOLL "Don't build the test server version that uses external poll" OFF)
 option(LWS_WITHOUT_TEST_PING "Don't build the ping test application" OFF)
@@ -302,6 +309,8 @@ option(LWS_WITH_SUL_DEBUGGING "Enable zombie lws_sul checking on object deletion
 option(LWS_WITH_PLUGINS_API "Build generic lws_plugins apis (see LWS_WITH_PLUGINS to also build protocol plugins)" OFF)
 option(LWS_WITH_CONMON "Collect introspectable connection latency stats on individual client connections" ON)
 option(LWS_WITHOUT_EVENTFD "Force using pipe instead of eventfd" OFF)
+option(LWS_HAVE_VISIBILITY "Apply visibility hidden option" ON)
+
 if (UNIX OR WIN32)
 	option(LWS_WITH_CACHE_NSCOOKIEJAR "Build file-backed lws-cache-ttl that uses netscape cookie jar format (linux-only)" ON)
 else()

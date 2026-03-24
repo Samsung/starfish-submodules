@@ -169,6 +169,12 @@ lws_ssl_destroy(struct lws_vhost *vhost)
 #if defined(LWS_WITH_CLIENT)
 	lws_ssl_destroy_client_ctx(vhost);
 #endif
+#if DISABLE_CLEANUP_SSL_RELATED_TO_CONTEXT
+	// We don't want to clear things that related to ssl when we use this in starfish
+	// Because this causes the OOM of libcurl, We just know that from experience.
+	// We think it's a global resource, so just a one clearing is enough when closing the process.
+	return;
+#endif
 
 // after 1.1.0 no need
 #if (OPENSSL_VERSION_NUMBER <  0x10100000)
@@ -496,6 +502,13 @@ lws_ssl_SSL_CTX_destroy(struct lws_vhost *vhost)
 void
 lws_ssl_context_destroy(struct lws_context *context)
 {
+#if DISABLE_CLEANUP_SSL_RELATED_TO_CONTEXT
+	// We don't want to clear things that related to ssl when we use this in starfish
+	// Because this causes the OOM of libcurl, We just know that from experience.
+	// We think it's a global resource, so just a one clearing is enough when closing the process.
+	return;
+#endif
+
 // after 1.1.0 no need
 #if (OPENSSL_VERSION_NUMBER <  0x10100000)
 // <= 1.0.1f = old api, 1.0.1g+ = new api
