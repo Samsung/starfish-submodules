@@ -33,7 +33,7 @@ const double arc_const = 0.002; // <-- 1/500
 // Miscellaneous methods
 //------------------------------------------------------------------------------
 
-void GetLowestClosedPathInfo(const Paths64& paths, std::optional<size_t>& idx, bool& is_neg_area)
+void GetLowestClosedPathInfo(const Paths64& paths, optional<size_t>& idx, bool& is_neg_area)
 {
 	idx.reset();
 	Point64 botPt = Point64(INT64_MAX, INT64_MIN);

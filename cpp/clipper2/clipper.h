@@ -165,7 +165,7 @@ namespace Clipper2Lib {
     Path<T> result;
     result.reserve(path.size());
     std::transform(path.begin(), path.end(), back_inserter(result),
-      [dx, dy](const auto& pt) { return Point<T>(pt.x + dx, pt.y +dy); });
+      [dx, dy](const Point<T>& pt) { return Point<T>(pt.x + dx, pt.y +dy); });
     return result;
   }
 
@@ -185,7 +185,7 @@ namespace Clipper2Lib {
     Paths<T> result;
     result.reserve(paths.size());
     std::transform(paths.begin(), paths.end(), back_inserter(result),
-      [dx, dy](const auto& path) { return TranslatePath(path, dx, dy); });
+      [dx, dy](const Path<T>& path) { return TranslatePath(path, dx, dy); });
     return result;
   }
 
@@ -786,7 +786,7 @@ namespace Clipper2Lib {
     Paths<T> result;
     result.reserve(paths.size());
     std::transform(paths.begin(), paths.end(), back_inserter(result),
-      [epsilon](const auto& path)
+      [epsilon](const Path<T>& path)
       { return RamerDouglasPeucker<T>(path, epsilon); });
     return result;
   }

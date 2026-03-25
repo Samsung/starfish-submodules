@@ -18,9 +18,110 @@
 #include <algorithm>
 #include <numeric>
 #include <cmath>
+#include <limits>
+#include <memory>
 
 namespace Clipper2Lib
 {
+  // polyfills for c++11
+  template<typename...> using void_t = void;
+  template <typename T, typename... Args>
+  std::unique_ptr<T> make_unique(Args&&... args)
+  {
+      return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+  }
+  template <typename T>
+  struct optional {
+  public:
+      optional()
+          : m_value()
+          , m_hasValue(false)
+      {
+      }
+
+      optional(T value)
+          : m_value(value)
+          , m_hasValue(true)
+      {
+      }
+
+      optional(std::nullptr_t value)
+          : m_value()
+          , m_hasValue(false)
+      {
+      }
+
+      T& value()
+      {
+          return m_value;
+      }
+
+      const T& value() const
+      {
+          return m_value;
+      }
+
+      T valueOr(T defaultValue)
+      {
+          if (m_hasValue) {
+              return m_value;
+          }
+          return defaultValue;
+      }
+
+      const T valueOr(T defaultValue) const
+      {
+          if (m_hasValue) {
+              return m_value;
+          }
+          return defaultValue;
+      }
+
+      bool has_value() const
+      {
+          return m_hasValue;
+      }
+
+      void reset()
+      {
+          *this = optional<T>();
+      }
+
+      operator bool() const
+      {
+          return m_hasValue;
+      }
+
+      bool operator==(const optional<T>& other) const
+      {
+          if (m_hasValue != other.has_value()) {
+              return false;
+          }
+          return m_hasValue ? m_value == other.m_value : true;
+      }
+
+      bool operator!=(const optional<T>& other) const
+      {
+          return !this->operator==(other);
+      }
+
+      bool operator==(const T& other) const
+      {
+          if (m_hasValue) {
+              return value() == other;
+          }
+          return false;
+      }
+
+      bool operator!=(const T& other) const
+      {
+          return !operator==(other);
+      }
+
+  protected:
+      T m_value;
+      bool m_hasValue;
+  };
 
 #if (defined(__cpp_exceptions) && __cpp_exceptions) || (defined(__EXCEPTIONS) && __EXCEPTIONS)
 
@@ -99,7 +200,7 @@ namespace Clipper2Lib
   struct is_round_invocable : std::false_type {};
 
   template <typename T>
-  struct is_round_invocable<T, std::void_t<decltype(std::round(std::declval<T>()))>> : std::true_type {};
+  struct is_round_invocable<T, void_t<decltype(std::round(std::declval<T>()))>> : std::true_type {};
 
 
   //By far the most widely used filling rules for polygons are EvenOdd
@@ -177,8 +278,8 @@ namespace Clipper2Lib
     template <typename T2>
     inline void Init(const T2 x_ = 0, const T2 y_ = 0)
     {
-      if constexpr (std::is_integral_v<T> &&
-        is_round_invocable<T2>::value && !std::is_integral_v<T2>)
+      if (std::is_integral<T>::value &&
+        is_round_invocable<T2>::value && !std::is_integral<T2>::value)
       {
         x = static_cast<T>(std::round(x_));
         y = static_cast<T>(std::round(y_));
@@ -407,8 +508,8 @@ namespace Clipper2Lib
   {
     Rect<T1> result;
 
-    if constexpr (std::is_integral_v<T1> &&
-      is_round_invocable<T2>::value && !std::is_integral_v<T2>)
+    if (std::is_integral<T1>::value &&
+      is_round_invocable<T2>::value && !std::is_integral<T2>::value)
     {
       result.left = static_cast<T1>(std::round(rect.left * scale));
       result.top = static_cast<T1>(std::round(rect.top * scale));
@@ -537,11 +638,11 @@ namespace Clipper2Lib
     result.reserve(path.size());
 #ifdef USINGZ
     std::transform(path.begin(), path.end(), back_inserter(result),
-      [scale_x, scale_y](const auto& pt)
+      [scale_x, scale_y](const Point<T2>& pt)
       { return Point<T1>(pt.x * scale_x, pt.y * scale_y, pt.z); });
 #else
     std::transform(path.begin(), path.end(), back_inserter(result),
-      [scale_x, scale_y](const auto& pt)
+      [scale_x, scale_y](const Point<T2>& pt)
       { return Point<T1>(pt.x * scale_x, pt.y * scale_y); });
 #endif
     return result;
@@ -560,7 +661,7 @@ namespace Clipper2Lib
   {
     Paths<T1> result;
 
-    if constexpr (std::is_integral_v<T1>)
+    if (std::is_integral<T1>::value)
     {
       RectD r = GetBounds<double, T2>(paths);
       if ((r.left * scale_x) < min_coord ||
@@ -576,7 +677,7 @@ namespace Clipper2Lib
 
     result.reserve(paths.size());
     std::transform(paths.begin(), paths.end(), back_inserter(result),
-      [=, &error_code](const auto& path)
+      [=, &error_code](const Path<T2>& path)
       { return ScalePath<T1, T2>(path, scale_x, scale_y, error_code); });
     return result;
   }
@@ -701,8 +802,14 @@ namespace Clipper2Lib
 
   struct UInt128Struct
   {
-    const uint64_t lo = 0;
-    const uint64_t hi = 0;
+    const uint64_t lo;
+    const uint64_t hi;
+
+    UInt128Struct(const uint64_t& lo = 0, const uint64_t& hi = 0)
+      : lo(lo)
+      , hi(hi)
+    {
+    }
 
     bool operator==(const UInt128Struct& other) const
     {
@@ -1058,7 +1165,7 @@ namespace Clipper2Lib
         static_cast<double>(offPt.y - seg1.y) * dy) /
       (Sqr(dx) + Sqr(dy));
     if (q < 0) q = 0; else if (q > 1) q = 1;
-    if constexpr (std::is_integral_v<T>)
+    if (std::is_integral<T>::value)
       return Point<T>(
         seg1.x + static_cast<T>(nearbyint(q * dx)),
         seg1.y + static_cast<T>(nearbyint(q * dy)));

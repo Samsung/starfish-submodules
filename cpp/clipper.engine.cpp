@@ -605,7 +605,7 @@ namespace Clipper2Lib {
     if ((VertexFlags::LocalMin & vert.flags) != VertexFlags::Empty) return;
 
     vert.flags = (vert.flags | VertexFlags::LocalMin);
-    list.emplace_back(std::make_unique <LocalMinima>(&vert, polytype, is_open));
+    list.emplace_back(make_unique <LocalMinima>(&vert, polytype, is_open));
   }
 
   void AddPaths_(const Paths64& paths, PathType polytype, bool is_open,
@@ -613,7 +613,7 @@ namespace Clipper2Lib {
   {
     const auto total_vertex_count =
       std::accumulate(paths.begin(), paths.end(), size_t(0),
-        [](const auto& a, const Path64& path)
+        [](const size_t& a, const Path64& path)
         {return a + path.size(); });
     if (total_vertex_count == 0) return;
 
@@ -722,7 +722,7 @@ namespace Clipper2Lib {
     if ((VertexFlags::LocalMin & vert.flags) != VertexFlags::Empty) return;
 
     vert.flags = (vert.flags | VertexFlags::LocalMin);
-    minima_list_.emplace_back(std::make_unique <LocalMinima>(&vert, polytype, is_open));
+    minima_list_.emplace_back(make_unique <LocalMinima>(&vert, polytype, is_open));
   }
 
   void ReuseableDataContainer64::AddPaths(const Paths64& paths,
@@ -849,7 +849,7 @@ namespace Clipper2Lib {
     LocalMinimaList::const_iterator i;
     for (i = reuseable_data.minima_list_.cbegin(); i != reuseable_data.minima_list_.cend(); ++i)
     {
-      minima_list_.emplace_back(std::make_unique <LocalMinima>((*i)->vertex, (*i)->polytype, (*i)->is_open));
+      minima_list_.emplace_back(make_unique <LocalMinima>((*i)->vertex, (*i)->polytype, (*i)->is_open));
       if ((*i)->is_open) has_open_paths_ = true;
     }
   }
@@ -902,7 +902,7 @@ namespace Clipper2Lib {
     if ((VertexFlags::LocalMin & vert.flags) != VertexFlags::Empty) return;
 
     vert.flags = (vert.flags | VertexFlags::LocalMin);
-    minima_list_.emplace_back(std::make_unique <LocalMinima>(&vert, polytype, is_open));
+    minima_list_.emplace_back(make_unique <LocalMinima>(&vert, polytype, is_open));
   }
 
   bool ClipperBase::IsContributingClosed(const Active& e) const

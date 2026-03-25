@@ -472,7 +472,8 @@ namespace Clipper2Lib
 
   Edge* Delaunay::CreateEdge(Vertex2* v1, Vertex2* v2, EdgeKind k)
   {
-    Edge* res = allEdges.emplace_back(new Edge());
+    allEdges.emplace_back(new Edge());
+    Edge* res = allEdges.back();
     if (v1->pt.y == v2->pt.y)
     {
       res->vB = v1; res->vT = v2;
@@ -508,7 +509,8 @@ namespace Clipper2Lib
 
   Triangle* Delaunay::CreateTriangle(Edge* e1, Edge* e2, Edge* e3)
   {
-    Triangle* res = allTriangles.emplace_back(new Triangle(e1, e2, e3));
+    allTriangles.emplace_back(new Triangle(e1, e2, e3));
+    Triangle* res = allTriangles.back();
     // nb: only expire loose edges when both sides of these edges have triangles.
     for (int i = 0; i < 3; ++i)       
       if (res->edges[i]->triA)
@@ -1100,7 +1102,8 @@ namespace Clipper2Lib
     size_t vert_cnt = allVertices.size();
 
     // we are now at the first legitimate locMin
-    Vertex2* v0 = allVertices.emplace_back(new Vertex2(path[i]));
+    allVertices.emplace_back(new Vertex2(path[i]));
+    Vertex2* v0 = allVertices.back();
 
     if (LeftTurning(path[iPrev], path[i], path[iNext]))
       v0->innerLM = true;
@@ -1128,7 +1131,8 @@ namespace Clipper2Lib
       // ascend up next bound to LocMax
       while (path[i].y <= vPrev->pt.y)
       {
-        Vertex2* v = allVertices.emplace_back(new Vertex2(path[i]));
+        allVertices.emplace_back(new Vertex2(path[i]));
+        Vertex2* v = allVertices.back();
         CreateEdge(vPrev, v, EdgeKind::ascend);
         vPrev = v;
         i = iNext;
@@ -1145,7 +1149,8 @@ namespace Clipper2Lib
       Vertex2* vPrevPrev = vPrev;
       while (i != i0 && path[i].y >= vPrev->pt.y)
       {
-        Vertex2* v = allVertices.emplace_back(new Vertex2(path[i]));
+        allVertices.emplace_back(new Vertex2(path[i]));
+        Vertex2* v = allVertices.back();
         CreateEdge(v, vPrev, EdgeKind::descend);
         vPrevPrev = vPrev;
         vPrev = v;
@@ -1183,7 +1188,7 @@ namespace Clipper2Lib
   {
     const auto total_vertex_count =
       std::accumulate(paths.begin(), paths.end(), size_t(0),
-        [](const auto& a, const Path64& path)
+        [](const size_t& a, const Path64& path)
         {return a + path.size(); });
     if (total_vertex_count == 0) return false;
     allVertices.reserve(allVertices.capacity() + total_vertex_count);
