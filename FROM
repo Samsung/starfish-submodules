@@ -1,0 +1,7 @@
+https://github.com/AngusJohnson/Clipper2
+
+commit 642390d0d515cfb645d2ec4d95d218e28be645f4 (HEAD -> main, origin/main, origin/HEAD)
+Author: Goswin Rothenthal <gwinsky@yahoo.com>
+Date:   Fri Mar 20 23:25:10 2026 +0100
+
+    fix project path for C# tests, add readme on tests (#1082)
