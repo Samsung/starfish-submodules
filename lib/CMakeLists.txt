@@ -207,11 +207,13 @@ if (LWS_WITH_SHARED)
 	target_include_directories(websockets_shared PUBLIC ${LWS_PUBLIC_INCLUDES})
 	set(LWS_PUBLIC_INCLUDES ${LWS_PUBLIC_INCLUDES} PARENT_SCOPE)
 
-	# We want the shared lib to be named "libwebsockets"
+	# We want the shared lib to be named "libwebsockets_lwe"
 	# not "libwebsocket_shared".
 	set_target_properties(websockets_shared
 		PROPERTIES
-		OUTPUT_NAME websockets)
+		OUTPUT_NAME websockets_lwe
+		SONAME "libwebsockets_lwe.so"
+		)
 
 	if (WIN32)
 		# Compile as DLL (export function declarations)
@@ -254,13 +256,13 @@ endif()
 # Set the so version of the lib.
 # Equivalent to LDFLAGS=-version-info x:x:x
 
-if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR COMPILER_IS_CLANG)
-	foreach(lib ${LWS_LIBRARIES})
-		set_target_properties(${lib}
-			PROPERTIES
-			SOVERSION ${SOVERSION})
-	endforeach()
-endif()
+# if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR COMPILER_IS_CLANG)
+# 	foreach(lib ${LWS_LIBRARIES})
+# 		set_target_properties(${lib}
+# 			PROPERTIES
+# 			SOVERSION ${SOVERSION})
+# 	endforeach()
+# endif()
 
 
 # Setup the linking for all libs.

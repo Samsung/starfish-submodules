@@ -309,7 +309,6 @@ option(LWS_WITH_SUL_DEBUGGING "Enable zombie lws_sul checking on object deletion
 option(LWS_WITH_PLUGINS_API "Build generic lws_plugins apis (see LWS_WITH_PLUGINS to also build protocol plugins)" OFF)
 option(LWS_WITH_CONMON "Collect introspectable connection latency stats on individual client connections" ON)
 option(LWS_WITHOUT_EVENTFD "Force using pipe instead of eventfd" OFF)
-option(LWS_HAVE_VISIBILITY "Apply visibility hidden option" ON)
 
 if (UNIX OR WIN32)
 	option(LWS_WITH_CACHE_NSCOOKIEJAR "Build file-backed lws-cache-ttl that uses netscape cookie jar format (linux-only)" ON)
@@ -428,7 +427,7 @@ set(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSIO
 set(CPACK_PACKAGE_VENDOR "andy@warmcat.com")
 set(CPACK_PACKAGE_CONTACT "andy@warmcat.com")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PACKAGE} ${CPACK_PACKAGE_VERSION}")
-set(SOVERSION "19")
+# set(SOVERSION "19")
 if(NOT CPACK_GENERATOR)
     if(UNIX)
         set(CPACK_GENERATOR "TGZ")

@@ -209,7 +209,7 @@ typedef int suseconds_t;
 #define LWS_FORMAT(string_index) __attribute__ ((format(printf, string_index, string_index+1)))
 #else /* not GNUC */
 
-#define LWS_VISIBLE __attribute__((visibility("hidden")))
+#define LWS_VISIBLE
 #define LWS_WARN_UNUSED_RESULT
 #define LWS_WARN_DEPRECATED
 #define LWS_FORMAT(string_index)
