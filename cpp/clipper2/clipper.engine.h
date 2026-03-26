@@ -189,7 +189,7 @@ namespace Clipper2Lib {
 
 	// ClipperBase -------------------------------------------------------------
 
-	class ClipperBase {
+	class CLIPPER_EXPORT ClipperBase {
 	private:
 		ClipType cliptype_ = ClipType::NoClip;
 		FillRule fillrule_ = FillRule::EvenOdd;
@@ -520,7 +520,7 @@ namespace Clipper2Lib {
 		}
 	};
 
-	class ClipperD : public ClipperBase {
+	class CLIPPER_EXPORT ClipperD : public ClipperBase {
 	private:
 		double scale_ = 1.0, invScale_ = 1.0;
 #ifdef USINGZ

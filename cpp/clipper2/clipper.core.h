@@ -23,6 +23,14 @@
 
 namespace Clipper2Lib
 {
+  // export
+#ifndef CLIPPER_EXPORT
+#if defined(__GNUC__) || __clang__
+#define CLIPPER_EXPORT __attribute__((visibility("default")))
+#else
+#define CLIPPER_EXPORT
+#endif
+#endif
   // polyfills for c++11
   template<typename...> using void_t = void;
   template <typename T, typename... Args>

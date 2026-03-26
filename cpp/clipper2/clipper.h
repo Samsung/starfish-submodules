@@ -340,7 +340,7 @@ namespace Clipper2Lib {
     }
 
     template<typename T, typename U>
-    inline constexpr void MakePathGeneric(const T an_array,
+    inline void MakePathGeneric(const T an_array,
       size_t array_size, std::vector<U>& result)
     {
       result.reserve(array_size / 2);
