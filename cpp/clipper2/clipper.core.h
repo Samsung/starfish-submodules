@@ -25,7 +25,7 @@ namespace Clipper2Lib
 {
   // export
 #ifndef CLIPPER_EXPORT
-#if defined(__GNUC__) || __clang__
+#if defined(__GNUC__) || defined(__clang__)
 #define CLIPPER_EXPORT __attribute__((visibility("default")))
 #else
 #define CLIPPER_EXPORT
