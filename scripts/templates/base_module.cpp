@@ -634,7 +634,7 @@ FunctionObjectRef* binding{{ name }}(
 }
 {% include 'constructor_named_bind.cpp' ignore missing %}
 
-{% if not static_interface %}
+{% if generate_init_and_is or not static_interface %}
 void {{ name }}::init(ScriptBindingInstance* instance, void* domObjectPointer)
 {
     ContextRef* context = instance->scriptContext();

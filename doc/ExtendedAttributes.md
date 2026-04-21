@@ -14,6 +14,7 @@
 | ConstructorCallWith=X | Native constructor will need X as a first argument.<br>X can be,<ul><li>Document (*Ref: Comment.idl*)</li><li>Window (*Ref: URL.idl*)</li><li>ExecutionContext (*Ref: FormData.idl*)</li><li>ScriptBindingInstance (*Ref: DOMQuad.idl*)</li></ul> |
 | PrimaryGlobal | Only Window.idl need this. |
 | Exposed | Exposed on a particular set of global interfaces. |
+| GenerateInitAndIs | For interface X, generate init() and isX() even if it seems to be static. |
 
 ## Attribute
 | Name | Descripion |

@@ -116,6 +116,7 @@ _hd_extattr_serializable = partial(_hd_extattr_bool_t, 'Serializable', 'serializ
 _hd_extattr_transferable = partial(_hd_extattr_bool_t, 'Transferable', 'transferable', True)
 _hd_extattr_reflect = partial(_hd_extattr_value_t, 'Reflect', 'reflect', True)
 _hd_extattr_unscopable = partial(_hd_extattr_bool_t, 'Unscopable', 'unscopable', True)
+_hd_extattr_generate_init_and_is = partial(_hd_extattr_bool_t, 'GenerateInitAndIs', 'generate_init_and_is', True)
 
 def _hd_extattr_flags(target, extattr):
   if extattr.GetName() == 'STARFISH_TC_COVERAGE':
@@ -666,6 +667,7 @@ class StarfishIDLReader():
                           _hd_extattr_transferable,
                           _hd_extattr_raise_expection,
                           _hd_extattr_cereactions,
+                          _hd_extattr_generate_init_and_is,
                           _hd_extattr_exposed])
       elif _is_class(child, 'Maplike'):
         maplike = {}
