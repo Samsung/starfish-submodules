@@ -172,7 +172,7 @@ class StarfishIRHandler():
         if arg['type'].get('nullable', False):
           continue
         # TODO May add Dictionary here
-        if not arg['type']['kind'] in ['Any', 'UnionType']:
+        if not arg['type']['kind'] in ['Any']:
           conditions.append(key)
           if arg['type']['kind'] in ['Sequence', 'Dictionary', 'Typeref', 'Callback', 'Promise']:
             strong_condition_count += 1
