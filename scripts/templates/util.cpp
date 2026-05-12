@@ -362,6 +362,12 @@ if (!std::isfinite({{names.vname}})) {
         {% elif arg.type.kind == "UnionType" %}
             {% if arg.default == 'false' or arg.default == 'true' %}
     {{ '%s %s = %s::createboolean(%s);'|format(type_exp, names.vname,type_exp,arg.default) }}
+            {% elif arg.default == '""' %}
+                {% for subtype in arg.type.data %}
+                    {% if subtype.kind == 'StringType' %}
+    {{ '%s %s = %s::create%s(String::emptyString);'|format(type_exp, names.vname, type_exp, subtype.name) }}
+                    {% endif %}
+                {% endfor %}
             {% else %}
     {{ '%s %s = %s;'|format(type_exp, names.vname, arg.default) }}
             {% endif %}
