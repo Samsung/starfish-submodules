@@ -52,7 +52,7 @@
 {%- macro gen_check_type(type, aname) -%}
     {% if type.kind == 'Typeref' %}
         _CHECK_TYPEOF({{ aname }}, {{ type.name }})
-    {% elif type.kind.startswith('SequenceOf') %}
+    {% elif type.kind.startswith('SequenceOf') or type.kind.startswith('FrozenArrayOf') %}
         ({{ aname }}->isObject())
     {% elif type.kind == 'Promise' %}
         ({{ aname }}->isObject() && {{ aname }}->asObject()->isPromiseObject())
@@ -216,7 +216,7 @@ if (!{{ aname }}->isUndefinedOrNull()) {
     for (int i = 0; i < {{ aname }}Size; i++) {
         {% set use_nullable = is_non_nullable_type(seq.data.kind) and seq.data.nullable %}
         {% set type_exp = gen_type_str(seq.data, use_nullable) %}
-        {% if seq.data.kind.startswith('SequenceOf') %}
+        {% if seq.data.kind.startswith('SequenceOf') or seq.data.kind.startswith('FrozenArrayOf') %}
         DOES NOT SUPPORT NESTED SEQUENCE YET !! (PLEASE USE `CUSTOM`)
         {% endif %}
         ValueRef* itemJS = {{ aname }}->asObject()->get(state, ValueRef::create(i));
@@ -251,7 +251,7 @@ if (!{{ aname }}->isUndefinedOrNull()) {
         {% set type_str = 'ScriptValue'%}
     {% elif type.kind == 'PrimitiveType' %}
         {% set type_str  = gen_primitive_type_str(type)|trim %}
-    {% elif type.kind.startswith('SequenceOf') %}
+    {% elif type.kind.startswith('SequenceOf') or type.kind.startswith('FrozenArrayOf') %}
         {% if is_primitive_non_gc_type(type.data) %}
             {% set type_str  = 'GCAtomicVector<%s>'|format(gen_type_str(type.data, is_non_nullable_type(type.data.kind) and type.data.nullable)) %}
         {% else %}
@@ -336,7 +336,7 @@ if (!std::isfinite({{names.vname}})) {
 {% macro is_non_nullable_type(kind) %}
     {% set found = False %}
     {% for x in non_nullable_type_kinds %}
-        {% if x == 'SequenceOf' and kind.startswith(x) %}
+        {% if x in ['SequenceOf', 'FrozenArrayOf'] and kind.startswith(x) %}
             {{ True }}
         {% elif kind == x %}
             {{ True }}
@@ -371,7 +371,7 @@ if (!std::isfinite({{names.vname}})) {
             {% else %}
     {{ '%s %s = %s;'|format(type_exp, names.vname, arg.default) }}
             {% endif %}
-        {% elif arg.type.kind.startswith('SequenceOf') and arg.default == '[]' %}
+        {% elif (arg.type.kind.startswith('SequenceOf') or arg.type.kind.startswith('FrozenArrayOf')) and arg.default == '[]' %}
     {{ '%s %s = {};'|format(type_exp, names.vname) }}
         {% else %}
     {{ '%s %s = %s;'|format(type_exp, names.vname, arg.default) }}
@@ -389,7 +389,7 @@ if (!std::isfinite({{names.vname}})) {
     {% endif %}
     {###### Assigning native variable of an argument ######}
     {% set check_type = gen_check_type_exception(arg.type, names.aname, skip_type_check)|trim %}
-    {% if arg.type.kind.startswith('SequenceOf') %}
+    {% if arg.type.kind.startswith('SequenceOf') or arg.type.kind.startswith('FrozenArrayOf') %}
     {% set assign_exp = get_arrayobject_to_native(arg.type, names.aname, names.vname) %}
     {% else %}
     {% set assign_exp = '%s = %s;'|format(names.vname, gen_esvalue_to_native(arg.type, names.aname, fromattr)) %}
@@ -512,7 +512,7 @@ ValueRef::create({{var_name}})
 {%- endmacro -%}
 
 {%- macro gen_return_code(type, vname='result') -%}
-    {% if type.kind.startswith('SequenceOf') %}
+    {% if type.kind.startswith('SequenceOf') or type.kind.startswith('FrozenArrayOf') %}
 ArrayObjectRef* arrayObj = ArrayObjectRef::create(state);
 
 for (unsigned aidx = 0; aidx < {{ vname }}.size(); aidx++) {
@@ -528,6 +528,9 @@ for (unsigned aidx = 0; aidx < {{ vname }}.size(); aidx++) {
     {% endif %}
     arrayObj->set(state, ValueRef::create(aidx), item);
 }
+    {% if type.kind.startswith('FrozenArrayOf') %}
+freezeArray(state, arrayObj);
+    {% endif %}
 return ValueRef::create(arrayObj);
     {% else %}
 return {{ gen_native_to_jsvalue(type, vname) }};
