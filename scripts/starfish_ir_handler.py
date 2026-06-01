@@ -79,6 +79,8 @@ class StarfishIRHandler():
       self._change_types(type_ir, 'data', unimpl)
     elif str(kind).startswith('FrozenArrayOf'):
       self._change_types(type_ir, 'data', unimpl)
+    elif str(kind).startswith('ObservableArrayOf'):
+      self._change_types(type_ir, 'data', unimpl)
     elif kind == 'Dictionary' and name in self.dictionaries:
       # After the type_ir is handled in line 44 first time, the kind is changed
       # from 'Typeref' to 'Dictionary', so from then on we have to check whether

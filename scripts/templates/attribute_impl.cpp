@@ -58,7 +58,9 @@ static ValueRef* {{ util_macro.gen_getter_function(attribute, name) }}(Execution
     CustomElementReactionStack reactionStack;
     {% endif %}
 
-    {% if attribute.reflect %}
+    {% if attribute.getter.return.kind.startswith('ObservableArrayOf') %}
+    return ValueRef::create(originalObj->{{ util_macro.gen_attr_name(attribute) }}ObservableArray(state));
+    {% elif attribute.reflect %}
     {% if attribute.getter.return.name == 'boolean' %}
     return ValueRef::create(originalObj->getAttribute(fetchStaticStrings(state->context())->m_{{ attribute.reflect }}).hasValue());
     {% else %}
@@ -134,7 +136,9 @@ static ValueRef* {{ util_macro.gen_setter_function(attribute, name) }}(Execution
     CustomElementReactionStack reactionStack;
     {% endif %}
 
-    {% if attribute.reflect %}
+    {% if attribute.setter.arguments[0].type.kind.startswith('ObservableArrayOf') %}
+    originalObj->set{{ util_macro.gen_attr_name(attribute)|first_word_capitalize }}FromObservableArray(state, argv[0]);
+    {% elif attribute.reflect %}
     {% if attribute.getter.return.name == 'boolean' %}
     bool value = argv[0]->toBoolean(state);
     if (value) {

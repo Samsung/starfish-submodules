@@ -251,7 +251,7 @@ if (!{{ aname }}->isUndefinedOrNull()) {
         {% set type_str = 'ScriptValue'%}
     {% elif type.kind == 'PrimitiveType' %}
         {% set type_str  = gen_primitive_type_str(type)|trim %}
-    {% elif type.kind.startswith('SequenceOf') or type.kind.startswith('FrozenArrayOf') %}
+    {% elif type.kind.startswith('SequenceOf') or type.kind.startswith('FrozenArrayOf') or type.kind.startswith('ObservableArrayOf') %}
         {% if is_primitive_non_gc_type(type.data) %}
             {% set type_str  = 'GCAtomicVector<%s>'|format(gen_type_str(type.data, is_non_nullable_type(type.data.kind) and type.data.nullable)) %}
         {% else %}
@@ -336,7 +336,7 @@ if (!std::isfinite({{names.vname}})) {
 {% macro is_non_nullable_type(kind) %}
     {% set found = False %}
     {% for x in non_nullable_type_kinds %}
-        {% if x in ['SequenceOf', 'FrozenArrayOf'] and kind.startswith(x) %}
+        {% if x in ['SequenceOf', 'FrozenArrayOf', 'ObservableArrayOf'] and kind.startswith(x) %}
             {{ True }}
         {% elif kind == x %}
             {{ True }}

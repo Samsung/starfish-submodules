@@ -24,7 +24,7 @@ SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_PATH = os.path.join(SCRIPT_PATH, 'templates')
 STARFISH_PATH = os.path.join(SCRIPT_PATH, '..', '..')
 
-NON_NULLABLE_TYPE_KINDS = ['StringType', 'PrimitiveType', 'Dictionary', 'SequenceOf', 'FrozenArrayOf', 'UnionType', 'Enum', 'Undefined', 'Typeref']
+NON_NULLABLE_TYPE_KINDS = ['StringType', 'PrimitiveType', 'Dictionary', 'SequenceOf', 'FrozenArrayOf', 'ObservableArrayOf', 'UnionType', 'Enum', 'Undefined', 'Typeref']
 STRING_TYPE_KINDS = ['StringType', 'Enum']
 POINTER_TYPE_KINDS = ['Typeref', 'Callback', 'Promise', 'SpecialType']
 NUMBER_TYPE_NAMES = ['short', 'long', 'long long', 'float', 'double', 'unsigned long', 'unsigned short', 'unsigned long long']

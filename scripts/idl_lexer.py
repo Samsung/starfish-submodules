@@ -71,6 +71,7 @@ class IDLLexer(object):
     'false' : 'FALSE',
     'float' : 'FLOAT',
     'FrozenArray' : 'FROZENARRAY',
+    'ObservableArray' : 'OBSERVABLEARRAY',
     'getter': 'GETTER',
     'implements' : 'IMPLEMENTS',
     'Infinity' : 'INFINITY',

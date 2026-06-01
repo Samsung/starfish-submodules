@@ -893,6 +893,7 @@ class IDLParser(object):
                   | identifier TypeSuffix
                   | SEQUENCE '<' Type '>' Null
                   | FROZENARRAY '<' Type '>' Null
+                  | OBSERVABLEARRAY '<' Type '>' Null
                   | RecordType Null
                   | UNDEFINED Null"""
     if len(p) == 3:
@@ -905,7 +906,12 @@ class IDLParser(object):
       p[0] = ListFromConcat(typeref, p[2])
 
     if len(p) == 6:
-      cls = 'Sequence' if p[1] == 'sequence' else 'FrozenArray'
+      if p[1] == 'sequence':
+        cls = 'Sequence'
+      elif p[1] == 'ObservableArray':
+        cls = 'ObservableArray'
+      else:
+        cls = 'FrozenArray'
       p[0] = self.BuildProduction(cls, p, 1, ListFromConcat(p[3], p[5]))
 
   # [79] NOT IMPLEMENTED (BufferRelatedType)

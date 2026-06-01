@@ -292,6 +292,15 @@ class StarfishIDLReader():
             result['kind'] = 'FrozenArrayOf' + str(result['data']['name'])
             result['name'] = result['kind']
             break
+      elif _is_class(child, 'ObservableArray'):
+        # ObservableArray
+        _set_boolean_prop(result, child, 'NULLABLE', 'nullable')
+        for subt in child.GetChildren():
+          if subt.GetClass() == 'Type':
+            result['data'] = self._gen_ir_type(subt)
+            result['kind'] = 'ObservableArrayOf' + str(result['data']['name'])
+            result['name'] = result['kind']
+            break
       elif _is_class(child, 'UnionType'):
         result['kind'] = child.GetClass()
         result['name'] = child.GetClass()
