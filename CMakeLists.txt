@@ -76,6 +76,16 @@ if (LWS_WITH_SECURE_STREAMS_CPP)
 endif()
 include(CTest)
 
+if ((CMAKE_C_COMPILER_ID MATCHES "Clang") OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
+	set(COMPILER_IS_CLANG ON)
+endif()
+
+if (${STARFISH_CUSTOM} STREQUAL "1")
+	if (NOT COMPILER_IS_CLANG)
+		add_compile_options(-Wno-enum-int-mismatch)
+	endif()
+endif()
+
 if (ESP_PLATFORM)
        include_directories(
 		$ENV{IDF_PATH}/components/esp_hw_support/include/soc/
@@ -697,11 +707,6 @@ CHECK_C_SOURCE_COMPILES("#include <stdint.h>
 		intptr_t test = 1;
 		return 0;
 	}" LWS_HAS_INTPTR_T)
-
-if ((CMAKE_C_COMPILER_ID MATCHES "Clang") OR
-    (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
-	set(COMPILER_IS_CLANG ON)
-endif()
 
 if (LWS_HAVE_PTHREAD_H AND NOT LWS_PLAT_FREERTOS)
 	CHECK_C_SOURCE_COMPILES("
