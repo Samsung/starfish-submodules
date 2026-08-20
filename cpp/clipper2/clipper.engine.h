@@ -275,6 +275,9 @@ namespace Clipper2Lib {
 		void AddPath(const Path64& path, PathType polytype, bool is_open);
 		void AddPaths(const Paths64& paths, PathType polytype, bool is_open);
 	public:
+		ClipperBase() = default;
+		ClipperBase(const ClipperBase&) = delete;
+		ClipperBase& operator=(const ClipperBase&) = delete;
 		virtual ~ClipperBase();
 		int ErrorCode() const { return error_code_; }
 		void PreserveCollinear(bool val) { preserve_collinear_ = val; }
