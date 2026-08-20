@@ -42,7 +42,7 @@ class SkTypeface;
     The SkPaint class holds the style and color information about how to draw
     geometries, text and bitmaps.
 */
-class SK_API SkPaint {
+class SkPaint {
 public:
     SkPaint();
     SkPaint(const SkPaint& paint);

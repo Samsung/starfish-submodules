@@ -10,7 +10,7 @@
 
 #include "SkScalar.h"
 
-struct SK_API SkPoint3 {
+struct SkPoint3 {
     SkScalar fX, fY, fZ;
 
     static SkPoint3 Make(SkScalar x, SkScalar y, SkScalar z) {
