@@ -209,10 +209,16 @@ if (LWS_WITH_SHARED)
 
 	# We want the shared lib to be named "libwebsockets_lwe"
 	# not "libwebsocket_shared".
+	# SONAME is not a real CMake target property — use LINK_FLAGS to embed
+	# -Wl,-soname so the bare filename (not the build-tree path) lands in
+	# DT_NEEDED of consumers. Without this, Tizen cross builds (whose CMake
+	# platform module doesn't define CMAKE_SHARED_LIBRARY_SONAME_FLAG) produce
+	# a .so with no soname, and the linker bakes "lib/libwebsockets_lwe.so"
+	# into every consumer's DT_NEEDED — "not found" at runtime.
 	set_target_properties(websockets_shared
 		PROPERTIES
 		OUTPUT_NAME websockets_lwe
-		SONAME "libwebsockets_lwe.so"
+		LINK_FLAGS "-Wl,-soname,libwebsockets_lwe.so"
 		)
 
 	if (WIN32)
