@@ -70,14 +70,17 @@ namespace Starfish {
         state->throwException(ValueRef::create(TypeErrorObjectRef::create(state, msg)));
         STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
     }
-{% for key in members %}
-    {% if not key.unimplemented %}
-    ValueRef* arg{{loop.index - 1}} = from->asObject()->get(state, ValueRef::create(StringRef::createFromASCII("{{ util_macro.gen_attr_name(key) }}")));
-    {% endif %}
-{% endfor %}
     {{name}} result;
 {% for key in members -%}
     {% if not key.unimplemented %}
+    ValueRef* arg{{loop.index - 1}} = from->asObject()->get(state, ValueRef::create(StringRef::createFromASCII("{{ util_macro.gen_attr_name(key) }}")));
+    {% if key.required %}
+    if (arg{{loop.index - 1}}->isUndefined()) {
+        auto msg = StringRef::createFromASCII("Required dictionary member '{{ util_macro.gen_attr_name(key) }}' is missing");
+        state->throwException(ValueRef::create(TypeErrorObjectRef::create(state, msg)));
+        STARFISH_RELEASE_ASSERT_SHOULD_NOT_BE_HERE();
+    }
+    {% endif %}
     {% set names = {'name': name, 'kname': util_macro.gen_attr_name(key),
                     'aname': 'arg%d'|format(loop.index - 1), 'vname': 'value%d'|format(loop.index - 1)} %}
     {{ util_macro.handle_arg(key, names)|trim }}

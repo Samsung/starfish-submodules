@@ -212,7 +212,14 @@ ScriptObject
 {{ gen_type_str(seq, False) }} {{ vector_name }};
 {% endif %}
 if (!{{ aname }}->isUndefinedOrNull()) {
-    int {{ aname }}Size = (int){{ aname }}->asObject()->get(state, scriptStringLength(fetchScriptBindingInstance(state->context())))->toNumber(state);
+    if (!{{ aname }}->isObject()) {
+        THROW_EXCEPTION(ILLEGAL_INVOKE);
+    }
+    double {{ aname }}Length = {{ aname }}->asObject()->get(state, scriptStringLength(fetchScriptBindingInstance(state->context())))->toNumber(state);
+    if (!std::isfinite({{ aname }}Length) || {{ aname }}Length < 0 || {{ aname }}Length > 2147483647.0) {
+        THROW_EXCEPTION(ILLEGAL_INVOKE);
+    }
+    int {{ aname }}Size = (int){{ aname }}Length;
     for (int i = 0; i < {{ aname }}Size; i++) {
         {% set use_nullable = is_non_nullable_type(seq.data.kind) and seq.data.nullable %}
         {% set type_exp = gen_type_str(seq.data, use_nullable) %}
@@ -233,6 +240,11 @@ if (!{{ aname }}->isUndefinedOrNull()) {
         {% else %}
         {{ gen_check_type_exception(seq.data, 'itemJS')|trim }}
         itemNV = {{gen_esvalue_to_native(seq.data, 'itemJS')}};
+        {% endif %}
+        {% if seq.data.kind == 'PrimitiveType' and seq.data.name in ['float', 'double'] and not seq.data.unrestricted and not seq.data.nullable %}
+        if (!std::isfinite(itemNV)) {
+            THROW_EXCEPTION(ILLEGAL_INVOKE);
+        }
         {% endif %}
         {{vector_name}}.push_back(itemNV);
     }
@@ -368,6 +380,12 @@ if (!std::isfinite({{names.vname}})) {
     {{ '%s %s = %s::create%s(String::emptyString);'|format(type_exp, names.vname, type_exp, subtype.name) }}
                     {% endif %}
                 {% endfor %}
+            {% elif arg.default[0] == '"' %}
+                {% for subtype in arg.type.data %}
+                    {% if subtype.kind in ['Enum', 'StringType'] %}
+    {{ '%s %s = %s::create%s(String::fromUTF8(%s));'|format(type_exp, names.vname, type_exp, subtype.name, arg.default) }}
+                    {% endif %}
+                {% endfor %}
             {% else %}
     {{ '%s %s = %s;'|format(type_exp, names.vname, arg.default) }}
             {% endif %}
@@ -443,8 +461,8 @@ if (!std::isfinite({{names.vname}})) {
     if (!{{ names.aname }}->isUndefinedOrNull()) {
         {{ assign_exp_with_check|indent(8) }}
     }
-        {%- elif names.kname and not arg.default and not check_type %}
-        {# '(6) In dictionary, No-DefaultValue + No-CheckType #}
+        {%- elif names.kname and not arg.default %}
+        {# '(6) In dictionary, a missing member needs no conversion or type check' #}
     if (!{{ names.aname }}->isUndefined()) {
          {{ assign_exp_with_check|indent(8) }}
     }
