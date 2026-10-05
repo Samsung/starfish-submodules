@@ -215,8 +215,11 @@ if (!{{ aname }}->isUndefinedOrNull()) {
     if (!{{ aname }}->isObject()) {
         THROW_EXCEPTION(ILLEGAL_INVOKE);
     }
-    double {{ aname }}Length = {{ aname }}->asObject()->get(state, scriptStringLength(fetchScriptBindingInstance(state->context())))->toNumber(state);
-    if (!std::isfinite({{ aname }}Length) || {{ aname }}Length < 0 || {{ aname }}Length > 2147483647.0) {
+    {# This legacy array-like conversion needs ToLength: an absent length is
+       zero, not a non-finite value to cast to int. Iterator-based sequence
+       conversion remains a separate Web IDL conformance gap. #}
+    double {{ aname }}Length = {{ aname }}->asObject()->get(state, scriptStringLength(fetchScriptBindingInstance(state->context())))->toLength(state);
+    if ({{ aname }}Length > 2147483647.0) {
         THROW_EXCEPTION(ILLEGAL_INVOKE);
     }
     int {{ aname }}Size = (int){{ aname }}Length;
