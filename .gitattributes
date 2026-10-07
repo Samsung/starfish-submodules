@@ -1,0 +1,4 @@
+* text=auto eol=lf
+*.dll -text
+*.lib -text
+*.tar.gz -text
