@@ -42,7 +42,10 @@ void TREX::processData( MP4::BinaryStream * stream, size_t length )
     // Version (+8)
     uint8_t v = stream->readUnsignedChar();
     // Flags (+24)
-    uint32_t f = (stream->readUnsignedChar() << 16) + (stream->readUnsignedChar() << 8) + (stream->readUnsignedChar() << 0);
+    // Consume the flag bytes in wire order on every compiler.
+    uint32_t f = stream->readUnsignedChar();
+    f = (f << 8) | stream->readUnsignedChar();
+    f = (f << 8) | stream->readUnsignedChar();
     // Track id (+32)
     stream->readBigEndianUnsignedInteger();
     // Sample decription index (+32)

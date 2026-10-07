@@ -39,6 +39,7 @@ AVCC::AVCC( void )
 
 void AVCC::processData( MP4::BinaryStream * stream, size_t length )
 {
+    size_t start = stream->pos();
     version = stream->readUnsignedChar();
     profile_ind = stream->readUnsignedChar();
     profile_com = stream->readUnsignedChar();
@@ -66,5 +67,11 @@ void AVCC::processData( MP4::BinaryStream * stream, size_t length )
         pps.resize(ppsSize);
         stream->read((char*)pps.data(), ppsSize);
         ppsVector.push_back(std::move(pps));
+    }
+    // High-profile avcC records can carry chroma/bit-depth and SPS-extension
+    // fields after PPS. They must not be interpreted as another MP4 box.
+    size_t consumed = stream->pos() - start;
+    if (consumed < length) {
+        stream->ignore(length - consumed);
     }
 }

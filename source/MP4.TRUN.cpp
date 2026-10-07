@@ -40,7 +40,10 @@ TRUN::TRUN( void )
 void TRUN::processData( MP4::BinaryStream * stream, size_t length )
 {
     uint8_t v = stream->readUnsignedChar();
-    uint32_t f = (stream->readUnsignedChar() << 16) + (stream->readUnsignedChar() << 8) + (stream->readUnsignedChar() << 0);
+    // Consume the flag bytes in wire order on every compiler.
+    uint32_t f = stream->readUnsignedChar();
+    f = (f << 8) | stream->readUnsignedChar();
+    f = (f << 8) | stream->readUnsignedChar();
 
     has_data_offset = f & 0x0001;
     has_first_sample_flags = f & 0x0004;

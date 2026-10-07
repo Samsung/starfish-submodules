@@ -40,7 +40,10 @@ TFDT::TFDT( void )
 void TFDT::processData( MP4::BinaryStream * stream, size_t length )
 {
     uint8_t version = stream->readUnsignedChar();
-    uint32_t f = (stream->readUnsignedChar() << 16) + (stream->readUnsignedChar() << 8) + (stream->readUnsignedChar() << 0);
+    // Consume the flag bytes in wire order on every compiler.
+    uint32_t f = stream->readUnsignedChar();
+    f = (f << 8) | stream->readUnsignedChar();
+    f = (f << 8) | stream->readUnsignedChar();
 
     if (version == 0) {
         decodeTime = stream->readBigEndianUnsignedInteger();

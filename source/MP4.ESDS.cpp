@@ -23,7 +23,10 @@ void ESDS::processData(MP4::BinaryStream * stream, size_t length )
 {
     size_t start = stream->pos();
     uint8_t v = stream->readUnsignedChar();
-    uint32_t f = (stream->readUnsignedChar() << 16) + (stream->readUnsignedChar() << 8) + (stream->readUnsignedChar() << 0);
+    // Consume the flag bytes in wire order on every compiler.
+    uint32_t f = stream->readUnsignedChar();
+    f = (f << 8) | stream->readUnsignedChar();
+    f = (f << 8) | stream->readUnsignedChar();
     uint8_t tag1 = stream->readUnsignedChar();
     if (tag1 == 3) {
         getDescriptorLength(stream);

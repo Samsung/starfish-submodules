@@ -27,3 +27,13 @@ Repository Infos
     GitHub:			github.com/macmade
     LinkedIn:		ch.linkedin.com/in/macmade/
     StackOverflow:	stackoverflow.com/users/182676/macmade
+
+Portability regression
+----------------------
+
+`tests/fragment_flags.cpp` checks TFHD/TRUN flag byte order and the avcC
+high-profile record boundary. Compile it with `source/MP4.TFHD.cpp`,
+`source/MP4.TRUN.cpp`, `source/MP4.AVCC.cpp`, `source/MP4.BinaryStream.cpp`,
+and `source/MP4.Atom.cpp`, adding `source/include` to the include path.
+The test supports GCC and both x86/x64 MSVC developer command prompts.
+Starfish also builds it as `starfish.windows_mp4_fragment_smoke`.
