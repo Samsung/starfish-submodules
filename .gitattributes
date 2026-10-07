@@ -2,3 +2,5 @@
 *.dll -text
 *.lib -text
 *.tar.gz -text
+# Preserve upstream x86 metadata and headers byte for byte.
+x86/** -text whitespace=cr-at-eol
