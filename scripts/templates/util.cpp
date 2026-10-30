@@ -213,7 +213,9 @@ ScriptObject
             {{- '%s->asObject()'|format(aname) -}}
         {% endif %}
     {% elif type.kind == 'Promise' %}
-        {{- 'toPromise(fetchScriptBindingInstance(state->context()), %s)'|format(aname) -}}
+        {# %Promise.resolve% returns a native promise as is and wraps anything
+           else (adopting thenables), as the Web IDL promise conversion does. #}
+        {{- 'toPromise(fetchScriptBindingInstance(state->context()), state->context()->globalObject()->promiseResolve()->call(state, state->context()->globalObject()->promise(), 1, &%s))'|format(aname) -}}
     {% endif %}
 {%- endmacro -%}
 
@@ -326,7 +328,9 @@ if (!{{ aname }}->isUndefinedOrNull()) {
 {%- macro gen_check_type_exception(type, aname, skip_type_check=False) -%}
     {% if type.kind == 'Typeref' and not skip_type_check %}
 CHECK_TYPEOF({{aname}}, {{type.name}});
-    {% elif type.kind in strong_type_kinds and type.kind != 'Dictionary' and not skip_type_check %}
+    {# Web IDL converts any value to a promise type (resolving a promise with
+       it), so a promise argument is never a type mismatch. #}
+    {% elif type.kind in strong_type_kinds and type.kind not in ['Dictionary', 'Promise'] and not skip_type_check %}
 if (!{{ gen_check_type(type, aname)|trim }}) {
     THROW_EXCEPTION(ILLEGAL_INVOKE);
 }
