@@ -162,6 +162,13 @@ static inline uint64_t toWebIDLUint64(double d)
     d = std::fmod(d, 18446744073709551616.0);
     return d < 0 ? 0 - static_cast<uint64_t>(-d) : static_cast<uint64_t>(d);
 }
+
+// Web IDL ConvertToInt with [Clamp]: NaN is 0, other values are clamped to
+// the type's range and rounded to the nearest integer, ties to even.
+static inline double toWebIDLClamped(double d, double lowerBound, double upperBound)
+{
+    return std::isnan(d) ? 0 : std::nearbyint(d < lowerBound ? lowerBound : (d > upperBound ? upperBound : d));
+}
 {%- endmacro -%}
 {%- macro gen_esvalue_to_native(type, aname, fromattr=False, clamp=False) -%}
     {% if type.kind in string_type_kinds %}
@@ -187,12 +194,15 @@ static inline uint64_t toWebIDLUint64(double d)
             {{- '%s->toInt32(state)'|format(aname) -}}
         {% elif type.name in ['octet', 'unsigned long', 'unsigned short'] %}
             {{- '%s->toUint32(state)'|format(aname) -}}
-        {% elif type.name == 'unsigned long long' and not clamp %}
+        {% elif type.name == 'unsigned long long' and clamp %}
+            {{- 'static_cast<uint64_t>(toWebIDLClamped(%s->toNumber(state), 0, 9007199254740991.0))'|format(aname) -}}
+        {% elif type.name == 'long long' and clamp %}
+            {{- 'static_cast<int64_t>(toWebIDLClamped(%s->toNumber(state), -9007199254740991.0, 9007199254740991.0))'|format(aname) -}}
+        {% elif type.name == 'unsigned long long' %}
             {{- 'toWebIDLUint64(%s->toNumber(state))'|format(aname) -}}
-        {% elif type.name == 'long long' and not clamp %}
+        {% elif type.name == 'long long' %}
             {{- 'static_cast<int64_t>(toWebIDLUint64(%s->toNumber(state)))'|format(aname) -}}
-        {# shortcut: [Clamp] 64-bit arguments (Blob.slice) still cast the number directly, so out-of-range values are not clamped; add the Web IDL clamping when that matters. #}
-        {% elif type.name in ['unsigned long long', 'long long', 'float', 'double'] %}
+        {% elif type.name in ['float', 'double'] %}
             {{- '%s->toNumber(state)'|format(aname) -}}
         {% elif type.name == 'object' %}
             {{- '%s->toObject(state)'|format(aname) -}}
