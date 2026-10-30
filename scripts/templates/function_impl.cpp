@@ -169,6 +169,17 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {% endif %}
     for (size_t i = {{start_idx}}; i < argCount; i++) {
         ValueRef* item = argv[i];
+        {% if ellp_type.nullable %}
+        if (item->isUndefinedOrNull()) {
+            value{{start_idx}}.push_back({{type_exp}}());
+            continue;
+        }
+        {% endif %}
+        {# Each variadic item converts like a single argument of that type. #}
+        {% set item_check = util_macro.gen_check_type_exception(ellp_type, 'item')|trim %}
+        {% if item_check %}
+        {{ item_check|indent(8) }}
+        {% endif %}
         value{{start_idx}}.push_back({{util_macro.gen_esvalue_to_native(ellp_type, 'item')}});
     }
 {% endmacro -%}
