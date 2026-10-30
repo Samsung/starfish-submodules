@@ -1,4 +1,11 @@
 {% import 'util.cpp' as util_macro %}
+{%- macro gen_check_arg(type, aname) -%}
+    {% if type.nullable %}
+({{ aname }}->isUndefinedOrNull() || {{ util_macro.gen_check_type(type, aname)|trim }})
+    {%- else %}
+{{ util_macro.gen_check_type(type, aname)|trim }}
+    {%- endif %}
+{%- endmacro -%}
 {% set skip_type_check = True %}
 {% for fn in function.operations %}
 {% if fn.conditions|length > 0 %}
@@ -8,7 +15,7 @@ static bool {{ '%s%s'|format(fn.name, fn.id) }}Checker(ExecutionStateRef* state,
 {
     {% for argidx in fn.conditions %}
     ValueRef* arg{{argidx}} = argv[{{argidx}}];
-    if (!{{ util_macro.gen_check_type(fn.arguments[argidx].type, 'arg%d'|format(argidx))|trim }}) {
+    if (!{{ gen_check_arg(fn.arguments[argidx].type, 'arg%d'|format(argidx)) }}) {
         return false;
     }
     {% endfor %}
@@ -21,7 +28,7 @@ static bool {{ '%s%sWeak'|format(fn.name, fn.id) }}Checker(ExecutionStateRef* st
     {% for argidx in fn.conditions %}
         {% if fn.arguments[argidx].type.kind in strong_type_kinds %}
     ValueRef* arg{{argidx}} = argv[{{argidx}}];
-    if (!{{ util_macro.gen_check_type(fn.arguments[argidx].type, 'arg%d'|format(argidx))|trim }}) {
+    if (!{{ gen_check_arg(fn.arguments[argidx].type, 'arg%d'|format(argidx)) }}) {
         return false;
     }
         {% endif %}

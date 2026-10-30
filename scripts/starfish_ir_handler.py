@@ -161,26 +161,30 @@ class StarfishIRHandler():
   def _check_multioperation(self, op):
     operations = op.get('operations', [])
     def sort_op(item):
-      condition_c = 0
-      if item.get('conditions'):
-        condition_c = len(item['conditions'])
-      return item['min_passed_count'] * 100 + condition_c
+      return item['min_passed_count'] * 100 + item['ranked_condition_count']
 
     for subop in operations:
       self._check_operation(subop)
       conditions = []
+      ranked_condition_count = 0
       strong_condition_count = 0
       for key, arg in enumerate(subop.get('arguments', [])):
         if arg.get('optional') or arg.get('ellipsis'):
           continue
-        if arg['type'].get('nullable', False):
-          continue
         # TODO May add Dictionary here
         if not arg['type']['kind'] in ['Any']:
           conditions.append(key)
+          # A nullable argument is checked as "undefined, null or T", but it
+          # does not rank the overload ahead of an equally long one, so a
+          # value matching neither still falls back to the coercing overload
+          # (e.g. a GLintptr instead of an ArrayBufferView?), as in Web IDL.
+          if arg['type'].get('nullable', False):
+            continue
+          ranked_condition_count += 1
           if arg['type']['kind'] in ['Sequence', 'Dictionary', 'Typeref', 'Callback', 'Promise']:
             strong_condition_count += 1
       subop['conditions'] = conditions
+      subop['ranked_condition_count'] = ranked_condition_count
       subop['strong_condition_count'] = strong_condition_count
 
     # Sort operations by max 'min_passed_count' order
