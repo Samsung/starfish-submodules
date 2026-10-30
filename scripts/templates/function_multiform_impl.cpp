@@ -6,6 +6,9 @@
 {{ util_macro.gen_check_type(type, aname)|trim }}
     {%- endif %}
 {%- endmacro -%}
+{%- macro gen_count_and(fn) -%}
+{{ '%s && '|format(fn.arg_count_condition) if fn.arg_count_condition }}
+{%- endmacro -%}
 {% set skip_type_check = True %}
 {% for fn in function.operations %}
 {% if fn.conditions|length > 0 %}
@@ -43,15 +46,19 @@ static bool {{ '%s%sWeak'|format(fn.name, fn.id) }}Checker(ExecutionStateRef* st
 {% endfor %}
 static ValueRef* {{ function.name }}Function(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression)
 {
+    {% if function.max_arg_count is not none %}
+    size_t argCount = argc < {{ function.max_arg_count }} ? argc : {{ function.max_arg_count }};
+    {% else %}
     size_t argCount = argc;
+    {% endif %}
     {% set hasCondition = [] %}
     // NOTE Some of conditions below never be reached
     {% for fn in function.operations %}
         {% set cond = 'false' %}
         {% if fn.conditions|length > 0 %}
-            {% set sigfn = ' && %s%sChecker(state, thisValue, argc, argv, isNewExpression)'|format(fn.name, fn.id) %}
+            {% set sigfn = '%s%sChecker(state, thisValue, argc, argv, isNewExpression)'|format(fn.name, fn.id) %}
 {% call util_macro.ifdef(fn.flags) %}
-    if (argCount >= {{fn.min_passed_count}}{{sigfn}}) {
+    if ({{ gen_count_and(fn) }}{{sigfn}}) {
         {{ 'return %s%sFunction(state, thisValue, argc, argv, isNewExpression);'|format(fn.name, fn.id) }}
     }
 {% endcall %}
@@ -65,9 +72,9 @@ static ValueRef* {{ function.name }}Function(ExecutionStateRef* state, ValueRef*
         {% set cond = 'false' %}
         {% if fn.conditions|length > 0 and fn.strong_condition_count != fn.conditions|length %}
             {% if fn.strong_condition_count > 0 %}
-                {% set sigfn = ' && %s%sWeakChecker(state, thisValue, argc, argv, isNewExpression)'|format(fn.name, fn.id) %}
+                {% set sigfn = '%s%sWeakChecker(state, thisValue, argc, argv, isNewExpression)'|format(fn.name, fn.id) %}
 {% call util_macro.ifdef(fn.flags) %}
-    if (argCount >= {{fn.min_passed_count}}{{sigfn}}) {
+    if ({{ gen_count_and(fn) }}{{sigfn}}) {
         {{ 'return %s%sFunction(state, thisValue, argc, argv, isNewExpression);'|format(fn.name, fn.id) }}
     }
 {% endcall %}
@@ -80,10 +87,9 @@ static ValueRef* {{ function.name }}Function(ExecutionStateRef* state, ValueRef*
     {% set generate_exception = namespace(flag=true) %}
     {% for fn in function.operations %}
         {% if hasCondition[loop.index-1] == 'true' or hasStrongCondition[loop.index-1] == 'true' %}
-            {% set sigfn = '' %}
 {% call util_macro.ifdef(fn.flags) %}
-    {% if fn.min_passed_count > 0 %}
-    if (argCount >= {{fn.min_passed_count}}{{sigfn}}) {
+    {% if fn.arg_count_condition %}
+    if ({{ fn.arg_count_condition }}) {
         {{ 'return %s%sFunction(state, thisValue, argc, argv, isNewExpression);'|format(fn.name, fn.id) }}
     }
     {% else %}

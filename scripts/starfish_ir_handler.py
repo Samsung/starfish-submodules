@@ -160,8 +160,25 @@ class StarfishIRHandler():
 
   def _check_multioperation(self, op):
     operations = op.get('operations', [])
+    # Web IDL falls back to an overload taking a string, else a number, else
+    # a boolean; one with an argument that only an object matches never
+    # coerces. This orders otherwise equal overloads, not their IDL order.
+    def coercion_rank(subop):
+      ranks = []
+      for key in subop['conditions']:
+        arg_type = subop['arguments'][key]['type']
+        if arg_type['kind'] in ['StringType', 'Enum']:
+          ranks.append(3)
+        elif arg_type['kind'] == 'PrimitiveType' and arg_type['name'] == 'boolean':
+          ranks.append(1)
+        elif arg_type['kind'] == 'PrimitiveType' and arg_type['name'] != 'object':
+          ranks.append(2)
+        else:
+          ranks.append(0)
+      return 0 if not ranks or 0 in ranks else max(ranks)
     def sort_op(item):
-      return item['min_passed_count'] * 100 + item['ranked_condition_count']
+      return (item['min_passed_count'], item['ranked_condition_count'],
+              coercion_rank(item))
 
     for subop in operations:
       self._check_operation(subop)
@@ -186,6 +203,30 @@ class StarfishIRHandler():
       subop['conditions'] = conditions
       subop['ranked_condition_count'] = ranked_condition_count
       subop['strong_condition_count'] = strong_condition_count
+
+    # Web IDL resolves an overload among those taking exactly
+    # min(argc, longest argument list) arguments, counting optional
+    # arguments as present or not (variadic ones as any number).
+    def is_variadic(subop):
+      return any(arg.get('ellipsis') for arg in subop.get('arguments', []))
+    max_arg_count = None if any(is_variadic(subop) for subop in operations) \
+        else max(len(subop.get('arguments', [])) for subop in operations)
+    for subop in operations:
+      low = subop['min_passed_count']
+      high = len(subop.get('arguments', []))
+      if is_variadic(subop) or (max_arg_count is not None and
+                                high >= max_arg_count):
+        high = None
+      if high == low:
+        subop['arg_count_condition'] = 'argCount == %d' % low
+      else:
+        bounds = []
+        if low > 0:
+          bounds.append('argCount >= %d' % low)
+        if high is not None:
+          bounds.append('argCount <= %d' % high)
+        subop['arg_count_condition'] = ' && '.join(bounds)
+    op['max_arg_count'] = max_arg_count
 
     # Sort operations by max 'min_passed_count' order
     op['operations'] = sorted(operations, key=sort_op, reverse=True)
