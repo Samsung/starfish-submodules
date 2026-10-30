@@ -169,6 +169,20 @@ static inline double toWebIDLClamped(double d, double lowerBound, double upperBo
 {
     return std::isnan(d) ? 0 : std::nearbyint(d < lowerBound ? lowerBound : (d > upperBound ? upperBound : d));
 }
+
+// Web IDL converts any value to a promise type as a new %Promise% resolved
+// with it. Unlike %Promise.resolve%, this never reads the "constructor" of a
+// native promise, so page script cannot make the conversion throw.
+static inline ValueRef* toWebIDLPromise(ExecutionStateRef* state, ValueRef* value)
+{
+    FunctionObjectRef* executor = FunctionObjectRef::create(state, FunctionObjectRef::NativeFunctionInfo(AtomicStringRef::emptyAtomicString(), [](ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isConstructorCall) -> ValueRef* {
+        ValueRef* value = static_cast<ValueRef*>(state->resolveCallee().value()->extraData());
+        return argv[0]->call(state, ValueRef::createUndefined(), 1, &value);
+    }, 2, true, false));
+    executor->setExtraData(value);
+    ValueRef* executorValue = executor;
+    return state->context()->globalObject()->promise()->construct(state, 1, &executorValue);
+}
 {%- endmacro -%}
 {%- macro gen_esvalue_to_native(type, aname, fromattr=False, clamp=False) -%}
     {% if type.kind in string_type_kinds %}
@@ -236,9 +250,7 @@ static inline double toWebIDLClamped(double d, double lowerBound, double upperBo
             {{- '%s->asObject()'|format(aname) -}}
         {% endif %}
     {% elif type.kind == 'Promise' %}
-        {# %Promise.resolve% returns a native promise as is and wraps anything
-           else (adopting thenables), as the Web IDL promise conversion does. #}
-        {{- 'toPromise(fetchScriptBindingInstance(state->context()), state->context()->globalObject()->promiseResolve()->call(state, state->context()->globalObject()->promise(), 1, &%s))'|format(aname) -}}
+        {{- 'toPromise(fetchScriptBindingInstance(state->context()), toWebIDLPromise(state, %s))'|format(aname) -}}
     {% endif %}
 {%- endmacro -%}
 
