@@ -144,7 +144,13 @@ ScriptObject
   {% endif %}
 {%- endmacro %}
 
-{%- macro gen_esvalue_to_native(type, aname, fromattr=False) -%}
+{#- Web IDL ConvertToInt for 64-bit types: NaN and infinities are 0, other
+    values are truncated and taken modulo 2^64 (a raw double cast is
+    undefined for them). -#}
+{%- macro gen_to_uint64_modulo(aname) -%}
+[](double d) -> uint64_t { if (!std::isfinite(d)) { return 0; } d = std::fmod(std::trunc(d), 18446744073709551616.0); return d < 0 ? 0 - static_cast<uint64_t>(-d) : static_cast<uint64_t>(d); }({{ aname }}->toNumber(state))
+{%- endmacro -%}
+{%- macro gen_esvalue_to_native(type, aname, fromattr=False, clamp=False) -%}
     {% if type.kind in string_type_kinds %}
         {{- 'toBrowserString(state, %s)'|format(aname) -}}
     {% elif type.kind == 'Any' %}
@@ -168,6 +174,11 @@ ScriptObject
             {{- '%s->toInt32(state)'|format(aname) -}}
         {% elif type.name in ['octet', 'unsigned long', 'unsigned short'] %}
             {{- '%s->toUint32(state)'|format(aname) -}}
+        {% elif type.name == 'unsigned long long' and not clamp %}
+            {{- gen_to_uint64_modulo(aname) -}}
+        {% elif type.name == 'long long' and not clamp %}
+            {{- 'static_cast<int64_t>(%s)'|format(gen_to_uint64_modulo(aname)) -}}
+        {# shortcut: [Clamp] 64-bit arguments (Blob.slice) still cast the number directly, so out-of-range values are not clamped; add the Web IDL clamping when that matters. #}
         {% elif type.name in ['unsigned long long', 'long long', 'float', 'double'] %}
             {{- '%s->toNumber(state)'|format(aname) -}}
         {% elif type.name == 'object' %}
@@ -413,7 +424,7 @@ if (!std::isfinite({{names.vname}})) {
     {% if arg.type.kind.startswith('SequenceOf') or arg.type.kind.startswith('FrozenArrayOf') %}
     {% set assign_exp = get_arrayobject_to_native(arg.type, names.aname, names.vname) %}
     {% else %}
-    {% set assign_exp = '%s = %s;'|format(names.vname, gen_esvalue_to_native(arg.type, names.aname, fromattr)) %}
+    {% set assign_exp = '%s = %s;'|format(names.vname, gen_esvalue_to_native(arg.type, names.aname, fromattr, arg.clamp)) %}
     {% endif %}
     {% set check_finite_number = gen_check_finite_number(arg, names) %}
     {% set assign_exp_with_check = '%s\n%s\n%s'|format(check_type, assign_exp, check_finite_number)|trim %}
