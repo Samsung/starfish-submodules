@@ -137,8 +137,10 @@ if (validArgCount == {{function.min_passing_count|string}}) {
     {{ handle_ellipsis(ridx)|trim }}
     {% else %}
     {% set names = {'name': name, 'fname': function.name, 'aname': 'arg%d'|format(ridx), 'vname': 'value%d'|format(ridx)} %}
+    {# Every overload converts its own arguments: the overload dispatcher
+       falls back on the argument count alone when no type checker matched,
+       so an unchecked cast here would reinterpret a mistyped value. #}
     {{ util_macro.handle_arg(function.arguments[ridx], names,
-                             skip_type_check=skip_type_check,
                              need_counting=need_counting)|trim }}
     {% endif %}
     {% endfor %}
