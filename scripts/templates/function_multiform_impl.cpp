@@ -100,7 +100,7 @@ static ValueRef* {{ function.name }}Function(ExecutionStateRef* state, ValueRef*
         {% endif %}
     {% endfor %}
     {% if generate_exception.flag == true %}
-    COMPOSE_MESSAGE(msg, FAILED_TO_EXECUTE, "{{ fnname }}", "{{ name }}", SIGNATURE_NOT_FOUND);
+    COMPOSE_MESSAGE(msg, FAILED_TO_EXECUTE, "{{ function.name }}", "{{ name }}", SIGNATURE_NOT_FOUND);
     THROW_EXCEPTION(msg);
     {% endif %}
 }
