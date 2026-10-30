@@ -94,6 +94,8 @@ using namespace Escargot;
 
 namespace Starfish {
 
+{{ util_macro.gen_conversion_helpers() }}
+
 {% if used_dictionaries %}
   {%- for dictionary in used_dictionaries %}
 {% include 'dictionary_impl.cpp' ignore missing %}

@@ -47,6 +47,8 @@ using namespace Escargot;
 
 namespace Starfish {
 
+{{ util_macro.gen_conversion_helpers() }}
+
 {% if used_unions %}
   {%- for union_item in used_unions|sort %}
 {% include 'union_impl.cpp' ignore missing %}

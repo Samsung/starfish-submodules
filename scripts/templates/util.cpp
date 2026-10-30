@@ -144,11 +144,24 @@ ScriptObject
   {% endif %}
 {%- endmacro %}
 
-{#- Web IDL ConvertToInt for 64-bit types: NaN and infinities are 0, other
-    values are truncated and taken modulo 2^64 (a raw double cast is
-    undefined for them). -#}
-{%- macro gen_to_uint64_modulo(aname) -%}
-[](double d) -> uint64_t { if (!std::isfinite(d)) { return 0; } d = std::fmod(std::trunc(d), 18446744073709551616.0); return d < 0 ? 0 - static_cast<uint64_t>(-d) : static_cast<uint64_t>(d); }({{ aname }}->toNumber(state))
+{#- Conversion helpers the macros below call, emitted once per generated
+    file (unused ones generate no code). -#}
+{%- macro gen_conversion_helpers() -%}
+// Web IDL ConvertToInt for 64-bit types: NaN and infinities are 0, other
+// values are truncated and taken modulo 2^64 (a raw double cast is
+// undefined for them).
+static inline uint64_t toWebIDLUint64(double d)
+{
+    // NaN fails both comparisons.
+    if (d > -9223372036854775808.0 && d < 9223372036854775808.0) {
+        return static_cast<uint64_t>(static_cast<int64_t>(d));
+    }
+    if (!std::isfinite(d)) {
+        return 0;
+    }
+    d = std::fmod(d, 18446744073709551616.0);
+    return d < 0 ? 0 - static_cast<uint64_t>(-d) : static_cast<uint64_t>(d);
+}
 {%- endmacro -%}
 {%- macro gen_esvalue_to_native(type, aname, fromattr=False, clamp=False) -%}
     {% if type.kind in string_type_kinds %}
@@ -175,9 +188,9 @@ ScriptObject
         {% elif type.name in ['octet', 'unsigned long', 'unsigned short'] %}
             {{- '%s->toUint32(state)'|format(aname) -}}
         {% elif type.name == 'unsigned long long' and not clamp %}
-            {{- gen_to_uint64_modulo(aname) -}}
+            {{- 'toWebIDLUint64(%s->toNumber(state))'|format(aname) -}}
         {% elif type.name == 'long long' and not clamp %}
-            {{- 'static_cast<int64_t>(%s)'|format(gen_to_uint64_modulo(aname)) -}}
+            {{- 'static_cast<int64_t>(toWebIDLUint64(%s->toNumber(state)))'|format(aname) -}}
         {# shortcut: [Clamp] 64-bit arguments (Blob.slice) still cast the number directly, so out-of-range values are not clamped; add the Web IDL clamping when that matters. #}
         {% elif type.name in ['unsigned long long', 'long long', 'float', 'double'] %}
             {{- '%s->toNumber(state)'|format(aname) -}}

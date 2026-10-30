@@ -44,6 +44,8 @@
 using namespace Escargot;
 
 namespace Starfish {
+
+{{ util_macro.gen_conversion_helpers() }}
 {% for subtype in data %}
     {% if subtype.kind == 'Dictionary' %}
     {%- call util_macro.ifdef_and_exposed(subtype.flags, subtype.exposed, args.exposed) %}
