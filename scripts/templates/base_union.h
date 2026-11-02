@@ -42,8 +42,11 @@
 #include "{{item|to_union_h_path}}"
 {% endfor %}
 
+{#- The initializer must name a member that ValueData declares in every build.
+    A flagged member (e.g. a Web Audio enum) is declared under #ifdef, so
+    skipping it here keeps the initializer valid when the flag is off. -#}
 {%- macro initialize_first_member(data_list, exposed) -%}
-{% for item in data_list if not item.exposed or exposed in item.exposed %}
+{% for item in data_list if (not item.exposed or exposed in item.exposed) and not item.flags %}
     {% if loop.first %}
         {% if item.kind in pointer_type_kinds %}
     {{- "   : m_%sData(nullptr)"|format(util_macro.getTrimmedName(item)) -}}
