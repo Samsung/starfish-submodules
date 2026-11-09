@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<head>
+</head><body style="margin:0">
+<body>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+        <defs>
+            <filter id="turbulence1">
+                <feTurbulence type="fractalNoise" baseFrequency="0.1" numOctaves="2" />
+            </filter>
+            <filter id="turbulence2">
+                <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" />
+            </filter>
+            <filter id="turbulence3">
+                <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="2" />
+            </filter>
+            <filter id="turbulence4">
+                <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="20" />
+            </filter>
+        </defs>
+        <g>
+            <rect x=0 y=0 width="100" height="100" filter="url(#turbulence1)" />
+            <rect x=200 y=0 width="100" height="100" filter="url(#turbulence2)" />
+            <rect x=0 y=200 width="100" height="100" filter="url(#turbulence3)" />
+            <rect x=200 y=200 width="100" height="100" filter="url(#turbulence4)" />
+        </g>
+    </svg>
+</body>
+<script>
+    function testStart() {
+        screenShot("svg_fe_turbulence1.png", function () {
+            testImgDiff("svg_fe_turbulence1.png", "svg_fe_turbulence1_expected.png");
+            testEnd();
+        });
+    }
+</script>
+</html>
+

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta name="pixel-test">
+	<style>
+		/* A calc() that contains a var() parses with resolution deferred. When
+		   that deferred value sits inside a pair/list (a side keyword plus an
+		   offset, or a longhand border-radius) it must still be substituted and
+		   re-parsed instead of being read as an already parsed calc(). Each
+		   box uses calc(var()); the box to its right is the same value written
+		   out, and the two must render identically. */
+		:root {
+			--off: 20px;
+			--r: 16px;
+		}
+
+		.box {
+			border: 1px black solid;
+			width: 150px;
+			height: 150px;
+			margin: 10px;
+			float: left;
+		}
+
+		.box img {
+			display: block;
+			width: 150px;
+			height: 150px;
+			object-fit: none;
+		}
+
+		#op-var img { object-position: right calc(var(--off, 1px)) top 10px; }
+		#op-ref img { object-position: right 20px top 10px; }
+
+		#bg-var,
+		#bg-ref {
+			background-image: url(../background/star.png);
+			background-repeat: no-repeat;
+		}
+		#bg-var { background-position: left 10px bottom calc(var(--off)); }
+		#bg-ref { background-position: left 10px bottom 20px; }
+
+		#br-var,
+		#br-ref {
+			background-color: blue;
+			width: 100px;
+			height: 100px;
+			clear: left;
+		}
+		#br-ref { clear: none; }
+		#br-var { border-top-left-radius: calc(var(--r, 16px) - 2px); }
+		#br-ref { border-top-left-radius: 14px; }
+	</style>
+</head>
+
+<body>
+	<div id="op-var" class="box"><img src="../background/star.png"></div>
+	<div id="op-ref" class="box"><img src="../background/star.png"></div>
+	<div id="bg-var" class="box"></div>
+	<div id="bg-ref" class="box"></div>
+	<div id="br-var" class="box"></div>
+	<div id="br-ref" class="box"></div>
+</body>
+<script>
+	function testStart() {
+		screenShot("customproperty_51.png", function () {
+			testImgDiff("customproperty_51.png", "customproperty_51_expected.png");
+			testEnd();
+		});
+	}
+</script>
+
+</html>

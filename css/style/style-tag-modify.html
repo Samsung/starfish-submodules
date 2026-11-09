@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="pixel-test">
+        <style>
+            span { color: blue; }
+        </style>
+    </head>
+    <body>
+        <span>
+            This is styled dynamically via JavaScript.
+        </span>
+    </body>
+    <script type="text/javascript">
+        var styles = document.getElementsByTagName("style");
+        for (var i = 0; i < styles.length; i++)
+            styles[i].textContent = "span { color: yellow; }";
+
+        // Capture the screen
+        function testStart() {
+            screenShot("style-tag-modify.png", function() {
+                testImgDiff("style-tag-modify.png", "style-tag-modify_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</html>

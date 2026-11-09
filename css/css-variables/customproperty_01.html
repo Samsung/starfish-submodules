@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+ <head>
+	<meta name="pixel-test">
+	
+	<style>
+		:root {
+		  --first-color: #488cff;
+		  --second-color: #ffff8c;
+		  font-family: Ahem;
+		}
+
+		#firstParagraph {
+		  background-color: var(--first-color);
+		  color: var(--second-color);
+		}
+
+		#secondParagraph {
+		  background-color: var(--second-color);
+		  color: var(--first-color);
+		}
+
+		#container {
+		  --first-color: #48ff32;
+		}
+
+		.a {
+		  background-color: var(--first-color);
+		  color: var(--first-color) !important;
+
+		}
+		.b {
+		  background-color: var(--first-color);
+		  color: var(--second-color);
+
+		}
+	</style>
+ </head>
+
+ <body>
+  <p id="firstParagraph">This paragraph should have a blue background and yellow text.</p>
+  <p id="secondParagraph">This paragraph should have a yellow background and blue text.</p>
+  <div id="container">
+    <p id="thirdParagraph" class="a b">This paragraph should have a green background and yellow text.</p>
+  </div>
+ </body>
+ <script>
+	function testStart() {
+		screenShot("customproperty_01.png", function () {
+			testImgDiff("customproperty_01.png", "customproperty_01_expected.png");
+			testEnd();
+		});
+	}
+ </script>
+</html>

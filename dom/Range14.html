@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta name="pixel-test">
+    <style>
+        * {
+            font-family: Ahem;
+        }
+        #highlight {
+            background: yellow;
+            position: absolute;
+            z-index: -1;
+        }
+
+        p {
+            width: 200px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="highlight"></div>
+    <p>Each excepts paintings a "sunflower" waterfall around our mountain in a field. Our field's horizon <b>begins
+            over</b> and stretches to reach at <b>edge tree</b>. Two mountain forest waterfall overlook wilderness
+        gathered by old river.</p>
+</body>
+<script>
+    function testStart() {
+        screenShot("Range14.png", function () {
+            testImgDiff("Range14.png", "Range14_expected.png");
+            testEnd();
+        });
+    }
+    const range = document.createRange();
+    range.setStartBefore(document.getElementsByTagName('b').item(0), 0);
+    range.setEndAfter(document.getElementsByTagName('b').item(1), 0);
+
+    const clientRect = range.getBoundingClientRect();
+    const highlight = document.getElementById('highlight');
+    highlight.style.left = `${clientRect.x}px`;
+    highlight.style.top = `${clientRect.y}px`;
+    highlight.style.width = `${clientRect.width}px`;
+    highlight.style.height = `${clientRect.height}px`;
+
+    window.setTimeout(testStart(), 1000);
+
+
+</script>
+
+</html>

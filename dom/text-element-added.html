@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta name="pixel-test">
+    <style>
+        * {
+            font-family: Ahem;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="textSample"></div>
+</body>
+<script>
+    function testStart() {
+        screenShot("text-element-added.png", function () {
+            testImgDiff("text-element-added.png", "text-element-added_expected.png");
+            testEnd();
+        });
+    }
+    const divP = document.getElementById("textSample");
+    const newtext = new Text();
+    divP.appendChild(newtext);
+    window.setTimeout(function(){
+        newtext.nodeValue="Lorem Ipsum";
+    }, 100);
+    window.setTimeout(testStart, 1000);
+</script>
+</html>

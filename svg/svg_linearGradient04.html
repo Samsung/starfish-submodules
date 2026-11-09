@@ -1,0 +1,37 @@
+<html>
+<meta name="pixel-test">
+
+<body>
+    <svg width="400px" height="400px" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink">
+        <defs>
+            <linearGradient x1="0%" y1="6.43171048%" x2="100%" y2="93.5682895%" id="test">
+                <stop stop-color="#FF9683" offset="0%"></stop>
+                <stop stop-color="#FFD456" offset="100%"></stop>
+            </linearGradient>
+        </defs>
+        <g id="1" stroke="none" stroke-width="1" fill="none" fill-rule="nonezero">
+            <path
+                d="M8,8 L32,8 L32,32 L8,32 Z"
+                id="1-1" fill="#3D405B"></path>
+            <path
+                d="M10,30 L30,30 L30,10 Z"
+                id="1-2" fill="url(#test)" >
+            </path>
+            <circle cx="60" cy="20" r="15" stroke="black" fill="url(#test)" />
+            <rect x="10" y="50" width="20" height="20" stroke="black" fill="url(#test)" />
+            <ellipse cx="50" cy="60" rx="13" ry="8" stroke="black" fill="url(#test) " />
+            <polygon points="100,10 40,198 190,78 10,78 160,198" stroke="black" fill="url(#test)" />
+        </g>
+    </svg>
+</body>
+<script>
+    function testStart() {
+        screenShot("svg_linearGradient04.png", function() {
+             testImgDiff("svg_linearGradient04.png", "svg_linearGradient04_expected.png");
+             testEnd();
+        });
+    }
+</script>
+
+</html>

@@ -1,0 +1,30 @@
+<div>
+XXXXXX
+</div>
+
+<style>
+
+div {
+  background: blue;
+  width: 100px;
+  height: 100px;
+  font-family: StarfishAhem;
+  font-size: 32px;
+}
+
+div#a {
+  background: red;
+  color: yellow;
+}
+
+</style>
+<script>
+screenShot("element-style-changing-text-node-repaint.png", function () {
+  var div = document.querySelector("div");
+  div.id = "a"
+  screenShot("element-style-changing-text-node-repaint.png", function () {
+    testImgDiff("element-style-changing-text-node-repaint.png", "element-style-changing-text-node-repaint_expected.png");
+    testEnd();
+  });
+});
+</script>

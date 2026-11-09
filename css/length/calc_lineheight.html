@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<style>
+#a {
+line-height: calc(100 / 50);
+background: red;
+}
+
+#b {
+line-height: calc(100px / 5);
+background: blue;
+}
+
+</style>
+<div id="a">
+&nbsp;
+</div>
+<div id="b">
+&nbsp;
+</div>
+<script>
+screenShot("calc_lineheight.png", function () {
+                testImgDiff("calc_lineheight.png", "calc_lineheight_expected.png");
+                testEnd();
+            });
+</script>
+

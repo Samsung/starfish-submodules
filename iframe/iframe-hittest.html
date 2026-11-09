@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<style>
+iframe {
+position: absolute;
+left:0;
+top:0;
+width: 500px;
+height: 300px;
+padding: 10px;
+border: 10px black solid;
+}
+</style>
+<iframe src="data:text/html;charset=utf-8;base64,PGRpdiBpZD0iYSI+DQo8YnV0dG9uPjwvYnV0dG9uPg0KPC9kaXY+DQo8ZGl2IGlkPSJiIj4NCjxidXR0b24+PC9idXR0b24+DQo8L2Rpdj4NCjxzdHlsZT4NCg0KYnV0dG9uIHsNCndpZHRoOiAxMDBweDsNCmhlaWdodDogMTAwcHg7DQpiYWNrZ3JvdW5kOiByZWQ7DQpib3JkZXI6IG5vbmU7DQp9DQoNCmJ1dHRvbjphY3RpdmUgew0KYmFja2dyb3VuZDogYmx1ZTsNCn0NCg0KI2Igew0KbWFyZ2luLXRvcDogMTAwMHB4Ow0KfQ0KDQo8L3N0eWxlPg==" id="sub"></iframe>
+<script>
+window.webSecurityDisable();
+
+window.onload = function() {
+  simulateMouseDown(33, 33);
+  screenShot("iframe-hittest_1.png", function() {
+    simulateMouseUp(33, 33);
+    testImgDiff("iframe-hittest_1.png", "iframe-hittest_1_expected.png");
+
+    sub.contentWindow.scrollTo(0,1000)
+
+    simulateMouseDown(45, 245);
+    screenShot("iframe-hittest_2.png", function() {
+      testImgDiff("iframe-hittest_2.png", "iframe-hittest_2_expected.png");
+      testEnd();
+    });
+
+  });
+}
+
+
+</script>

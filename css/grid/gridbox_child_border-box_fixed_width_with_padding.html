@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="pixel-test">
+  <style>
+    * {
+      font-family: Ahem;
+    }
+
+    .gridBox {
+      display: grid;
+    }
+
+    .gridBox>div {
+      width: 500px;
+    }
+
+    .webkitBox {
+      text-align: center;
+      padding: 25px;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      box-sizing: border-box;
+      background-color: blue;
+    }
+
+    .flexBox {
+      text-align: center;
+      padding: 25px;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      background-color: yellow;
+    }
+
+    .flexBoxWidthoutPadding {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      background-color: green;
+    }
+
+    .blockbox {
+      padding: 25px;
+      text-align: center;
+      box-sizing: border-box;
+      background-color: cyan;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="gridBox">
+    <div class="webkitBox">x</div>
+    <div class="flexBox">x</div>
+    <div class="flexBoxWidthoutPadding">x</div>
+    <div class="blockbox">x</div>
+  </div>
+</body>
+<script>
+  function testStart() {
+    screenShot("gridbox_child_border-box_fixed_width_with_padding.png", function () {
+      testImgDiff("gridbox_child_border-box_fixed_width_with_padding.png", "gridbox_child_border-box_fixed_width_with_padding_expected.png");
+      testEnd();
+    });
+  }
+</script>
+
+</html>

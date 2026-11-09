@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<head>
+  <style>
+  body { width: 400px; border: medium solid; text-align: left; }
+  .left-clear { float: left; clear: left; background-color: teal; }
+  .right { float: right; background-color: springgreen; }
+  span { display: inline-block; vertical-align: top; width: 200px; height: 50px; background: aqua; }
+
+  </style>
+</head>
+<body>
+
+  <div class="left-clear" style="width: 50px; height: 75px;"></div>
+  <div class="left-clear" style="width: 100px; height: 75px;"></div>
+  <div class="right" style="width: 100px; height: 75px;"></div>
+  <span></span>
+  <div class="right" style="width: 50px; height: 100px;"></div>
+  <div class="right" style="width: 50px; height: 100px;"></div>
+  <span></span>
+  <span></span>
+
+
+
+</body>
+
+
+<script>
+  function testStart() {
+    screenShot("linebox-relayout.png", function () {
+      testImgDiff("linebox-relayout.png", "linebox-relayout_expected.png");
+      testEnd();
+    });
+  }
+</script>
+</html>

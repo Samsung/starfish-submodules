@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta name="pixel-test">
+	<style>
+		/* object-position with a right/bottom side keyword folds the offset
+		   into calc(100% - offset). The offset may itself be a calc(), a
+		   percentage or a plain length; all of them must place the image where
+		   the equivalent plain value would. Each box writes the offset as
+		   calc()/percentage; the box to its right spells the same position
+		   out, and the two must render identically. */
+		.box {
+			border: 1px black solid;
+			width: 150px;
+			height: 150px;
+			margin: 10px;
+			float: left;
+		}
+
+		.box img {
+			display: block;
+			width: 150px;
+			height: 150px;
+			object-fit: none;
+		}
+
+		#a img { object-position: right calc(20px) top 10px; }
+		#a-ref img { object-position: right 20px top 10px; }
+
+		#b img { object-position: left 10px bottom calc(10px + 10px); }
+		#b-ref img { object-position: left 10px bottom 20px; }
+
+		#c img { object-position: right calc(10% * 2) bottom 10%; }
+		#c-ref img { object-position: right 20% bottom 10%; }
+
+		#d img { object-position: right calc(5px * 4) bottom calc(5px * 2); }
+		#d-ref img { object-position: right 20px bottom 10px; }
+	</style>
+</head>
+
+<body>
+	<div id="a" class="box"><img src="../background/star.png"></div>
+	<div id="a-ref" class="box"><img src="../background/star.png"></div>
+	<div id="b" class="box"><img src="../background/star.png"></div>
+	<div id="b-ref" class="box"><img src="../background/star.png"></div>
+	<div id="c" class="box"><img src="../background/star.png"></div>
+	<div id="c-ref" class="box"><img src="../background/star.png"></div>
+	<div id="d" class="box"><img src="../background/star.png"></div>
+	<div id="d-ref" class="box"><img src="../background/star.png"></div>
+</body>
+<script>
+	function testStart() {
+		screenShot("object-position-far-side-calc.png", function () {
+			testImgDiff("object-position-far-side-calc.png", "object-position-far-side-calc_expected.png");
+			testEnd();
+		});
+	}
+</script>
+
+</html>

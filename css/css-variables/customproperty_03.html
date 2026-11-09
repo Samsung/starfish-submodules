@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="pixel-test">
+        <meta charset="utf-8">
+        <style>
+            :root {
+                --color: blue;
+                --size: 12px;
+            }
+            div {
+                --color: green;
+                --size: 22px;
+            }
+            #alert {
+                --color: red;
+                --size: 32px;
+            }
+
+            * { 
+                color: var(--color); 
+                font-size: var(--size);
+                font-family: Ahem;
+            }
+        </style>
+    </head>
+
+    <body>
+        <p>I inherited blue from the root element!</p>
+        <div>I got green set directly on me!</div>
+        <div id='alert'>
+            While I got red set directly on me!
+            <p>I’m red too, because of inheritance!</p>
+        </div>
+    </body>   
+    <script>
+        function testStart() {
+            screenShot("customproperty_03.png", function () {
+                testImgDiff("customproperty_03.png", "customproperty_03_expected.png");
+                testEnd();
+            });
+        }
+    </script> 
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<script src="../framework.js"></script>
+<style>
+  .outer {
+    background-color: gray;
+    position: absolute;
+    width: 500px;
+    height: 400px;
+  }
+
+  .inner {
+    background-color: pink;
+    width: 100px;
+    height: 100px;
+    top: 30px;
+    left: 30px;
+  }
+
+  .inner2 {
+    background-color: teal;
+    width: 100px;
+    height: 100px;
+    top: 20px;
+    left: 20px;
+  }
+
+  .inner3 {
+    background-color: mediumpurple;
+    width: 100px;
+    height: 100px;
+    top: 30px;
+    left: 30px;
+  }
+  
+  .img1 {    
+    width: 75px;
+    height: 100px;
+    top: 20px;
+    left: 20px;
+  }
+</style>
+
+<body>
+  <div class="outer">
+    <div class="inner">
+        inner1
+    </div>
+    <div class="inner2">
+        inner2
+        <div class="inner3">
+          inner3
+        </div>
+    </div>
+    <img class="img1" src="figure.png" />
+  </div>
+</body>
+
+<script>
+  var cssKeyValues = {
+    "position": ["static", "absolute"],
+    "z-index": ["-5", "-3", "0", "auto", "3", "5"],
+  };
+
+  var innerDiv = new Div("inner");
+  var inner2Div = new Div("inner2");
+  var inner3Div = new Div("inner3");
+  var img1Div = new Div("img1");
+  var divs = [inner2Div, inner3Div, img1Div];
+  var bugs = [];
+  var duplicates = [
+                    /* static, but with z-index */
+                    {"position": ["static"], "z-index": ["!auto"]},
+                    {"position": ["*", "static"], "z-index": ["*", "!auto"]},
+                    {"position": ["*", "*", "static"], "z-index": ["*", "*", "!auto"]},
+                    {"position": ["static", "static", "static"]},
+                    /* two same values */
+                    /* {"z-index": ["*", "auto", "auto"]},
+                    {"z-index": ["*", "-5", "-5"]},
+                    {"z-index": ["*", "-3", "-3"]},
+                    {"z-index": ["*", "0", "0"]},
+                    {"z-index": ["*", "3", "3"]},
+                    {"z-index": ["*", "5", "5"]},
+                    {"z-index": ["auto", "*", "auto"]},
+                    {"z-index": ["-5", "*", "-5"]},
+                    {"z-index": ["-3", "*", "-3"]},
+                    {"z-index": ["0", "*", "0"]},
+                    {"z-index": ["3", "*", "3"]},
+                    {"z-index": ["5", "*", "5"]},
+                    {"z-index": ["auto", "auto"]},
+                    {"z-index": ["-5", "-5"]},
+                    {"z-index": ["-3", "-3"]},
+                    {"z-index": ["0", "0"]},
+                    {"z-index": ["3", "3"]},
+                    {"z-index": ["5", "5"]}, */
+                    /* three same values */
+                    {"z-index": ["auto", "auto", "auto"]},
+                    {"z-index": ["-5", "-5", "-5"]},
+                    {"z-index": ["-3", "-3", "-3"]},
+                    {"z-index": ["0", "0", "0"]},
+                    {"z-index": ["3", "3", "3"]},
+                    {"z-index": ["5", "5", "5"]},
+                   ];
+
+  function init() {
+    innerDiv.changeStyle("position", "absolute");
+    inner2Div.changeStyle("position", "static");
+    inner3Div.changeStyle("position", "static");
+    img1Div.changeStyle("position", "static");
+
+    innerDiv.changeStyle("z-index", "0");
+    inner2Div.changeStyle("z-index", "auto");
+    inner3Div.changeStyle("z-index", "auto");
+    img1Div.changeStyle("z-index", "auto");
+  }
+
+  function testStart() {
+    var stepper2 = Stepper("stepper2", divs, "position", cssKeyValues.position);
+    var stepper = Stepper("stepper", divs, "z-index", cssKeyValues["z-index"], stepper2);
+
+    function iterate() {
+      var names = name(divs, function (divs, styles) {
+        styles.push(innerDiv.elems[0].style.position);
+        styles.push(innerDiv.elems[0].style["z-index"]);
+
+        divs.forEach(function(div) {
+          styles.push(div.elems[0].style.position);
+          styles.push(div.elems[0].style["z-index"]);
+        });
+      });
+      console.log("img : " + names.img);
+      screenShot(names.img, function () {
+        testImgDiff(names.img, names.expectedImg);
+
+        if (stepper.finished()) {
+          testEnd();
+        } else {
+          do {
+            stepper.step();
+            if (stepper.finished()) {
+              testEnd();
+            }
+          } while (canSkip(divs, bugs) || canSkip(divs, duplicates));
+
+          iterate();
+        }
+      });
+    }
+
+    init()
+    iterate();
+  }
+</script>
+</html>

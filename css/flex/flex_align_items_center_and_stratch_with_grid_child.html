@@ -1,0 +1,68 @@
+<html>
+
+<head>
+  <meta name="pixel-test">
+  <style>
+    * {
+      font-family: Ahem;
+    }
+
+    .flex_container_center {
+      position: fixed;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      top: 10px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    .flex_container_stretch {
+      position: fixed;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      top: 50px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    .grid_container {
+      background-color: blue;
+      display: grid;
+    }
+
+    .textbox {
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+  <body>
+    <div class="flex_container_center">
+      <div class="grid_container">
+        <div class="textbox">"Download a file"</div>
+      </div>
+    </div>
+    <div class="flex_container_stretch">
+      <div class="grid_container">
+        <div class="textbox">"Download a file"</div>
+      </div>
+    </div>
+  </body>
+
+</body>
+<script>
+  function testStart() {
+    screenShot("flex_align_items_center_and_stratch_with_grid_child.png", function () {
+      testImgDiff("flex_align_items_center_and_stratch_with_grid_child.png", "flex_align_items_center_and_stratch_with_grid_child_expected.png");
+      testEnd();
+    });
+  }
+</script>
+
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="pixel-test">
+    <style>
+        div {
+            border: 5px solid black;
+            margin-top: 5px;
+            height: 40px;
+            color: green;
+        }
+
+        #test1 {
+            background: linear-gradient(yellow, blue);
+        }
+
+        #test2 {
+            background: linear-gradient(to bottom, yellow, blue);
+        }
+
+        #test3 {
+            background: linear-gradient(180deg, yellow, blue);
+        }
+
+        #test4 {
+            background: linear-gradient(to top, blue, yellow);
+        }
+
+        #test5 {
+            background: linear-gradient(to bottom, yellow 0%, blue 100%);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="test1"></div>
+    <div id="test2"></div>
+    <div id="test3"></div>
+    <div id="test4"></div>
+    <div id="test5"></div>
+</body>
+<script>
+    function testStart() {
+        screenShot("background_lineargradient6.png", function () {
+            testImgDiff("background_lineargradient6.png", "background_lineargradient6_expected.png");
+            testEnd();
+        });
+
+    }
+</script>
+
+</html>

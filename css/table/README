@@ -1,0 +1,5 @@
+All *_expected.png files are outputs of NodeWebkit. However there are
+some expected files that are screenshots of itself. They are listed as follows.
+
+TCs that fail due to rounding errors when calculating table positions.
+* table_fixed_17_expected.png

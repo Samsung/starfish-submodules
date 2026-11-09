@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<script src="../framework.js"></script>
+<style>
+  .outer {
+    background-color: gray;
+    width: 700px;
+    height: 400px;
+  }
+
+  .inner {
+    background-color: red;
+    width: 100px;
+    height: 100px;
+  }
+
+  .inner2 {
+    background-color: green;
+    width: 100px;
+    height: 100px;
+  }
+
+  .inner3 {
+    background-color: blue;
+    width: 100px;
+    height: 100px;
+  }
+
+  .inner4 {
+    background-color: purple;
+    width: 100px;
+    height: 100px;
+  }
+</style>
+
+<body>
+  body  
+  <div class="outer">
+    outer
+    <div class="inner">
+        inner1
+    </div>
+    outer2
+    <div class="inner2">
+        inner2
+        <div class="inner3">
+          inner3
+        </div>
+    </div>
+    outer3
+    <div class="inner4">
+        inner4
+    </div>
+    outer4
+  </div>
+  body2
+</body>
+
+<script>
+  var cssKeyValues = {
+    display: ["block", "inline", "inline-block"],
+    position: ["static", "absolute"]
+  };
+
+  var outerDiv = new Div("outer");
+  var innerDiv = new Div("inner");
+  var inner2Div = new Div("inner2");
+  var inner3Div = new Div("inner3");
+  var inner4Div = new Div("inner4");
+  var divs = [inner2Div, inner3Div, inner4Div];
+  var bugs = [
+              /*{display: ["*", "inline", "block", "inline"], position: ["*", "static", "absolute"]},*/
+              {display: ["inline", "block", "block"], position: ["static", "absolute", "*"]},
+              {display: ["inline", "block", "inline"], position: ["static", "absolute", "*"]},
+              {display: ["inline", "block", "inline-block"], position: ["static", "absolute", "*"]},
+              {display: ["inline", "inline", "inline"], position: ["static", "static", "absolute"]},
+              {display: ["inline", "inline", "inline-block"], position: ["static", "static", "absolute"]},
+              {display: ["inline", "inline-block", "inline"], position: ["static", "static", "absolute"]},
+              {display: ["inline", "inline-block", "inline-block"], position: ["static", "static", "absolute"]}, 
+             ];
+  var duplicates = [
+                    {position: ["static", "static", "static"]},
+                   ];
+
+  function init(ltr) {
+    if (ltr) {
+      outerDiv.changeStyle("direction", "ltr");
+    } else {
+      outerDiv.changeStyle("direction", "rtl");
+    }
+
+    outerDiv.changeStyle("display", "block");
+    innerDiv.changeStyle("display", "inline-block");
+    inner2Div.changeStyle("display", "block");
+    inner3Div.changeStyle("display", "block");
+    inner4Div.changeStyle("display", "block");
+
+    outerDiv.changeStyle("position", "absolute");
+    innerDiv.changeStyle("position", "static");
+    inner2Div.changeStyle("position", "static");
+    inner3Div.changeStyle("position", "static");
+    inner4Div.changeStyle("position", "static");
+  }
+
+  function testStart() {
+    var stepper2 = Stepper("stepper2", divs, "position", cssKeyValues.position);
+    var stepper = Stepper("stepper", divs, "display", cssKeyValues.display, stepper2);
+
+    function iterate() {
+      outerDiv.elems[0].offsetHeight;
+      var names = name(divs, function (divs, styles) {
+        styles.push(outerDiv.elems[0].style.direction);
+        styles.push(outerDiv.elems[0].style.display);
+        styles.push(outerDiv.elems[0].style.position);
+
+        styles.push(innerDiv.elems[0].style.display);
+        styles.push(innerDiv.elems[0].style.position);
+        
+        divs.forEach(function(div) {
+          styles.push(div.elems[0].style.display);
+          styles.push(div.elems[0].style.position);
+        });
+      });
+
+      console.log("img : " + names.img);
+      screenShot(names.img, function () {
+        testImgDiff(names.img, names.expectedImg);
+        if (stepper.finished()) {
+          testEnd();
+        } else {
+          do {
+            stepper.step();
+          } while (canSkip(divs, bugs) || canSkip(divs, duplicates));
+
+          iterate();
+        }
+      });
+    }
+
+    init(true);
+    iterate();
+  }
+</script>
+</html>

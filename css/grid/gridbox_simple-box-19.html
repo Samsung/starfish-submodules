@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<meta name="pixel-test">
+<head>
+  <style>
+#page {
+  display: grid;
+  width: 300px;
+  height: 250px;
+  grid-template-areas: "head head"
+                       "nav  main"
+                       "nav  foot";
+  grid-template-rows: 50px 1fr 30px;
+  grid-template-columns: 150px 1fr;
+}
+
+#page > header {
+  grid-area: head;
+  background-color: #8ca0ff;
+}
+
+#page > nav {
+  grid-area: nav;
+  background-color: #ffa08c;
+}
+
+#page > main {
+  grid-area: main;
+  background-color: #ffff64;
+}
+
+#page > footer {
+  grid-area: foot;
+  background-color: #8cffa0;
+}
+  </style>
+</head>
+<body style="font-family: StarfishAhem">
+<section id="page">
+  <header>Header</header>
+  <nav>Navigation</nav>
+  <main>Main area</main>
+  <footer>Footer</footer>
+</section>
+</body>
+<script>
+  function testStart() {
+    screenShot("gridbox_simple-box-19.png", function() {
+      testImgDiff("gridbox_simple-box-19.png", "gridbox_simple-box-19_expected.png");
+      testEnd();
+    });
+  }
+</script>
+</html>

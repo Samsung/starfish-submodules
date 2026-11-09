@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="pixel-test">        
+    <style>
+        div { margin: 10px;padding: 20px;border: 10px solid red; }
+    </style>
+</head>
+<body>
+    <div id='a'></div>
+    <div id='b'></div>
+    <div id='c'></div>
+</body>
+
+<script>
+    var width = ["120px", "60px"];
+    var height = ["120px", "60px"];
+    var backgroundPosition = ["left", "center", "right", "top", "bottom"];
+    var backgroundSize = ["cover", "contain", "50px", "30%", "130%"];
+    var backgroundRepeat = ["no-repeat", "repeat", "repeat-x", "repeat-y"];
+    
+    var aDiv = document.getElementById("a");
+    var bDiv = document.getElementById("b");
+    var cDiv = document.getElementById("c");
+    
+    
+    var index = 0;
+       
+    function getName(callback) {
+        var styles = [];
+        callback(styles);
+        
+        var baseName = styles.join("_");
+        var expectedImgName = baseName + "_expected.png";
+        var imgName = baseName + ".png";
+        
+        return {"imgName": imgName, "expectedImg": expectedImgName};
+    }
+    
+    function setStyle(styleList) {        
+        width.forEach(function(w) {
+            height.forEach(function(h) {
+                backgroundPosition.forEach(function(p) {
+                    backgroundSize.forEach(function(s) {
+                        backgroundRepeat.forEach(function(r) {
+                            var str = "width:" + w + ";";
+                            str += "height:" + h + ";";                            
+                            str += "background: " + p;  // background-position
+                            str += "/" + s;             // background-size
+                            str += " " + r;             // background-repeat
+                            //str += " black;"            // background-color
+                            styleList.push(str);
+                        });
+                    });
+                });
+            });
+        });        
+    }    
+    
+    
+    function testStart() {
+        var styleList = [];
+        setStyle(styleList);
+        console.log("Style.Lenght:"+styleList.length);
+
+        function iterate() {  
+            if(index > styleList.length - 1)
+                return;
+                      
+            var stl = styleList[index];
+            aDiv.style = stl.replace(";background:", ";background: url('yellow.png')");            
+            bDiv.style = stl.replace(";background:", ";background: url('orange.png')");            
+            cDiv.style = stl.replace(";background:", ";background: url('purple.png')");
+            
+            var name = getName(function(styles) {
+                styles.push("BGShorthand");
+                styles.push(aDiv.style.width);
+                styles.push(aDiv.style.height);
+                styles.push(window.getComputedStyle(aDiv, null).getPropertyValue("background-position").trim().split(/\s+/).join("_"));
+                //styles.push(aDiv.style.backgroundPosition.trim().split(/\s+/).join("_"));
+                styles.push(aDiv.style.backgroundSize);                
+                styles.push(aDiv.style.backgroundRepeat);
+            });
+            
+            screenShot(name.imgName, function () {
+                console.log("index: "+index);
+                console.log("InternalTC: " + aDiv.getAttribute('style'));
+                
+                testImgDiff(name.imgName, name.expectedImg);
+                
+                ++index;
+                if (index > styleList.length - 1)
+                    testEnd();                    
+                
+                iterate();
+            });
+        }
+        iterate();
+    }
+</script>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<style>
+* { margin: 0px }
+</style>
+<body>
+    <canvas id="c" width="800" height="600"></canvas>
+</body>
+<script>
+    // Grab the Canvas and Drawing Context
+    var canvas = document.getElementById('c');
+    var ctx = canvas.getContext('2d');
+
+    ctx.save();
+    ctx.fillStyle = "blue";
+    ctx.strokeStyle = "black";
+
+    ctx.lineWidth = "50";
+    ctx.beginPath();
+    ctx.moveTo(300, 100);
+    ctx.lineTo(400, 100);
+    ctx.lineTo(400, 200);
+    ctx.lineTo(300, 200);
+    ctx.closePath();
+
+    ctx.shadowColor = "rgba(0,255,0, 0.5)";
+    ctx.shadowOffsetX = 100;
+    ctx.shadowOffsetY = 20;
+    ctx.shadowBlur = 10;
+
+    ctx.stroke();
+
+    // clear the shadow
+    ctx.shadowColor = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    
+    // restroke without the shaodw
+    ctx.stroke();
+    function testStart() {
+        screenShot("stroke-shadow.png", function () {
+            testImgDiff("stroke-shadow.png", "stroke-shadow_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+</html>

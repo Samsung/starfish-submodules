@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        /*  visibility is an inherited property. */
+        #parent {
+            background-color: red;
+            visibility: hidden;
+        }
+
+        #child {
+            all: initial;
+            border: 5px solid black;
+            all: initial;
+            background-color: blue;
+            width: 100px;
+            height: 100px;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="parent">
+        <div id="child">
+            <!-- Only the blue box should be visible. -->
+        </div>
+    </div>
+    <script>
+        function testStart() {
+            screenShot("all_repeated_use.png", function () {
+                testImgDiff("all_repeated_use.png", "all_repeated_use_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</body>
+
+</html>

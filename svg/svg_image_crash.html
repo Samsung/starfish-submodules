@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+    <div>
+        <div><img src="./crash-image-1.svg"></div>
+        <div><img src="./crash-image-2.svg"></div>
+        <div><img src="./crash-image-3.svg"></div>
+    </div>
+    <div>
+        <div><img src="./crash-image-4.svg"></div>
+        <div><img src="./crash-image-5.svg"></div>
+        <div><img src="./crash-image-6.svg"></div>
+    </div>
+</body>
+
+<script>
+    function testStart() {
+        screenShot("svg_image_crash.png", function () {
+            testImgDiff("svg_image_crash.png", "svg_image_crash_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+</html>

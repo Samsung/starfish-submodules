@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        .gridParent {
+            width: 400px;
+            display: grid;
+            grid-template-columns: auto auto;
+            align-items: center;
+            background-color: red;
+        }
+        .nonGridParent {
+            width: 400px;
+            background-color: red;
+
+        }
+        .flexContainer {
+            padding: 50px 100px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+
+        }
+        .NormalContainer {
+            padding: 50px 100px;
+            overflow: hidden;
+            background-color: yellow;
+        }
+        .NormalContainer400 {
+            width: 400px;
+            padding: 50px 100px;
+            overflow: hidden;
+            background-color: yellow;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="gridParent">
+        <div class="flexContainer">
+            <div style="width: 350px; height: 50px; background-color: green;"></div>
+            <div style="width: 350px; height: 100px; background-color: blue;"></div>
+        </div>
+        <div class="flexContainer">
+            <div style="width: 350px; height: 50px; background-color: green;"></div>
+            <div style="width: 350px; height: 100px; background-color: blue;"></div>
+        </div>
+    </div>
+    <br>
+    <div class="gridParent">
+        <div class="NormalContainer">
+            <div style="width: 350px; height: 50px; background-color: green;"></div>
+            <div style="width: 350px; height: 100px; background-color: blue;"></div>
+        </div>
+        <div class="NormalContainer">
+            <div style="width: 350px; height: 50px; background-color: green;"></div>
+            <div style="width: 350px; height: 100px; background-color: blue;"></div>
+        </div>
+    </div>
+</body>
+<script>
+    function testStart() {
+        screenShot("grid-template-columns-auto_shrink_01.png", function () {
+            testImgDiff("grid-template-columns-auto_shrink_01.png", "grid-template-columns-auto_shrink_01_expected.png");
+            testEnd();
+        });
+    }
+</script>
+</html>

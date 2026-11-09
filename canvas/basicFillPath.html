@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        canvas {
+            display: block;
+            background-color: green;
+            margin-top: 10px;
+        }
+    </style>
+    <script type="application/javascript">
+        // Test passes if there is a no blue pixel
+        function draw() {
+                for (var i = 1; i <= 2; i++) {
+                    var canvas = document.getElementById("canvas" + i);
+                    if (canvas.getContext) {
+                        var ctx = canvas.getContext("2d");
+                        ctx.beginPath();
+                        ctx.moveTo(50, 50);
+                        ctx.lineTo(250, 50);
+                        ctx.lineTo(250, 150);
+                        ctx.lineTo(50, 150);
+                        ctx.closePath();
+                        ctx.moveTo(70, 70);
+                        ctx.lineTo(230, 70);
+                        ctx.lineTo(230, 130);
+                        ctx.lineTo(70, 130);
+                        ctx.closePath();
+                        var fillRule = "evenodd";
+                        if (i==2) {
+                            fillRule = "nonzero";
+                        } 
+                        ctx.fill(fillRule);
+                    }
+            }
+
+        }
+    </script>
+</head>
+
+<body onload="draw();">
+    <canvas id="canvas1" width="300px" height="200px">canvas</canvas>
+    <canvas id="canvas2" width="300px" height="200px">canvas</canvas>
+</body>
+<script>
+    function testStart() {
+        screenShot("basicFillPath.png", function () {
+            testImgDiff("basicFillPath.png", "basicFillPath_expected.png");
+            testEnd();
+        });
+    }
+</script>
+</html>

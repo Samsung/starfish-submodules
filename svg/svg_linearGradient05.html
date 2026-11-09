@@ -1,0 +1,25 @@
+<html>
+<meta name="pixel-test">
+
+<body>
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="background-color: gray;">
+        <defs>
+            <linearGradient x1="50.0005389%" y1="43.4946683%" x2="50.0005389%" y2="76.1707635%" id="linearGradient">
+                <stop stop-color="#D0F0FC" stop-opacity="0.2" offset="0%" />
+                <stop stop-color="#DCEFFF" stop-opacity="1" offset="100%" />
+            </linearGradient>
+        </defs>
+        <path d="M20 00  H 120 V 150 H 20 L 20 0" fill="url(#linearGradient)" />
+        <rect x="180" y="0" width="100" height="150" fill="url(#linearGradient)" />
+    </svg>
+</body>
+<script>
+    function testStart() {
+        screenShot("svg_linearGradient05.png", function () {
+            testImgDiff("svg_linearGradient05.png", "svg_linearGradient05_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+</html>

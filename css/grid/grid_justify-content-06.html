@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta name="pixel-test">
+<head>
+    <style>
+        .container {
+            background-color: red;
+            display: grid;
+            grid-template-columns: auto auto auto;
+            width: 300px;
+            justify-content: center;
+        }
+
+        .item {
+            background-color: green;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <span class='item'>xxx</span>
+        <span class='item'></span>
+        <span class='item'>xxxxxx</span>
+        <span class='item'></span>
+        <span class='item'></span>
+        <span class='item'>xxxxx xxx</span>
+        <span class='item'></span>
+        <span class='item'></span>
+        <span class='item'></span>
+    </div>
+
+</body>
+<script>
+    function testStart() {
+        screenShot("grid_justify-content-06.png", function () {
+            testImgDiff("grid_justify-content-06.png", "grid_justify-content-06_expected.png");
+            testEnd();
+        });
+    }
+</script>
+</html>

@@ -1,0 +1,50 @@
+<html>
+
+<head>
+  <meta name="pixel-test">
+  <style>
+    div {
+      height: 100px;
+      margin-top: 10px;
+    }
+
+    div.background-by-svg {
+      background-color: red;
+      background-image: url(transparent-100x50-blue-100x50.svg);
+      background-repeat: no-repeat;
+    }
+
+    #target1 {
+      width: 100px;
+    }
+
+    #target2 {
+      width: 200px;
+    }
+
+    #target3 {
+      width: 400px;
+    }
+
+    #target4 {
+      width: 500px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="target1" class="background-by-svg"></div>
+  <div id="target2" class="background-by-svg"></div>
+  <div id="target3" class="background-by-svg"></div>
+  <div id="target4" class="background-by-svg"></div>
+</body>
+<script>
+  function testStart() {
+    screenShot("svg_06.png", function () {
+      testImgDiff("svg_06.png", "svg_06_expected.png");
+      testEnd();
+    });
+  }
+</script>
+
+</html>

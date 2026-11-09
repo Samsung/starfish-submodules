@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+
+<style>
+
+span {
+	background: blue;
+	border: 4px solid black;
+}
+
+</style>
+
+<body>
+
+<div style="direction:ltr">
+	ltr
+	<span>span1
+	<span>span2
+		<div class="a">
+			Im destroyer
+		</div>
+	span2</span>
+	span1</span>
+</div>
+
+<div style="direction:rtl;display:none">
+	rtl
+	<span>span1
+	<span>span2
+		<div class="a">
+			Im destroyer
+		</div>
+	span2</span>
+	span1</span>
+</div>
+</body>
+<script>
+
+// TODO has bug in test 5, rtl
+
+var as = document.getElementsByClassName("a");
+
+function testStart() {
+    screenShot("block-inline-basic-1.png", function() {
+         testImgDiff("block-inline-basic-1.png", "block-inline-basic-1_expected.png");
+         for (var i = 0; i < as.length; i ++) {
+            as[i].style.display = "inline"
+         }
+         screenShot("block-inline-basic-2.png", function() {
+             testImgDiff("block-inline-basic-2.png", "block-inline-basic-2_expected.png");
+             for (var i = 0; i < as.length; i ++) {
+                 as[i].style.display = "inline-block"
+             }
+
+             screenShot("block-inline-basic-3.png", function() {
+                 testImgDiff("block-inline-basic-3.png", "block-inline-basic-3_expected.png");
+
+                 for (var i = 0; i < as.length; i ++) {
+                     as[i].style.display = "none"
+                 }
+
+                 screenShot("block-inline-basic-4.png", function() {
+                     testImgDiff("block-inline-basic-4.png", "block-inline-basic-4_expected.png");
+
+                     /*
+                     for (var i = 0; i < as.length; i ++) {
+                         as[i].style.display = ""
+                     }
+
+                     screenShot("block-inline-basic-5.png", function() {
+                         testImgDiff("block-inline-basic-5.png", "block-inline-basic-5_expected.png");
+                         testEnd();
+                     });*/
+                     testEnd();
+                 });
+             });
+
+         });
+
+    });
+
+}
+
+</script>
+</html>

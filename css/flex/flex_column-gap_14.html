@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        .test-parent {
+            background-color: yellow;
+            display: flex;
+            flex-wrap: wrap;
+            flex-direction: column;
+
+            width: 600px;
+            height: 100px;
+
+            column-gap: 300px;
+        }
+
+        .test-parent>div {
+            width: 200px;
+            background: rgba(0, 0, 255, 0.5);
+            height: 100px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="test-parent">
+        <div></div>
+        <div></div>
+    </div>
+</body>
+<script>
+    function testStart() {
+        screenShot("flex_column-gap_14.png", function () {
+            testImgDiff("flex_column-gap_14.png", "flex_column-gap_14_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+</html>

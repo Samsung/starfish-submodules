@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="pixel-test">
+<style> 
+:root {
+  --height: 10px;
+}
+
+div {
+  border: 2px solid blue;    
+  margin: 10px;
+}
+
+#example1 {
+  height: calc(var(--height) + 10px);
+}
+
+#example2 {
+  height: calc(var(--height) * 10);
+}
+
+#example3 {
+  height: calc(var(--height) / 2);
+}
+</style>
+</head>
+<body>
+
+<div id="example1"></div>
+<div id="example2"></div>
+<div id="example3"></div>
+
+</body>
+<script>
+    function testStart() {
+        screenShot("customproperty_36.png", function () {
+            testImgDiff("customproperty_36.png", "customproperty_36_expected.png");
+            testEnd();
+        });
+    }
+</script>
+</html>

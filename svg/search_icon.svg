@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+<style type="text/css">
+	.bg{fill:#E09F3E;}
+	.drop{opacity:0.85;fill:#FFFFFF;}
+	.group{opacity:1;}
+	.mark{fill:#5A3E1B;}
+</style>
+
+<circle class="bg" cx="16" cy="16" r="16"/>
+
+<g class="group">
+	<path class="drop" d="M16,5C16,5 9,13.5 9,18.5a7,7 0 0,0 14,0C23,13.5 16,5 16,5z"/>
+	<rect x="12" y="17" transform="matrix(0.9659 -0.2588 0.2588 0.9659 -4.604 4.029)" class="mark" width="2" height="5"/>
+</g>
+</svg>

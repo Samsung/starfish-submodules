@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<script>
+    function testStart() {
+    screenShot("color_rgb_rgba_hex.png", function () {
+        testImgDiff("color_rgb_rgba_hex.png","color_rgb_rgba_hex_expected.png");
+        testEnd();
+    }) 
+}
+</script>
+<style>
+    body { background-color: rgb(172,206,17); }
+</style>
+<body>
+<p style="color: rgba(255, 0, 0, 0);"> alpah value 0. color is red. </p>
+<p style="color: rgba(255, 0, 0, 0.25);"> alpah value 0.25. color is red. </p>
+<p style="color: rgba(255, 0, 0, 0.5);"> alpah value 0.5. color is red. </p>
+<p style="color: rgba(255, 0, 0, 0.75);"> alpah value 0.75. color is red. </p>
+<p style="color: rgba(255, 0, 0, 1);"> alpah value 1. color is red. </p>
+
+<div style="background-color: #ffff00; width: 100px; height: 20px;"> </div>
+<div style="background-color: rgb(0,42,66); width: 100px; height: 20px;"> </div>
+<div style="background-color: rgba(125,29,55, 0.3); width: 100px; height: 20px;"> </div>
+
+</body>
+</html>

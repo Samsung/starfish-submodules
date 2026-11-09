@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<style>
+* { margin: 0; line-height:0px }
+</style>
+<svg width="50" height="50" xmlns="http://www.w3.org/2000/svg" style="background:red">
+  <filter id="test" >
+    <feColorMatrix  type="matrix"  values="0 0 0 0 0
+              1 1 1 1 0
+              0 0 0 0 0
+              0 0 0 1 0" />
+    <feGaussianBlur stdDeviation="2"/>
+  </filter>
+  <rect x="10" y="10" width="30" height="30" filter="url(#test)" fill="white" />
+</svg>
+<br>
+<svg width="50" height="50" xmlns="http://www.w3.org/2000/svg" style="background:red">
+  <filter id="test" >
+    <feColorMatrix  type="matrix"  values="0 0 0 0 0
+              1 1 1 1 0
+              0 0 0 0 0
+              0 0 0 1 0" output="asdf" />
+    <feGaussianBlur stdDeviation="2" in="asdf"/>
+  </filter>
+  <rect x="10" y="10" width="30" height="30" filter="url(#test)" fill="white" />
+</svg>
+<br>
+<svg width="50" height="50" xmlns="http://www.w3.org/2000/svg" style="background:red">
+  <filter id="test2" >
+<!-- asdf is not used -->
+    <feColorMatrix output="asdf" type="matrix" values="0 0 0 0 0
+              1 1 1 1 0
+              0 0 0 0 0
+              0 0 0 1 0" />
+    <feGaussianBlur in="SourceGraphic" stdDeviation="2"/>
+  </filter>
+  <rect x="10" y="10" width="30" height="30" filter="url(#test2)" fill="white" />
+</svg>
+<br>
+<svg width="50" height="50" xmlns="http://www.w3.org/2000/svg" style="background:red">
+  <filter id="test3" >
+<!-- sourceGraphic is immutable. but last..-->
+    <feColorMatrix  type="matrix" output="SourceGraphic" values="0 0 0 0 0
+              1 1 1 1 0
+              0 0 0 0 0
+              0 0 0 1 0" />
+    <feGaussianBlur in="SourceGraphic" output="SourceGraphic"  stdDeviation="2"/>
+  </filter>
+  <rect x="10" y="10" width="30" height="30" filter="url(#test3)" fill="white" />
+</svg>
+<br>
+<svg width="50" height="50" xmlns="http://www.w3.org/2000/svg" style="background:red">
+  <filter id="test4" >
+<!-- asdf is used -->
+    <feColorMatrix output="asdf" type="matrix"  values="0 0 0 0 0
+              1 1 1 1 0
+              0 0 0 0 0
+              0 0 0 1 0" />
+    <feGaussianBlur in="asdf" stdDeviation="2"/>
+  </filter>
+  <rect x="10" y="10" width="30" height="30" filter="url(#test4)" fill="white" />
+</svg>
+<br>
+<svg width="50" height="50" xmlns="http://www.w3.org/2000/svg" style="background:red">
+  <filter id="test5" >
+    <feColorMatrix output="asdf" type="matrix"  values="0 0 0 0 0
+              1 1 1 1 0
+              0 0 0 0 0
+              0 0 0 1 0" />
+    <feGaussianBlur in="asdf" output="asdf2" stdDeviation="2"/>
+  </filter>
+  <rect x="10" y="10" width="30" height="30" filter="url(#test5)" fill="white" />
+</svg>
+<br>
+<svg width="50" height="50" xmlns="http://www.w3.org/2000/svg" style="background:red">
+  <filter id="test6" >
+    <feColorMatrix output="asdf" type="matrix"  values="0 0 0 0 0
+              1 1 1 1 0
+              0 0 0 0 0
+              0 0 0 1 0" />
+<!-- last filter with SourceGraphic -->
+    <feGaussianBlur in="SourceGraphic" stdDeviation="2"/>
+  </filter>
+  <rect x="10" y="10" width="30" height="30" filter="url(#test6)" fill="white" />
+</svg>
+<script>
+  function testStart() {
+    screenShot("svg_filter_in_output_01.png", function () {
+      testImgDiff("svg_filter_in_output_01.png", "svg_filter_in_output_01_expected.png");
+      testEnd();
+    });
+  }
+</script>
+

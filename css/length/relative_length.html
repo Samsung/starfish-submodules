@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<script>
+    function testStart() {
+    screenShot("relative_length.png", function () {
+        testImgDiff("relative_length.png","relative_length_expected.png");
+        testEnd();
+    }) 
+}
+</script>
+<style>
+    #font16 {
+	font-size : 16px;
+    }
+
+    #font32 {
+	font-size : 32px
+    }
+</style>
+<body style>
+    <div style="color : red; border: 1px solid black; width:200px"> Relative length units</div>
+    <div id="font16">
+	<p style="font-size: 1em"> parent font size:16px font-size: 1em </p>
+	<p style="font-size: 1ex"> parent font size:16px font-size: 1ex </p>
+    </div>
+    <div id="font32">
+        <p style="font-size: 1em"> parent font size:32px font-size: 1em </p>
+        <p style="font-size: 1ex"> parent font size:32px font-size: 1ex </p>
+    </div>
+</body>
+</html>

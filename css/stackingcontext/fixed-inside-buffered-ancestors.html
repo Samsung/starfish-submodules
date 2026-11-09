@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body { margin: 0; }
+  /* Nested ancestors that each request a stacking context.
+     The position:fixed descendant must pick a SC parent that already has
+     its stackingContext() established; without the guard, the walk could
+     pick an ancestor whose SC is still null and create an orphan SC. */
+  #a {
+    width: 400px;
+    height: 400px;
+    margin: 20px;
+    background: navy;
+    will-change: transform;
+    overflow: hidden;
+  }
+  #b {
+    width: 300px;
+    height: 300px;
+    margin: 20px;
+    background: teal;
+    will-change: transform;
+    overflow: hidden;
+  }
+  #c {
+    width: 200px;
+    height: 200px;
+    margin: 20px;
+    background: green;
+    will-change: transform;
+    overflow: hidden;
+  }
+  /* Fixed element nested deep inside; canOwnsStackingContext() is true. */
+  #fx {
+    position: fixed;
+    top: 80px;
+    left: 80px;
+    width: 120px;
+    height: 120px;
+    background: red;
+    z-index: 5;
+  }
+  /* Static sibling under same SC chain to verify ordering is preserved. */
+  #s {
+    width: 60px;
+    height: 60px;
+    background: yellow;
+    position: relative;
+    z-index: 1;
+  }
+</style>
+</head>
+<body>
+  <div id="a">
+    <div id="b">
+      <div id="c">
+        <div id="s"></div>
+        <div id="fx"></div>
+      </div>
+    </div>
+  </div>
+<script>
+  screenShot("fixed-inside-buffered-ancestors.png", function () {
+    testImgDiff("fixed-inside-buffered-ancestors.png",
+                "fixed-inside-buffered-ancestors_expected.png");
+    testEnd();
+  });
+</script>
+</body>
+</html>

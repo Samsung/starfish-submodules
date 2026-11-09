@@ -1,0 +1,21 @@
+<style>
+*{ margin: 0 ; line-height:32px}
+</style>
+<svg viewBox="0 0 10 10" width="32" height="32">
+  <image width="100%" height="100%" preserveAspectRatio="xMidYMid meet" href="
+data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAMklEQVR4nGIxr5rEQEvARFPTRy0YtWDUglELRi0YtWDUglELRi0YtWDUAioCQAAAAP///u8BhgGgdWAAAAAASUVORK5CYII="/>
+</svg><svg viewBox="0 0 10 10" width="32" height="32">
+  <image width="100%" height="100%" preserveAspectRatio="none" href="
+data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAMklEQVR4nGIxr5rEQEvARFPTRy0YtWDUglELRi0YtWDUglELRi0YtWDUAioCQAAAAP///u8BhgGgdWAAAAAASUVORK5CYII="/>
+</svg>
+
+<script>
+
+    function testStart() {
+        screenShot("svg_image_test_01.png", function () {
+            testImgDiff("svg_image_test_01.png", "svg_image_test_01_expected.png");
+            testEnd();
+        });
+    }
+
+</script>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script>
+       </script>
+    </head>
+    <body onload="addTextDecoration();">
+        <p>This text has <span>some inline-level children</span> in it.</p>
+        <p>This text has <span class="ib">some inline-block-level children</span> in it.</p>
+        <p>This text has <div>some block-level children</div> in it.</p>
+    </body>
+    <script type="text/javascript">
+        function addTextDecoration() {
+            var elems = document.getElementsByTagName("p");
+            for (var i = 0; i < elems.length; i++)
+                elems[i].style.textDecoration = "underline";
+            elems = document.getElementsByTagName("span");
+            for (i = 0; i < elems.length; i++)
+                elems[i].style.textDecoration = "line-through";
+            elems = document.getElementsByTagName("div");
+            for (i = 0; i < elems.length; i++)
+                elems[i].style.textDecoration = "line-through";
+            elems = document.getElementsByClassName("ib");
+            for (i = 0; i < elems.length; i++)
+                elems[i].style.display = "inline-block";
+        }
+
+        // Capture the screen
+        function testStart() {
+            screenShot("dynamic-text-decoration-001.png", function() {
+                testImgDiff("dynamic-text-decoration-001.png", "dynamic-text-decoration-001_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</html>

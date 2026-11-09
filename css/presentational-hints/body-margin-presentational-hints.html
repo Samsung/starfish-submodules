@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+&nbsp;&nbsp;<iframe src="body-margin-presentational-hints-sub.html" width="600" height="600" frameborder="0" id="subframe"></iframe>
+<script>
+var todoindex = 0;
+function advance() {
+  screenShot("body-margin-presentational-hints_" + todoindex + ".png", function(){
+    testImgDiff("body-margin-presentational-hints_" + todoindex + ".png", "body-margin-presentational-hints_expected_" + todoindex + ".png");
+
+    window.setTimeout(function() {
+      TODO[todoindex++]();
+    }, 100);
+  });
+}
+
+var TODO= [
+function() {
+  subframe.contentDocument.body.setAttribute("bottommargin", 20);
+  advance();
+},
+function() {
+  subframe.contentDocument.body.setAttribute("topmargin", 30);
+  advance();
+},
+function() {
+  subframe.contentDocument.body.setAttribute("marginheight", 40);
+  advance();
+},
+function () {
+  subframe.setAttribute("marginheight", 50);
+  advance();
+},
+function() {
+  subframe.contentDocument.body.setAttribute("rightmargin", 20);
+  advance();
+},
+function() {
+  subframe.contentDocument.body.setAttribute("leftmargin", 30);
+  advance();
+},
+function() {
+  subframe.contentDocument.body.setAttribute("marginwidth", 40);
+  advance();
+},
+function () {
+  subframe.setAttribute("marginwidth", 50);
+  advance();
+},
+function() {
+  testEnd();
+}
+];
+
+webSecurityDisable();
+
+window.onload=function() {
+  console.log("onload")
+  TODO[0]();
+}
+
+</script>

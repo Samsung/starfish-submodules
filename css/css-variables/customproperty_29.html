@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="pixel-test">
+  <meta charset="utf-8" />
+  <style>
+    :root {
+      --gradient: linear-gradient(337deg,
+          rgba(20, 116, 70, 0.6) 0%,
+          rgba(8, 8, 8, 0) 64.88%),
+        linear-gradient(270deg, #061621 0%, rgba(8, 8, 8, 0) 100%);
+    }
+
+    html,
+    body {
+      background: transparent;
+      margin: 0;
+    }
+
+    #panel-container {
+      width: 100%;
+      height: 100%;
+    }
+
+    #panel {
+      background-image: var(--gradient,
+          linear-gradient(337deg,
+            rgba(20, 116, 70, 0.6) 0%,
+            rgba(8, 8, 8, 0) 64.88%),
+          radial-gradient(100% 100% at 75.89% 100%,
+            rgba(0, 133, 255, 0.24) 0%,
+            rgba(0, 71, 255, 0.03) 100%),
+          linear-gradient(180deg,
+            rgba(8, 8, 8, 0) 50%,
+            rgba(7, 71, 33, 0.3) 100%),
+          linear-gradient(270deg, #061621 0%, rgba(8, 8, 8, 0) 100%));
+      background-position: 100% 360px;
+      background-size: 100% 360px;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      height: 360px;
+    }
+
+    #panel>span {
+      position: relative;
+      vertical-align: middle;
+      left: 100px;
+      top: 150px;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 20px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="panel-container">
+    <p style="font-size: 65px">
+      Lorem ipsum, dolor sit amet consectetur adipisicing elit. Nisi ipsa sit
+      fuga quas hic, tempora quam iste perspiciatis molestiae et. Illum nobis
+      neque sed omnis voluptates accusamus qui minus iusto? Lorem ipsum dolor,
+      sit amet consectetur adipisicing elit. Asperiores exercitationem iusto,
+      quas ipsam perspiciatis magni? Delectus, commodi, culpa ipsam, odit
+      debitis et ipsa consectetur enim itaque earum blanditiis suscipit
+      magnam.
+    </p>
+    <div id="panel">
+      <span>___ Click the 'Green' button and see something in scarlet ;)</span>
+    </div>
+  </div>
+</body>
+<script>
+  function testStart() {
+      screenShot("customproperty_29.png", function () {
+          testImgDiff("customproperty_29.png", "customproperty_29_expected.png");
+          testEnd();
+      });
+  }
+</script>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <style type="text/css">
+    .red {
+      background: red;
+    }
+
+    .blue {
+      background: blue;
+    }
+
+    .green {
+      background: green;
+    }
+
+    .purple {
+      background: purple;
+    }
+
+    .yellow {
+      background: yellow;
+    }
+
+   .big {
+     width: 30em;
+     height: 30em;
+   }
+
+   .mid {
+     width: 10em;
+     height: 10em;
+   }
+
+   .small {
+     width: 5em;
+     height: 5em;
+   }
+
+   .small2 {
+     width: 7em;
+     height: 7em;
+   }
+
+   .vw {
+     font-size: 5vw;
+   }
+
+   .vh {
+     font-size: 5vh;
+   }
+
+   .em {
+     font-size: 1em;
+   }
+
+   .em2 {
+     font-size: 1.2em;
+   }
+
+   .fixed {
+     font-size: 20px;
+   }
+  </style>
+ </head>
+ <body>
+   <div class="em big red">
+    <div class="vw small2 green">
+      <div class="em small purple"></div>
+      <div class="fixed mid blue">
+        <div class="vh small yellow"></div>
+      </div>
+    </div>
+  </div>
+ </body>
+<script>
+  function testStart() {
+    screenShot("font_size_with_viewport_percent.png", function () {
+      testImgDiff("font_size_with_viewport_percent.png", "font_size_with_viewport_percent_expected.png");
+      testEnd();
+    });
+  }
+</script>
+</html>

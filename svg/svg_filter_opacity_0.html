@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1920 200" width="1920" height="200" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px); content-visibility: visible;">
+                <defs>
+                    <filter id="opacity-filter" filterUnits="objectBoundingBox" x="0%" y="0%" width="100%" height="100%">
+                        <feComponentTransfer in="SourceGraphic">
+                            <feFuncA type="table" tableValues="1.0 0.0"></feFuncA>
+                        </feComponentTransfer>
+                    </filter>
+                </defs>
+                <rect width="100" height="100" fill="rgba(0,0,0,0)" filter="url(#opacity-filter)"></rect>
+            </svg>
+<script>
+  function testStart() {
+    screenShot("svg_filter_opacity_0.png", function () {
+      testImgDiff("svg_filter_opacity_0.png", "svg_filter_opacity_0_expected.png");
+      testEnd();
+    });
+  }
+</script>
+

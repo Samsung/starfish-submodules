@@ -1,0 +1,48 @@
+The tests in this repository are written for Starfish (Copyright Samsung
+Electronics Co., Ltd.). They are part of Starfish and are distributed under the
+same terms as Starfish itself; see the COPYRIGHT and LICENSE.* files at the root
+of the Starfish repository. The files listed below come from, or are adapted
+from, third-party projects. Their notices are reproduced here because most of
+the copies carry no per-file header; the Gecko-derived
+css/text/text-decoration-propagation-00[234].html keep their own.
+
+================================================================================
+web-platform-tests -- 3-Clause BSD License
+https://github.com/web-platform-tests/wpt
+================================================================================
+
+    css/clear/ignore-margin-collapse[5-7].html
+    css/masking/*.htm, css/masking/support/
+    css/table/r_first-letter-selector-007.html
+    css/table/r_css3-modsel-73.html
+    css/text/text-decoration-001.html
+    css/text/text-decoration-color-001a.html
+    css/text/text-decoration-line-001.html
+    svg/transparent-100x50-blue-100x50.png, svg/transparent-100x50-blue-100x50.svg
+
+# The 3-Clause BSD License
+
+Copyright © web-platform-tests contributors
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+================================================================================
+Mozilla layout reftests -- Mozilla Public License 2.0
+================================================================================
+
+    css/text/text-decoration-propagation-002.html
+    css/text/text-decoration-propagation-003.html
+    css/text/text-decoration-propagation-004.html
+
+Each file names its upstream source and carries the MPL-2.0 notice:
+This Source Code Form is subject to the terms of the Mozilla Public License,
+v. 2.0. If a copy of the MPL was not distributed with this file, You can
+obtain one at https://mozilla.org/MPL/2.0/.
+

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="pixel-test">      
+    <style>
+        #a {            
+            width: 320px;
+            height: 320px;
+            background-repeat: no-repeat;
+            background-image: url("scene.jpg");
+        }
+    </style>  
+</head>
+<body>
+    <div id='a'></div>
+    <script>
+    var backgroundImage= ["url('http://localhost:11011/css/url/figure.png')", "url('scene.jpg')"];
+    var aDiv = document.getElementById("a");
+    
+    var index = 0;
+       
+    function getName(callback) {
+        var styles = [];
+        callback(styles);
+        
+        var baseName = styles.join("_");
+        var expectedImgName = baseName + "_expected.png";
+        var imgName = baseName + ".png";
+        
+        return {"imgName": imgName, "expectedImg": expectedImgName};
+    }
+    
+    function setStyle(styleList) {        
+        backgroundImage.forEach(function(i) {
+            var str = "margin: 10px;padding: 20px;border: 10px solid red;";
+            str += "background-image:" + i + ";";
+            styleList.push(str);
+        });        
+    }        
+    
+    function testStart() {
+        var styleList = [];
+        setStyle(styleList);
+        
+        function iterate() {
+            aDiv.style = styleList[index];
+            
+            var name = getName(function(styles) {
+                styles.push("URL");
+                styles.push(index);
+            });
+            
+            screenShot(name.imgName, function () {
+                testImgDiff(name.imgName, name.expectedImg);
+                
+                ++index;
+                if (index >= styleList.length) {
+                    testEnd();
+                    return;
+                }
+
+                iterate();
+            });
+        }
+        iterate();
+    }
+</script>
+</body>
+
+
+</html>

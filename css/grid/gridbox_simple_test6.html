@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<meta name="pixel-test">
+ <head>
+  <style>
+    .wrapper { 
+      display: grid; 
+      grid-template-columns: minmax(150px, 300px) minmax(200px, 250px) minmax(100px, 200px);
+      border: 2px solid #f76707;
+      border-radius: 5px;
+      background-color: #fff4e6;
+    }
+
+    .wrapper > div {
+      border: 2px solid #ffa94d;
+      border-radius: 5px;
+      background-color: #ffd8a8;
+      padding: 1em;
+      color: #d9480f;
+    }
+
+   /* .box1 {
+      grid-column-start: 1;
+      grid-column-end: 3;
+    }
+    */
+  </style>
+ </head>
+ <body style="font-family: Ahem;">
+  <div class="wrapper" style="width: 300px">
+    <div class="box1">1</div>
+    <div class="box2">22</div>
+    <div class="box3">333</div>
+    <div class="box4">4444</div>
+    <div class="box5">55555</div>
+  </div>
+  <div class="wrapper" style="width: 600px">
+    <div class="box1">1</div>
+    <div class="box2">22</div>
+    <div class="box3">333</div>
+    <div class="box4">4444</div>
+    <div class="box5">55555</div>
+  </div>
+  <div class="wrapper" style="width: 780px">
+    <div class="box1">1</div>
+    <div class="box2">22</div>
+    <div class="box3">333</div>
+    <div class="box4">4444</div>
+    <div class="box5">55555</div>
+  </div>
+ </body>
+ 
+ <script>
+  function testStart() {
+    screenShot("gridbox_simple_test6.png", function() {
+      testImgDiff("gridbox_simple_test6.png", "gridbox_simple_test6_expected.png");
+      testEnd();
+    });
+  }
+</script>
+</html>
+

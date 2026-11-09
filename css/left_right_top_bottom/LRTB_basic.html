@@ -1,0 +1,112 @@
+<!doctype html>
+<html>
+<meta name="pixel-test">
+<body>
+
+
+<div style="background:black; width:400px;height:400px">
+    <div id='main' class="test" style="position: absolute; width:200px; height:200px; background:red;border:2px solid red;">Test 1</div>
+    <div>
+    <div class="test" style="position: relative; width:100px; height:100px; background:blue;border:2px solid red;">Test2
+        <div id='main' class="test" style="position: absolute; width:100px; height:100px; background:pink;border:2px solid red;">Test 3</div>
+    </div>
+    </div>
+</div>
+<div id='main' class="test" style="position: absolute; width:100px; height:100px; background:yellow;border:2px solid red;">Test 4
+    <div id='main' class="test" style="position: relative; width:100px; height:100px; background:green;border:2px solid red;">Test 5</div>
+</div>
+</body>
+<script>
+
+var testElements = document.getElementsByClassName("test");
+
+var left_sample =   [
+                        '',
+                        '0',
+                        '50%',
+                        '100px',
+                        '100%',
+                        '-50%',
+                        '-100%'
+                    ];
+var right_sample = [
+                        '',
+                        '0',
+                        '50%',
+                        '100px',
+                        '100%',
+                        '-50%',
+                        '-100%'
+                    ];
+var top_sample =    [
+                        '',
+                        '0',
+                        '50%',
+                        '100px',
+                        '100%',
+                        '-50%',
+                        '-100%'
+                    ];
+var bottom_sample = [
+                        '',
+                        '0',
+                        '50%',
+                        '100px',
+                        '100%',
+                        '-50%',
+                        '-100%'
+                    ];
+
+var TCs=[];
+
+function make_sentence(){
+    var cnt=0;
+    for (var i=0;i<left_sample.length;i++){
+        var newItem =[];
+        newItem.push(i);
+        newItem.push(i);
+        newItem.push(i);
+        newItem.push(i);
+        TCs.push(newItem);
+    }
+    while(cnt<200){
+        var newItem =[];
+        newItem.push((cnt+1*cnt)%7);
+        newItem.push((cnt+2*cnt)%7);
+        newItem.push((cnt+3*cnt)%7);
+        newItem.push((cnt+4*cnt)%7);
+        TCs.push(newItem);
+        cnt++;
+    }
+}
+
+function testStart() {
+    make_sentence();
+    doTest(testElements,TCs,0);
+}
+
+function doTest(elements,TC,current){
+    if(current<TC.length){
+        for(var i=0;i<elements.length;i++){
+            var tc_item = TC[current];
+            var element = elements[i];
+            element.style['left'] = left_sample[(tc_item[0]*i)%7];
+            element.style['right'] = right_sample[(tc_item[1]*i)%7];
+            element.style['top'] = top_sample[(tc_item[2]*i)%7];
+            element.style['bottom'] = bottom_sample[(tc_item[3]*i)%7];
+        }
+        var name = "LRTB_basic_"+current;
+        var newIDX = current+1;
+        screenShot(name+".png", function() {
+            testImgDiff(name+".png", name+"_expected.png");
+            var newIDX= current+1;
+            doTest(elements,TC,newIDX);
+        });
+    }else{
+        testEnd();
+    }
+}
+//testStart()
+
+</script>
+</html>

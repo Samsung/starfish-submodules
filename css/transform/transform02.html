@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="pixel-test">
+<style> 
+:root {
+  --degree: 20deg;
+  --translate: calc(20px + 30px), calc(20px + 30px);
+  --translateX: calc(20px + 30px);
+  --translateY: calc(50px + 50px);
+}
+div#i1 {
+  width: 300px;
+  height: 100px;
+  background-color: yellow;
+  border: 1px solid black;
+  transform: translate(var(--translate)) translate(var(--translateX), calc(40px + 10px)) translateY(var(--translateY)) rotate(calc(var(--degree) + 70deg)) ;
+}
+</style>
+</head>
+<body>
+
+<h1>CSS 2D Transforms</h1>
+<p>Our arrowheads carry six or even, mostly, short, and cold lanterns.
+</p>
+
+<div id="i1">
+Some old curtain on train 100 plates in red water, for 200 pillow hung over our morning platform.
+</div>
+
+</body>
+<script>
+    screenShot("transform02.png", function () {
+        testImgDiff("transform02.png", "transform02_expected.png");
+        testEnd();
+    });
+    </script>
+</html>

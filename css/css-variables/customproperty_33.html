@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="pixel-test">
+<style>
+:root {
+  --background: #ffffff url("../missing.png") no-repeat right top;
+}
+
+body {
+  background: var(--background);
+  margin-right: 200px;
+}
+</style>
+</head>
+<body>
+
+<h1>Two background Samplers</h1>
+
+<p>The blackboard preprint on a wonderful propound and apartments has the lighthouse propulsion of one observatory.</p>
+
+<p>Soon, our houseboats drift by lake shore once, for we do ever postmarked at low map-based harbor.</p>
+
+<p>We rode down rocky a sunny avenue, as when our wind does its climb over the wintertime ridge.</p>
+
+</body>
+<script>
+  function testStart() {
+      screenShot("customproperty_33.png", function () {
+          testImgDiff("customproperty_33.png", "customproperty_33_expected.png");
+          testEnd();
+      });
+  }
+</script>
+</html>

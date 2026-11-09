@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta name="pixel-test">
+<style>
+  * {
+      font-family: ahem;
+  }
+  .blue {
+      border-style: solid;
+      border-color: blue;
+  }
+  .red {
+      border-style: solid;
+      border-color: red;
+  }
+  .green {
+      border-style: solid;
+      border-color: green;
+  }
+  .black {
+      border-style: solid;
+      border-color: black;
+  }
+  td {
+      border-width: 20px;
+  }
+  #c1 {
+      padding: 50px;
+  }
+  table {
+      background-color: yellow;
+      border-width: 10px;
+      padding: 20px;
+      margin: 30px;
+      table-layout: auto;
+  }
+  .rgroup {
+      display: table-row-group;
+      border: 30px solid red;
+  }
+  .captionTop {
+      caption-side: top;
+  }
+  .captionBottom {
+      caption-side: bottom;
+  }
+  .special {
+      border-style: solid;
+      border-width: 40px;
+      border-color: green;
+  }
+  </style>
+</head>
+<body class="green">
+
+<div>table width: auto; first cell has a specified width.</div>
+<table class="blue">
+  <tr>
+    <td class="black" style="width: 100px">cell11 cell12 cell13</td>
+    <td class="black">cell12</td>
+    <td class="black">cell13</td>
+  </tr>
+</table>
+
+</body>
+
+<script>
+function testStart() {
+    screenShot("table_auto_02.png", function () {
+      testImgDiff("table_auto_02.png", "table_auto_02_expected.png");
+      testEnd();
+    });
+  }
+</script>
+
+</html>

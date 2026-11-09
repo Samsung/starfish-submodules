@@ -1,0 +1,29 @@
+<html>
+<meta name="pixel-test">
+<body>
+    <svg width="800" height="600">
+        <defs>
+            <radialGradient id="grad1" cx="150" cy="50" r="50" gradientUnits="userSpaceOnUse">
+                <stop stop-color="gold" offset="5%"></stop>
+                <stop stop-color="red" offset="95%"></stop>
+            </radialGradient>
+            <g id="svgmask1_1">
+                <rect id="svgmask1_2" fill="url(#grad1)" width="500" height="500"></rect>
+            </g>
+            <mask id="svgmask1">
+                <use href="#svgmask1_1"></use>
+            </mask>
+        </defs>
+        <rect width="200" height="200" style="fill:rgb(100,100,255);" mask="url(#svgmask1)"/>
+    </svg>
+</body>
+<script>
+    function testStart() {
+        screenShot("svg_mask_04.png", function () {
+            testImgDiff("svg_mask_04.png", "svg_mask_04_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+</html>

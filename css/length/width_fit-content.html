@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        .fitContent {
+            width: fit-content;
+            background-color: blue;
+        }
+
+        .content {
+            width: 100px;
+            height: 100px;
+            background-color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="target" class="fitContent">
+        <!-- Only the red box should be shown -->
+        <div class="content"></div>
+    </div>
+    <script>
+        function testStart() {
+            screenShot("width_fit-content.png", function () {
+                testImgDiff("width_fit-content.png", "width_fit-content_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</body>
+
+</html>

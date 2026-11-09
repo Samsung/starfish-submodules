@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        canvas {
+            border: 1px solid black;
+            margin: 10px;
+            padding: 3px;
+        }
+    </style>
+    <script type="application/javascript">
+        
+        function compositing_test(oper) {
+
+            var canvas = document.createElement('canvas');
+            document.body.appendChild(canvas);
+            var ctx = canvas.getContext('2d');
+
+            canvas.width=70;
+            canvas.height=70;
+
+            var width = 30;
+            var height = 30
+
+            var x1 = 0;
+            var y1 = 0;
+            var x2 = 10;
+            var y2 = 10;
+            ctx.fillStyle = "red";
+            ctx.fillRect(x1, y1, width, height);
+            ctx.globalCompositeOperation = oper;
+            ctx.fillStyle = "blue";
+            ctx.fillRect(x2, y2, width, height);             
+        }
+        
+        
+        function draw() {
+            compositing_test("clear");
+            compositing_test("copy");
+            compositing_test("source-over");
+            compositing_test("destination-over");
+            compositing_test("source-in");
+            compositing_test("destination-in");
+            compositing_test("source-out");
+            compositing_test("destination-out");
+            compositing_test("source-atop");
+            compositing_test("destination-atop");
+            compositing_test("destination-over");
+            compositing_test("xor");
+            compositing_test("lighter");
+            // compositing_test("plus-darker");
+            // compositing_test("plus-lighter");
+            compositing_test("normal");
+            compositing_test("multiply");
+            compositing_test("screen");
+            compositing_test("overlay");
+            compositing_test("darken");
+            compositing_test("lighten");
+            compositing_test("color-dodge");
+            compositing_test("color-burn");
+            compositing_test("hard-light");
+            compositing_test("soft-light");
+            compositing_test("difference");
+            compositing_test("exclusion");
+            compositing_test("hue");
+            compositing_test("saturation");
+            compositing_test("color");
+            compositing_test("luminosity");
+        }
+
+
+    </script>
+</head>
+
+<body onload="draw();">
+</body>
+<script>
+    function testStart() {
+        screenShot("compositing.png", function () {
+            testImgDiff("compositing.png", "compositing_expected.png");
+            testEnd();
+        });
+    }
+</script>
+</html>

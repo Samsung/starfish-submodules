@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="pixel-test">
+    <style>
+        div {
+            border: 1px solid black;
+            margin-top: 5px;
+            margin-left: 5px;
+            height: 100px;
+            width: 100px;
+            float: left;
+        }
+
+        #test1 {
+            background-size: 25% 25%;
+            background-image: linear-gradient(blue, white);
+        }
+
+        #test2 {
+            background-size: 50% 50%;
+            background-image: linear-gradient(45deg, blue, white);
+        }
+
+        #test3 {
+            background-size: 50% 50%;
+            background-image: linear-gradient(to top right, blue, white);
+        }
+
+        #test4 {
+            background-size: 50% 50%;
+            background-image: linear-gradient(235deg, blue, white);
+        }
+
+        #test5 {
+            clear: left;
+            background-size: 25% 25%;
+            background-position: left;
+            background-repeat: repeat-y;
+            background-image: linear-gradient(to bottom left, yellow, green);
+        }
+
+        #test6 {
+            background-size: 50% 50%;
+            background-position: left;
+            background-repeat: repeat-y;
+            background-image: linear-gradient(45deg, yellow, green);
+        }
+
+        #test7 {
+            background-size: 25% 25%;
+            background-position: right;
+            background-repeat: repeat-x;
+            background-image: linear-gradient(to top right, yellow, green);
+        }
+
+        #test8 {
+            background-size: 50% 50%;
+            background-position: left;
+            background-repeat: repeat-x;
+            background-image: linear-gradient(235deg, yellow, green);
+        }
+
+        #test9 {
+            clear: left;
+            background-size: 25% 25%;
+            background-position: left;
+            background-repeat: no-repeat;
+            background-image: linear-gradient(red, purple);
+        }
+
+        #test10 {
+
+            background-size: 50% 50%;
+            background-position: right;
+            background-repeat: no-repeat;
+            background-image: linear-gradient(45deg, red, purple);
+        }
+
+        #test11 {
+            background-size: 25% 25%;
+            background-position: left top;
+            background-repeat: no-repeat;
+            background-image: linear-gradient(to top right, red, purple);
+        }
+
+        #test12 {
+            background-size: 50% 50%;
+            background-position: right bottom;
+            background-repeat: no-repeat;
+            background-image: linear-gradient(235deg, red, purple);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="test1"></div>
+    <div id="test2"></div>
+    <div id="test3"></div>
+    <div id="test4"></div>
+    <div id="test5"></div>
+    <div id="test6"></div>
+    <div id="test7"></div>
+    <div id="test8"></div>
+    <div id="test9"></div>
+    <div id="test10"></div>
+    <div id="test11"></div>
+    <div id="test12"></div>
+</body>
+<script>
+    function testStart() {
+        screenShot("background_lineargradient10.png", function () {
+            testImgDiff("background_lineargradient10.png", "background_lineargradient10_expected.png");
+            testEnd();
+        });
+
+    }
+</script>
+
+</html>

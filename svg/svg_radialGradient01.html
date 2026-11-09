@@ -1,0 +1,42 @@
+<html><meta name="pixel-test">
+
+<body><svg viewBox="0 0 220 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient x1="0%" y1="0%" x2="100%" y2="0%" r="40%" id="a">
+                <stop stop-color="gold" offset="0%"></stop>
+                <stop stop-color="red" offset="20%"></stop>
+            </linearGradient>
+        </defs>
+
+        <defs>
+            <radialGradient cx="100%" cy="0" r="160%" id="b">
+                <stop stop-color="gold" offset="5%"></stop>
+                <stop stop-color="red" offset="95%"></stop>
+            </radialGradient>
+        </defs>
+
+        <defs>
+            <radialGradient cx="1" cy="0" r="1.6" id="c">
+                <stop stop-color="gold" offset="5%"></stop>
+                <stop stop-color="red" offset="95%"></stop>
+            </radialGradient>
+        </defs>
+
+        <rect x="0" y="0" width="50" height="100" fill="url('#b')" />
+
+        <rect x="100" y="0" width="50" height="100" fill="url('#c')" />
+    </svg>
+
+</body>
+
+</html>
+        
+<script>
+    function testStart() {
+        screenShot("svg_radialGradient01.png", function() {
+             testImgDiff("svg_radialGradient01.png", "svg_radialGradient01_expected.png");
+             testEnd();
+        });
+    }
+    </script>
+</html>

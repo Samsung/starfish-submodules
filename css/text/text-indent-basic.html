@@ -1,0 +1,92 @@
+<html>
+<meta name="pixel-test">
+<style>
+    * {
+        font-family: ahem;
+    }
+
+    .indent-percent {
+        text-indent: 50%;
+    }
+
+    .indent-fixed {
+        text-indent: 20px;
+    }
+
+    .box {
+        width: 10px;
+        height: 10px;
+        background: blue;
+    }
+
+    .inline-block {
+        display: inline-block;
+        border: 2px solid black;
+        padding: 4px;
+        margin: 3px;
+    }
+
+    .container {
+        width: 200px;
+        border: 1px solid red;
+    }
+
+    .float {
+        float: left;
+        width: 100px;
+        height: 100px;
+    }
+
+    .purple {
+        background: purple;
+    }
+
+    .blue {
+        background: blue;
+    }
+
+    .absolute {
+        position: absolute;
+        background: green;
+    }
+</style>
+<div class="container">
+    <div class="indent-percent box"></div>
+    <div class="indent-percent box"></div>
+</div>
+<div class="container">
+    <div class="indent-percent inline-block">
+        a<span>bc</span>dfefe ghi jkl mno
+    </div>
+</div>
+<div class="container">
+    <div class="indent-percent">
+        a<span>bc</span>dfe ghi jkl mno
+    </div>
+</div>
+<div class="container">
+    <div class="indent-fixed">
+        <div class="float purple"></div>a<span>bc</span>dfe ghi jkl mno
+    </div>
+</div>
+<div class="container">
+    <div class="indent-fixed">
+        <div class="float blue">a<span>bc</span>dfe ghi jkl mno</div>
+    </div>
+</div>
+<div class="container">
+    <div class="indent-fixed">
+        <div class="absolute">a<span>bc</span>dfe ghi jkl mno</div>
+    </div>
+</div>
+<script>
+    function testStart() {
+        screenShot("text-indent-basic.png", function () {
+            testImgDiff("text-indent-basic.png", "text-indent-basic_expected.png");
+            testEnd();
+        });
+    }
+
+</script>
+
+</html>

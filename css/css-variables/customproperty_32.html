@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="pixel-test">
+<style>
+:root {
+  --blue: #1e90ff;
+  --white: #ffffff; 
+}
+
+
+body {
+  background-color: var(--blue, #0000ff);
+}
+
+h2 {
+  /*border에 대한 short-hand 속성값을 파싱하기 위한 로직 추가 필요*/
+  border-bottom: 2px solid var(--blue);
+}
+
+.container {
+  color: var(--blue);
+  background-color: var(--white);
+  padding: 15px;
+}
+
+button {
+  background-color: var(--white);
+  color: var(--blue);
+  /*border에 대한 short-hand 속성값을 파싱하기 위한 로직 추가 필요*/
+  border: 1px solid var(--blue);
+  padding: 5px;
+}
+</style>
+</head>
+<body>
+
+<h1>Fonts and var() Settings</h1>
+
+<div class="container">
+  <h2>Lorem Ipsum</h2>
+  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam semper diam at erat pulvinar, at pulvinar felis blandit.</p>
+  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam semper diam at erat pulvinar, at pulvinar felis blandit.</p>
+  <p>
+    <button>Yes</button>
+    <button>No</button>
+  </p>
+</div>
+
+</body>
+<script>
+  function testStart() {
+      screenShot("customproperty_32.png", function () {
+          testImgDiff("customproperty_32.png", "customproperty_32_expected.png");
+          testEnd();
+      });
+  }
+</script>
+</html>

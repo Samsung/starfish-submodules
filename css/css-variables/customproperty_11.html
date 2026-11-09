@@ -1,0 +1,24 @@
+<meta name="pixel-test">
+<style>
+:root {
+    --main-color: #06c;
+    --accent-color: #006;
+    font-family: Ahem;
+  }
+  /* The rest of the CSS file */
+  #foo h1 {
+    color: var(--main-color);
+  }
+</style>
+<div id="foo">
+    <h1>HEADER</h1>
+    Title
+</div>
+<script>
+  function testStart() {
+      screenShot("customproperty_11.png", function () {
+          testImgDiff("customproperty_11.png", "customproperty_11_expected.png");
+          testEnd();
+      });
+  }
+</script>

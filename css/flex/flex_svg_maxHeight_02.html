@@ -1,0 +1,56 @@
+<html>
+<head>
+<meta name="pixel-test">
+<style>
+* {
+  font-family: Ahem;
+}
+
+.panel {
+  box-sizing: border-box;
+  height: 1080px;
+  width: 1920px;
+  background-color: rgba(25, 25, 25, 1.0)
+}
+
+.panel-text {
+  margin: 230px 68px auto 112px;
+  //width: 920px
+}
+
+.panel-row {
+  //display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between
+}
+
+.logo {
+  margin-bottom: 30px;
+  //display: flex;
+  flex-direction: row;
+  //max-height: 72px;
+  width: 920px; // added
+}
+
+img {
+  border: 1px solid red;
+  width: 200px;
+  height: 100px;
+}
+</style>
+</head>
+<body>
+      <div class="logo">
+        <img src="landscape.svg">
+      </div>
+</body>
+<script>
+  function testStart() {
+    screenShot("flex_svg_maxHeight_02.png", function() {
+      testImgDiff("flex_svg_maxHeight_02.png", "flex_svg_maxHeight_02_expected.png");
+      testEnd();
+    });
+  }
+</script>
+</html>

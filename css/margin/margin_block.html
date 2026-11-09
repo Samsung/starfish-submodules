@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<script>
+    function testStart() {
+    screenShot("margin_block.png", function () {
+	testImgDiff("margin_block.png", "margin_block_expected.png");
+	testEnd();
+    })
+}
+</script>
+<style>
+    body {
+	background-color: pink;
+    }
+
+    div, span {
+	width: 400px;
+	height: 20px;
+	border: solid 1px black;
+	background-color: ivory;
+	display: block;
+    }
+ 
+    #margin {
+	margin-right: 30px;
+	margin-top: 0;
+	margin-bottom: 10%; 	
+    }
+
+    #margin1 {
+        margin-left: 10px;
+        margin-right: 50px;
+        margin-top: 0;
+        margin-bottom: 10%;     
+    }
+
+</style>
+<body style="width: 400px">
+    <div id="margin"> div1 </div>
+    <div id="margin"> div2 </div>
+    <div id="margin" style="margin-bottom:-50px"> div3 </div>
+    <div id="margin"> div4 </div>
+    <span id="margin1" style="margin-right:100%"> span1 </span>
+    <span id="margin1"> span2 </span>
+    <span id="margin1" style="margin-right:-5%"> span3 </span>
+    <span id="margin1"> span4 </span>
+    <span id="margin1"> span5 </span>
+    <div id="margin"> div5 </div>
+    <div id="margin"> div6 </div>
+</body>
+</html>

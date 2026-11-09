@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        canvas {
+            border: 1px solid black;
+            margin: 10px;
+            padding: 3px;
+        }
+    </style>
+    <script type="application/javascript">
+        function draw() {
+            const canvas1 = document.getElementById('canvas1');
+            const ctx1 = canvas1.getContext('2d');
+
+            ctx1.fillStyle = 'red';
+            ctx1.beginPath();
+            ctx1.ellipse(60, 75, 50, 30, Math.PI * .25, 0, Math.PI * 1.5);
+            ctx1.fill();
+
+            ctx1.fillStyle = 'blue';
+            ctx1.beginPath();
+            ctx1.ellipse(150, 75, 50, 30, Math.PI * .25, 0, Math.PI);
+            ctx1.fill();
+
+            ctx1.fillStyle = 'green';
+            ctx1.beginPath();
+            ctx1.ellipse(240, 75, 50, 30, Math.PI * .25, 0, Math.PI, true);
+            ctx1.fill();
+
+            const canvas2 = document.getElementById('canvas2');
+            const ctx2 = canvas2.getContext('2d');
+
+            ctx2.strokeStyle = 'red';
+            ctx2.beginPath();
+            ctx2.ellipse(60, 75, 50, 30, Math.PI * .25, 0, Math.PI * 1.5);
+            ctx2.stroke();
+
+            ctx2.strokeStyle = 'blue';
+            ctx2.beginPath();
+            ctx2.ellipse(150, 75, 50, 30, Math.PI * .25, 0, Math.PI);
+            ctx2.stroke();
+
+            ctx2.strokeStyle = 'green';
+            ctx2.beginPath();
+            ctx2.ellipse(240, 75, 50, 30, Math.PI * .25, 0, Math.PI, true);
+            ctx2.stroke();
+            
+            const canvas3 = document.getElementById('canvas3');
+            const ctx3 = canvas3.getContext('2d');
+
+            ctx3.strokeStyle = 'red';
+            ctx3.beginPath();
+            ctx3.moveTo(20, 20);
+            ctx3.ellipse(60, 75, 50, 30, Math.PI * .25, Math.PI * 1.5, Math.PI * 1.5);
+            ctx3.stroke();
+
+            ctx3.strokeStyle = 'blue';
+            ctx3.beginPath();
+            ctx3.moveTo(120, 20);
+            ctx3.ellipse(150, 75, 0, 30, Math.PI * .25, 0, Math.PI);
+            ctx3.stroke();
+
+            ctx3.strokeStyle = 'green';
+            ctx3.beginPath();
+            ctx3.moveTo(220, 20);
+            ctx3.ellipse(240, 75, 0, 0, Math.PI * .25, 0, Math.PI, true);
+            ctx3.stroke();
+
+            const canvas4 = document.getElementById('canvas4');
+            const ctx4 = canvas4.getContext('2d');
+
+            ctx4.beginPath();
+            ctx4.ellipse(100, 100, 50, 75, Math.PI / 4, 0, 2 * Math.PI);
+            ctx4.stroke();
+
+            ctx4.beginPath();
+            ctx4.moveTo(0, 200);
+            ctx4.lineTo(200, 0);
+            ctx4.stroke();
+        }
+    </script>
+</head>
+
+<body onload="draw();">
+    <canvas id="canvas1" width="300px" height="150px">canvas</canvas>
+    <canvas id="canvas2" width="300px" height="150px">canvas</canvas>
+    <br>
+    <canvas id="canvas3" width="300px" height="150px">canvas</canvas>
+    <canvas id="canvas4" width="200px" height="200px">canvas</canvas>
+</body>
+<script>
+    function testStart() {
+        screenShot("ellipse.png", function () {
+            testImgDiff("ellipse.png", "ellipse_expected.png");
+            testEnd();
+        });
+    }
+</script>
+</html>

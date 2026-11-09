@@ -1,0 +1,46 @@
+<html>
+<head>
+<meta name="pixel-test">
+<style>
+* {
+    font-family: Ahem;
+}
+</style>
+</head>
+<body>
+<div id="a" style="position: absolute; width: 600px; height: 300px; border: 2px blue solid;">
+    <div id="b" style="overflow-y: scroll; height: 100px;">
+        <div id="c" style="overflow-y: scroll; position: absolute; width: 100px; height: 50px; border: 2px green solid;">
+            first<br>
+            button<br>
+            button<br>
+            button<br>
+            last<br>
+        </div>
+
+        <div id="d" style="padding-left: 120px; padding-top: 80px; width: 150px; border: 2px red solid;">
+            first paragraph<br>
+            second paragraph<br>
+            third paragraph<br>
+            fourth paragraph<br>
+        </div>
+    </div>
+</div>
+<script>
+    function testStart() {
+      screenShot("scroll-test-7_1.png", function () {
+          testImgDiff("scroll-test-7_1.png", "scroll-test-7_1_expected.png");
+          c.scrollTop = 200;
+          screenShot("scroll-test-7_2.png", function() {
+              testImgDiff("scroll-test-7_2.png", "scroll-test-7_2_expected.png");
+              b.scrollTop = 200;
+              screenShot("scroll-test-7_3.png", function() {
+                testImgDiff("scroll-test-7_3.png", "scroll-test-7_3_expected.png");
+                testEnd();
+              });
+          });
+      });
+    }
+  </script>
+</body>
+</html>

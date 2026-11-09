@@ -1,0 +1,26 @@
+<html lang="en"><head></head><body>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      body {
+        padding: 0;
+        margin: 0;
+      }
+    </style>
+  
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="800" height="600">
+  <line x1="1" y1="1" x2="50" y2="1" stroke="black" stroke-width="2" stroke-dasharray="5 5" />
+  <line x1="1" y1="20" x2="50" y2="20" stroke="black" stroke-width="2" stroke-dasharray="10 5" />
+  <line x1="1" y1="40" x2="50" y2="40" stroke="black" stroke-width="2" stroke-dasharray="5 10" />
+  <line x1="1" y1="60" x2="50" y2="60" stroke="black" stroke-width="2" stroke-dasharray="5 10 20 5" />
+</svg>  
+
+<script>
+  function testStart() {
+    screenShot("svg_stroke_dasharray_01.png", function() {
+      testImgDiff("svg_stroke_dasharray_01.png", "svg_stroke_dasharray_01_expected.png");
+      testEnd();
+    });
+  }
+</script>
+</body></html>

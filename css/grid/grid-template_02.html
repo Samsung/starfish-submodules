@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        .gridContainer {
+            display: grid;
+            width: 500px;
+            height: 300px;
+            grid-template: "item1 item2" auto "item3 item4" 100px / 100px 1fr;
+        }
+
+        .item1 {
+            background-color: yellow;
+        }
+
+        .item2 {
+            background-color: red;
+        }
+
+        .item3 {
+            background-color: green;
+        }
+
+        .item4 {
+            background-color: blue;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="target" class="gridContainer">
+        <div class="item1"></div>
+        <div class="item2"></div>
+        <div class="item3"></div>
+        <div class="item4"></div>
+    </div>
+
+</body>
+<script>
+    function testStart() {
+        screenShot("grid-template_02.png", function () {
+            testImgDiff("grid-template_02.png", "grid-template_02_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+</html>

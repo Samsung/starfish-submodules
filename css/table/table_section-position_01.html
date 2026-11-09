@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="pixel-test">
+    <style>
+        * {
+            font-family: ahem;
+        }
+        .blue {
+            border-style: solid;
+            border-color: blue;
+        }
+        .red {
+            border-style: solid;
+            border-color: red;
+        }
+        .green {
+            border-style: solid;
+            border-color: green;
+        }
+        .black {
+            border-style: solid;
+            border-color: black;
+        }
+        table {
+            background-color: yellow;
+            table-layout: fixed;
+        }
+        thead {
+            background-color: blue;
+        }
+        tfoot {
+            background: pink
+        }
+    </style>
+</head>
+<body class="green">
+    <div>If the table has multi header, only the first is placed as a header</div>
+    <div>The footer is the same</div>
+    <table class="blue">
+        <tfoot>
+            <tr>
+                <td class="black">tfoot1 cell11</td>
+                <td class="black">tfoot1 cell12</td>
+                <td class="black">tfoot1 cell13</td>
+            </tr>
+        </tfoot>
+        <thead>
+            <tr>
+                <td class="black">thead1 cell11</td>
+                <td class="black">thead1 cell12</td>
+                <td class="black">thead1 cell13</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="black">tbody cell11</td>
+                <td class="black">tbody cell12</td>
+                <td class="black">tbody cell13</td>
+            </tr>
+        </tbody>
+        <thead>
+            <tr>
+                <td class="black">thead2 cell11</td>
+                <td class="black">thead2 cell12</td>
+                <td class="black">thead2 cell13</td>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <td class="black">tfoot2 cell11</td>
+                <td class="black">tfoot2 cell12</td>
+                <td class="black">tfoot2 cell13</td>
+            </tr>
+        </tfoot>
+        <tbody>
+            <tr>
+                <td class="black">tbody cell11</td>
+                <td class="black">tbody cell12</td>
+                <td class="black">tbody cell13</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+<script>
+    function testStart() {
+        screenShot("table_section-position_01.png", function () {
+            testImgDiff("table_section-position_01.png", "table_section-position_01_expected.png");
+            testEnd();
+        });
+    }
+
+</script>
+
+</html>

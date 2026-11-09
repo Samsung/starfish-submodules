@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+<meta name="pixel-test">
+<style>
+* {
+  font-family: Ahem;
+}
+.wrapper {
+  //  width: 210px;
+  display: grid;
+  grid-template-columns: max-content auto max-content;
+  grid-gap: 10px;
+  border: 2px solid #f76707;
+  border-radius: 5px;
+  background-color: #fff4e6;
+}
+
+.wrapper > div {
+  border: 2px solid #ffa94d;
+  border-radius: 5px;
+  background-color: #ffd8a8;
+  padding: 1em;
+  color: #d9480f;
+}
+
+.box1 {
+  grid-row: 1;
+  //grid-row-start: 1;
+  //grid-row-end: 2;
+  //grid-column-start: 4;
+  //grid-column-end: 2;
+}
+.box2 {
+  grid-row: 1;
+  //grid-row-start: 1;
+  //grid-row-end: 2;
+  //grid-column-start: 2;
+  //grid-column-end: 3;
+}
+.box3 {
+  grid-row: 1;
+  //grid-row-start: 1;
+  //grid-row-end: 2;
+  //grid-column-start: 3;
+  //grid-column-end: 4;
+}
+
+</style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="box1">1</div>
+    <div class="box2">22</div>
+    <div class="box3">333</div>
+    <div class="box4">4444</div>
+    <!--
+    <div class="box5">55555</div>
+    <div class="box4">4444</div>
+    <div class="box3">333</div>
+    <div class="box2">22</div>
+    <div class="box1">1</div>
+    -->
+  </div>
+</body>
+<script>
+function testStart() {
+  screenShot("gridbox_auto_02.png", function() {
+    testImgDiff("gridbox_auto_02.png", "gridbox_auto_02_expected.png");
+    testEnd();
+  });
+}
+</script>
+</html>

@@ -1,0 +1,25 @@
+<div style="overflow:hidden" id="owner"><div style="position:relative;left:50%;background:blue"></div></div>
+<style>
+div {
+height: 100px;
+}
+
+#owner div {
+width: 100px;
+overflow: hidden;
+}
+</style>
+<script>
+// incremental-layout-relative-position-bug-positioned-element-in-blockflow(with full layout)
+window.setTimeout(function() {
+  owner.style.paddingTop = "10px"
+  owner.offsetLeft
+
+  screenShot("incremental_layout_relative_position_bug01.png", function () {
+      testImgDiff("incremental_layout_relative_position_bug01.png", "incremental_layout_relative_position_bug01_expected.png");
+      testEnd();
+  });
+
+
+}, 100);
+</script>

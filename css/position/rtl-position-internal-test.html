@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<script src="../framework.js"></script>
+<style>
+  .outer {
+    background-color: black;
+    width: 500px;
+    height: 400px;
+  }
+
+  .inner {
+    background-color: red;
+    width: 100px;
+    height: 100px;
+  }
+
+  .inner2 {
+    background-color: green;
+    width: 100px;
+    height: 100px;
+  }
+
+  .inner3 {
+    background-color: blue;
+    width: 100px;
+    height: 100px;
+  }
+
+  .inner4 {
+    background-color: purple;
+    width: 100px;
+    height: 100px;
+  }
+</style>
+
+<body>
+  <div class="outer">
+    <div class="inner">
+        inner1
+    </div>
+    <div class="inner2">
+        inner2
+        <div class="inner3">
+          inner3
+        </div>
+    </div>
+    <div class="inner4">
+        inner4
+    </div>
+  </div>
+</body>
+
+<script>
+  var cssKeyValues = {
+    display: ["block", "inline"],
+    position: ["static", "absolute"]
+  };
+
+  var outerDiv = new Div("outer");
+  var innerDiv = new Div("inner");
+  var inner2Div = new Div("inner2");
+  var inner3Div = new Div("inner3");
+  var inner4Div = new Div("inner4");
+  var divs = [outerDiv, innerDiv, inner2Div, inner3Div, inner4Div];
+  var bugs = [
+              {display: ["block", "*", "inline", "block", "inline"], position: ["*", "*", "static", "absolute"]},
+              {display: ["inline", "block", "inline", "block", "inline"], position: ["*", "*", "static", "absolute"]},
+             ];
+  var duplicates = [
+                    {position: ["static", "static", "static", "static", "static"]}
+                   ];
+  var confusing = [
+                    {display: ["inline", "block", "block", "*"],   position: ["static", "static", "static", "static"]},
+                    {display: ["inline", "block", "block", "block", "inline"], position: ["static", "static", "*", "absolute", "absolute"]},
+                    {display: ["inline", "block", "block", "block", "inline"], position: ["static", "static", "absolute", "static", "absolute"]},
+                    {display: ["inline", "block", "block", "block", "inline"], position: ["static", "absolute", "*", "*", "absolute"]},
+                    {display: ["inline", "block", "block", "inline", "inline"], position: ["static", "*", "*", "*", "absolute"]},
+                    {display: ["inline", "block", "inline", "block"], position: ["static", "static", "static", "static", "absolute"]},
+                    {display: ["inline", "block", "inline", "block"], position: ["static", "*", "absolute"]},
+                    {display: ["inline", "block", "inline", "block", "inline"], position: ["static", "absolute", "static", "static", "absolute"]},
+                    {display: ["inline", "block", "inline", "inline", "block"], position: ["static", "static", "static", "static", "absolute"]},
+                    {display: ["inline", "block", "inline", "inline", "block"], position: ["static", "*", "static", "absolute"]},
+                    {display: ["inline", "block", "inline", "inline", "block"], position: ["static", "*", "absolute"]},
+                    {display: ["inline", "inline", "block", "block", "block"], position: ["static", "absolute", "static", "static", "static"]},
+                    {display: ["inline", "block", "inline", "inline", "inline"], position: ["static", "static"]},
+                    {display: ["inline", "block", "inline", "inline", "inline"], position: ["static", "absolute", "static", "static", "absolute"]},
+                    {display: ["inline", "block", "inline", "inline", "inline"], position: ["static", "absolute", "static", "absolute"]},
+                    {display: ["inline", "block", "inline", "inline", "inline"], position: ["static", "absolute", "absolute"]},
+                    {display: ["inline", "inline", "block", "block", "block"], position: ["static", "static", "static", "static"]},
+                    {display: ["inline", "inline", "block", "block", "block"], position: ["static", "absolute", "static", "static", "absolute"]},
+                    {display: ["inline", "inline", "block", "block", "block"], position: ["static", "absolute", "static", "absolute"]},
+                    {display: ["inline", "inline", "block", "block", "block"], position: ["static", "absolute", "absolute"]},
+                    {display: ["inline", "inline", "block", "block", "inline"], position: ["static", "static", "static", "*", "absolute"]},
+                    {display: ["inline", "inline", "block", "block", "inline"], position: ["static", "static", "absolute"]},
+                    {display: ["inline", "inline", "block", "block", "inline"], position: ["static", "absolute"]},
+                    {display: ["inline", "inline", "block", "inline", "block"], position: ["static", "static", "static", "static", "absolute"]},
+                    {display: ["inline", "inline", "block", "inline", "*"], position: ["static", "absolute"]},
+                    {display: ["inline", "inline", "block", "inline", "inline"], position: ["static", "static", "static", "*", "absolute"]},
+                    {display: ["inline", "inline", "block", "inline", "inline"], position: ["static", "static", "absolute"]},
+                    {display: ["inline", "inline", "inline", "block", "block"], position: ["static", "static", "static", "static"]},
+                    {display: ["inline", "inline", "inline", "block", "block"], position: ["static", "static", "absolute"]},
+                    {display: ["inline", "inline", "inline", "block", "block"], position: ["static"]},
+                    {display: ["inline", "inline", "inline", "*", "*"]},
+                    {display: ["inline", "block", "inline", "*", "*"], position: ["static", "*", "*", "*", "*"]},
+                  ];
+
+  function init(ltr) {
+    if (ltr) {
+      outerDiv.changeStyle("direction", "ltr");
+    } else {
+      outerDiv.changeStyle("direction", "rtl");
+    }
+
+    outerDiv.changeStyle("display", "block");
+    innerDiv.changeStyle("display", "block");
+    inner2Div.changeStyle("display", "block");
+    inner3Div.changeStyle("display", "block");
+    inner4Div.changeStyle("display", "block");
+
+    outerDiv.changeStyle("position", "static");
+    innerDiv.changeStyle("position", "static");
+    inner2Div.changeStyle("position", "static");
+    inner3Div.changeStyle("position", "static");
+    inner4Div.changeStyle("position", "static");
+  }
+
+
+  var stepper2 = Stepper("stepper2", divs, "position", cssKeyValues.position);
+  var stepper = Stepper("stepper", divs, "display", cssKeyValues.display, stepper2);
+  var names;
+  var ltr;
+  function iterate(ltr_) {
+    ltr = ltr_
+    outerDiv.elems[0].offsetHeight;
+    names = name(divs, function (divs, styles) {
+      styles.push(divs[0].elems[0].style.direction);
+
+      divs.forEach(function(div) {
+        styles.push(div.elems[0].style.display);
+        styles.push(div.elems[0].style.position);
+      });
+    });
+
+    console.log("img : " + names.img);
+    screenShot(names.img, function () {
+      window.setTimeout(doTest, 1)
+    });
+  }
+
+  function testStart() {
+    init(false);
+    iterate(false);
+  }
+
+  function doTest() {
+    if (stepper.finished()) {
+      testEnd();
+    }
+
+    testImgDiff(names.img, names.expectedImg);
+    do {
+      stepper.step();
+    } while (canSkip(divs, bugs) || canSkip(divs, duplicates) || canSkip(divs, confusing));
+
+    iterate(ltr);
+  }
+</script>
+</html>

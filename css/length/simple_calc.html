@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="pixel-test">
+  <style>
+    .container {
+      width: calc(100px * 1.5 + 10vmax * 2);
+      height: calc(10vw / 2 + 10vh / 5   + 50px);
+      background: blue;
+    }
+
+    .item {
+      width: calc(100px + 30% * 2);
+      height: calc(100px * 3 + 20% / 2);
+      background: red;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="item"></div>
+  </div>
+</body>
+<script>
+  function testStart() {
+    screenShot("simple_calc.png", function () {
+      testImgDiff("simple_calc.png", "simple_calc_expected.png");
+      testEnd();
+    });
+  }
+</script>
+</html>

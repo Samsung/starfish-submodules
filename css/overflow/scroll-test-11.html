@@ -1,0 +1,53 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>A panel scrolled to its end inside a transformed overlay keeps its out-of-flow indicator in place</title>
+<style>
+  body { margin: 0; }
+  #overlay {
+    position: absolute; left: 0; width: 100%; top: -20px; bottom: 0;
+    overflow: hidden; transform: translateZ(0); background: rgb(255, 255, 255);
+  }
+  #content {
+    box-sizing: border-box; width: 100%; max-height: 680px; padding-right: 28px;
+    overflow-x: hidden; overflow-y: scroll; background: rgb(25, 25, 25);
+  }
+  .indicator { position: absolute; left: 32px; margin-top: 48px; display: flex; flex-direction: column; }
+  .indicator div { width: 48px; height: 48px; margin-bottom: 8px; background: rgb(230, 230, 230); }
+  .row { height: 120px; margin: 24px 24px 0 120px; }
+  .top-bar { height: 72px; background: rgb(0, 90, 150); }
+  .shade-up { display: none; position: absolute; top: 216px; width: 100%; height: 48px; z-index: 100; background: rgb(60, 60, 60); }
+  .shade-down { position: absolute; bottom: 144px; width: 100%; height: 48px; z-index: 100; background: rgb(90, 0, 0); }
+  .bottom-bar { height: 144px; background: rgb(0, 110, 60); }
+</style>
+<div id="overlay">
+  <div class="top-bar"></div>
+  <div class="shade-up"></div>
+  <div id="content">
+    <div class="indicator"><div></div><div></div></div>
+    <div class="row" style="background: rgb(200, 40, 40)"></div>
+    <div class="row" style="background: rgb(40, 160, 40)"></div>
+    <div class="row" style="background: rgb(40, 80, 200)"></div>
+    <div class="row" style="background: rgb(200, 160, 0)"></div>
+    <div class="row" style="background: rgb(160, 40, 160)"></div>
+    <div class="row" style="background: rgb(0, 160, 160)"></div>
+    <div class="row" style="background: rgb(120, 120, 120)"></div>
+    <div class="row" style="background: rgb(240, 120, 0)"></div>
+  </div>
+  <div class="shade-down"></div>
+  <div class="bottom-bar"></div>
+</div>
+<script>
+// The indicator's containing block is the transformed overlay, not the
+// scrolling panel, so it neither scrolls with the rows nor is clipped by
+// the panel. Both screenshots must show it at the same place.
+function testStart() {
+  screenShot("scroll-test-11_1.png", function () {
+    testImgDiff("scroll-test-11_1.png", "scroll-test-11_1_expected.png");
+    document.getElementById("content").scrollTop = 3000;
+    screenShot("scroll-test-11_2.png", function () {
+      testImgDiff("scroll-test-11_2.png", "scroll-test-11_2_expected.png");
+      testEnd();
+    });
+  });
+}
+</script>

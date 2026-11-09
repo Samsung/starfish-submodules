@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="pixel-test">
+  <style>
+    .container {
+      left: calc(50% - 100px/var(--tv-scale)) ;
+      width:100px;
+      height:100px;
+      background: blue;
+      position: absolute;
+    }
+    .container2 {
+      left: calc(50% + 100px/var(--tv-scale)) ;
+      width:100px;
+      height:100px;
+      background: red;
+      position: absolute;
+    }
+    .container3 {
+      left: calc(50% - 100px/var(--tv-scale) - 100px);
+      width:100px;
+      height:100px;
+      background: green;
+      position: absolute;
+    }
+    .container4 {
+      left: calc(50% + 100px/var(--tv-scale) + 100px);
+      width:100px;
+      height:100px;
+      background: yellow;
+      position: absolute;
+    }
+    .container5 {
+      left: calc(50% - 100px/var(--tv-scale) - calc(200px));
+      width:100px;
+      height:100px;
+      background: gray;
+      position: absolute;
+    }
+    .container6 {
+      left: calc(50% + 100px/var(--tv-scale) + calc(200px));
+      width:100px;
+      height:100px;
+      background: purple;
+      position: absolute;
+    }
+</style>
+</head>
+
+<body>
+  <div style="--tv-scale:1;">
+    <div class="container"></div>
+    <div class="container2"></div>
+    <div class="container3"></div>
+    <div class="container4"></div>
+    <div class="container5"></div>
+    <div class="container6"></div>
+  </div>
+</body>
+<script>
+  function testStart() {
+    screenShot("simple_calc3.png", function () {
+      testImgDiff("simple_calc3.png", "simple_calc3_expected.png");
+      testEnd();
+    });
+  }
+
+</script>
+</html>

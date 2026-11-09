@@ -1,0 +1,22 @@
+<style>
+* { margin: 0px }
+</style>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">
+  <filter id="erode">
+    <feMorphology operator="erode" radius="5" />
+  </filter>
+  <filter id="dilate">
+    <feMorphology operator="dilate" radius="5" />
+  </filter>
+  <circle cx="100" cy="100" r="50" fill="green" />
+  <circle cx="300" cy="100" r="50" fill="green" filter="url(#erode)" />
+  <circle cx="100" cy="250" r="50" fill="green" filter="url(#dilate)" />
+</svg>
+<script>
+    function testStart() {
+        screenShot("svg_fe_morphology1.png", function () {
+            testImgDiff("svg_fe_morphology1.png", "svg_fe_morphology1_expected.png");
+            testEnd();
+        });
+    }
+</script>

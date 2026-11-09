@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        div {
+            background-color: yellow;
+            width: 400px;
+            /* height: 50px; */
+        }
+
+        .test1 {
+            height: 50px;
+            border: 20px solid black;
+            border-block-start-style: dotted;
+            margin-bottom: 10px;
+        }
+
+        .test2 {
+            height: 50px;
+            border-block-start-style: dotted;
+            border: 20px solid black;
+            border-block-start-style: dashed;
+            margin-bottom: 10px;
+
+        }
+
+        .test3 {
+            height: 50px;
+            border-block-start-style: dotted;
+            border: 20px solid black;
+            border-block-start-style: dashed;
+            border-top-style: double;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <div class="test1"></div>
+        <div class="test2"></div>
+        <div class="test3"></div>
+        <script>
+            function testStart() {
+                screenShot("border-block-start-style.png", function () {
+                    testImgDiff("border-block-start-style.png", "border-block-start-style_expected.png");
+                    testEnd();
+                });
+            }
+        </script>
+    </div>
+</body>
+
+</html>

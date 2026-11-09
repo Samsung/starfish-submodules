@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="pixel-test">
+        <meta charset="utf-8">
+        <style>
+            * { 
+                color: var(--color); 
+                font-size: var(--size);
+            }
+
+            div {
+                color: green;
+                font-size: 24px;
+            }
+            p {
+                --color1: orange;
+                --size1: 50px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <p>I inherited blue from the root element!</p>
+        <div>I got green set directly on me!</div>
+        <div id='alert'>
+            While I got red set directly on me!
+            <!-- p의 color, font-size의 var()가 invalid할때 div를 상속-->
+            <p>I’m red too, because of inheritance!</p>
+        </div>
+    </body>
+    <script>
+        function testStart() {
+            screenShot("customproperty_28.png", function () {
+                testImgDiff("customproperty_28.png", "customproperty_28_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</html>

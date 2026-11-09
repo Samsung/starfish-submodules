@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        #shadowRoot{
+            background-color: yellow;
+            width: 300px; height: 300px;
+        }
+    </style>
+
+</head>
+
+<body id="body01">
+    <div id="shadowRoot" >
+    </div>
+    <script>
+        window.addEventListener("DOMContentLoaded", () => {
+            const shadowStyle = document.createElement("style");
+            const container = document.createElement("div");
+            const shadow = shadowRoot.attachShadow({
+                mode: "open"
+            });
+
+            container.id = 'container';
+         
+            shadowStyle.textContent = `
+                #shadowRoot {
+                    // This should not apply.
+                    background-color: black;
+                }
+                #container {
+                    background-color: blue;
+                    width: inherit;
+                    height: inherit;
+                }
+            `;
+            shadow.appendChild(shadowStyle);
+            shadow.appendChild(container);
+        });
+    </script>
+    <script>
+        function testStart() {
+            screenShot("inherit_style_from_shadow-host.png", function () {
+                testImgDiff("inherit_style_from_shadow-host.png", "inherit_style_from_shadow-host_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</html>

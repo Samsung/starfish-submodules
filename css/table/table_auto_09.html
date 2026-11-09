@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta name="pixel-test">
+<style>
+  * {
+      font-family: ahem;
+  }
+  .blue {
+      border-style: solid;
+      border-color: blue;
+  }
+  .red {
+      border-style: solid;
+      border-color: red;
+  }
+  .green {
+      border-style: solid;
+      border-color: green;
+  }
+  .black {
+      border-style: solid;
+      border-color: black;
+  }
+  td {
+      border-width: 20px;
+  }
+  table {
+      background-color: yellow;
+      border-width: 10px;
+      padding: 20px;
+      margin: 30px;
+      //table-layout: auto;
+  }
+  </style>
+</head>
+<body class="green">
+
+<div>
+    table width: auto; with colspan.
+    Due to rounding error, expected image is self-taken
+</div>
+<table class="blue" width="100%">
+  <tr>
+    <td class="black" colspan="2">cell1</td>
+    <td class="black">paragraph</td>
+  </tr>
+  <tr>
+    <td class="black"></td>
+    <td class="black">paragraph</td>
+    <td class="black">paragraph</td>
+  </tr>
+  <tr>
+    <td class="black"></td>
+    <td class="black">paragraph</td>
+    <td class="black">paragraph</td>
+  </tr>
+</table>
+
+</body>
+
+<script>
+
+function testStart() {
+    screenShot("table_auto_09.png", function () {
+      testImgDiff("table_auto_09.png", "table_auto_09_expected.png");
+      testEnd();
+    });
+}
+</script>
+
+</html>

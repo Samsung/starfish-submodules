@@ -1,0 +1,20 @@
+<meta name="pixel-test">
+<style>
+    * { font-family: Ahem; }
+    #one { --foo: 30px; }
+    #two { --bar: var(--foo); }
+    #three { --foo: var(--bar); }
+
+    div#one { font-size: var(--foo);}
+    div#two { font-size: var(--bar);}
+    div#three { font-size: var(--foo);}
+</style>
+<div id="one">ONE<div id="two">TWO<div id="three">THREEE</div></div></div>
+<script>
+    function testStart() {
+        screenShot("customproperty_05.png", function () {
+            testImgDiff("customproperty_05.png", "customproperty_05_expected.png");
+            testEnd();
+        });
+    }
+</script>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<style>
+  body {
+    margin: 0px;
+    background-color: #008bb6;
+    /* overflow: hidden; */
+  }
+
+  #bottom-frame {
+    position: fixed;
+    top: 100px;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+</style>
+<html>
+<script>
+window.onload = function() {
+  screenShot("webgl-blend-in-iframe.png", function() {
+    testImgDiff("webgl-blend-in-iframe.png", "webgl-blend-in-iframe_expected.png");
+    testEnd();
+  });
+}
+</script>
+
+<body>
+  <div id="top-frame" tabindex="0" />
+  <iframe id="bottom-frame" src='webgl-blend.html' />
+</body>
+</html>

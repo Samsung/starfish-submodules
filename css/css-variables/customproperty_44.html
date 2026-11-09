@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta name="pixel-test">
+	<style>
+		:root {
+			--first-color: #488cff;
+			--second-color: #ffff8c;
+			font-family: Ahem;
+		}
+
+		div {
+			background: linear-gradient(to right, var(--primary) var(--point), rgba(var(--primary-rgb), .3) var(--point));
+			--range: (var(--max) - var(--min));
+			--ratio: (var(--value) - var(--min))/var(--range);
+			--point: calc(var(--ratio) * 100%);
+		}
+	</style>
+</head>
+
+<body>
+	<div id="test1">
+		Test
+	</div>
+</body>
+<script>
+	var div = document.getElementById("test1");
+	div.style = "--primary: #28b3f7; --min:10;--max:30;--value:10; --primary-rgb: 40,179,247;"
+
+
+	function testStart() {
+
+		var div = document.getElementById("test1");
+		div.style.setProperty("--value","20");
+
+		screenShot("customproperty_44.png", function () {
+			testImgDiff("customproperty_44.png", "customproperty_44_expected.png");
+			testEnd();
+		});
+	}
+</script>
+
+</html>

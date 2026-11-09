@@ -1,0 +1,36 @@
+<html><head></head><body><div id="t1">
+<svg id="target" style="will-change:transform;transform:scale(2);transform-origin: 0 0;background:grey" viewBox="0 0 100 100" width="50" height="50" >
+  <rect width="50" height="50" fill="yellow">
+</rect></svg>
+</div>
+<div id="t2">
+<div tabindex="-1" id="t3">
+scroll!
+</div>
+</div>
+
+<style>
+
+#t1 {
+background: red;
+height: 2000px;
+}
+
+#t2 {
+background: blue;
+height: 1000px;
+}
+
+* { margin: 0 }
+</style>
+
+<script>
+window.setTimeout(function() {
+  screenShot("additional-pixel-ratio.png", function() {
+    testImgDiff("additional-pixel-ratio.png", "additional-pixel-ratio_expected.png");
+    testEnd();
+  });
+}, 1000);
+</script>
+
+</body></html>

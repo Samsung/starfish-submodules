@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta name="pixel-test">
+<style>
+  * {
+      font-family: ahem;
+  }
+  a {
+      color: blue;
+      text-decoration: none;
+  }
+  .blue {
+      border-style: solid;
+      border-color: blue;
+  }
+  .red {
+      border-style: solid;
+      border-color: red;
+  }
+  .green {
+      border-style: solid;
+      border-color: green;
+  }
+  .black {
+      border-style: solid;
+      border-color: black;
+  }
+  .rgroup {
+      display: table-row-group;
+      border: 30px solid red;
+  }
+  .captionTop {
+      caption-side: top;
+  }
+  .captionBottom {
+      caption-side: bottom;
+  }
+  .special {
+      border-style: solid;
+      border-width: 40px;
+      border-color: green;
+  }
+  </style>
+</head>
+<body class="green">
+
+<div>table width: 100%. logo cells have no width. text cells have width: 33% each. Arranged like blueprint layout preview table</div>
+<table class="blue" style="width:100%; margin:auto; text-align:left; background:transparent;">
+    <tr>
+      <td style="text-align:center; padding:4px;"><a href="#">Img1</a></td>
+      <td style="width:33%; padding:4px;"><b><a href="#">Orchard</a></b><br />
+            Warm stone capability
+      </td>
+      <td style="text-align:center; padding:4px;"><a href="#">Img2</a></td>
+      <td style="width:33%; padding:4px;"><b><a href="#">Riverboat</a></b><br />
+            Soft woodland envelopment
+      </td>
+      <td style="text-align:center; padding:4px;"><a href="#">Img3</a></td>
+      <td style="width:33%; padding:4px;"><b><a href="#">Bold-Road</a></b><br />
+            Sunflower painter handkerchief
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align:center; padding:4px;"><a href="#">Img4</a></td>
+      <td style="padding:4px;"><b><a href="#">Moonlight</a></b><br />
+            Tall sunshades for harbors
+      </td>
+      <td style="text-align:center; padding:3px;"><a href="#">Img5</a></td>
+      <td style="padding:4px;"><b><a href="#">Mountain</a></b><br />
+            Dark limestone cave
+      </td>
+      <td style="text-align:center; padding:4px;"><a href="#">Img6</a></td>
+      <td style="padding:4px;"><b><a href="#">Seashore</a></b><br />
+          Rock-covered bays
+      </td>
+    </tr>
+  </table>
+</body>
+
+<script>
+function testStart() {
+    screenShot("table_fixed_20.png", function () {
+        testImgDiff("table_fixed_20.png", "table_fixed_20_expected.png");
+        testEnd();
+    });
+}
+</script>
+</html>

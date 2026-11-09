@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<style>
+/**{
+  font-family: ahem;
+}*/
+.b {
+  background: gray;
+  width: 100px;
+}
+.float {
+  float: left;
+  width: 20px;
+  height: 20px; 
+  background: red;
+}
+.span1 {
+	background: blue;
+	border-left: 6px solid purple;
+  border-right: 5px solid yellow;
+  border-top: 7px solid green;
+  border-bottom: 5px solid orange;
+  white-space: pre;
+}
+.span2 {
+  background: pink;
+	border-left: 6px solid teal;
+  border-right: 7px solid red;
+  border-top: 5px solid darkgray;
+  border-bottom: 4px solid black;
+}
+
+.span3 {
+  background: skyblue;
+  border-left: 7px solid brown;
+  border-right: 6px solid red;
+  border-top: 6px solid cyan;
+  border-bottom: 6px solid lemonchiffon;
+}
+
+</style>
+
+<body>
+
+<div class="b">
+	<span class="span1">   
+<!----><span class="span2">
+<!---->span2
+<!----></span class="span3">span3</span>
+</div>
+</body>
+<script>
+  function testStart() {
+    screenShot("starting_unprocessed_mbp_with_pre.png", function () {
+      testImgDiff("starting_unprocessed_mbp_with_pre.png", "starting_unprocessed_mbp_with_pre_expected.png");
+      testEnd();
+    });
+  }
+</script>
+</html>

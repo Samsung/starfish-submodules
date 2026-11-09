@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="pixel-test">
+<style>
+:root {
+  --fontSize: 24px;
+  --fontFamily: "Times New Roman"; 
+  --yellow: yellow;
+  --black: black;
+  --height: 500px;
+}
+
+.container {
+  color: var(--yellow);
+  background-color: var(--black);
+  font-size: var(--fontSize);
+  font-family: var(--fontFamily);
+  height: var(--height);
+}
+
+</style>
+</head>
+<body>
+
+<h1>Fonts and var() Settings</h1>
+
+<div class="container">
+  <h2>Lorem Ipsum</h2>
+  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam semper diam at erat pulvinar, at pulvinar felis blandit.</p>
+  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam semper diam at erat pulvinar, at pulvinar felis blandit.</p>
+</div>
+
+</body>
+<script>
+    function testStart() {
+        screenShot("customproperty_30.png", function () {
+            testImgDiff("customproperty_30.png", "customproperty_30_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+</html>

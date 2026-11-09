@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<script src="../framework.js"></script>
+<style>
+  .outer {
+    background-color: gray;
+    width: 180px;
+  }
+
+  .left {
+    background-color: teal;
+    float:left;
+    width: auto;
+    height: 100px;
+  }
+
+  .left {
+    background-color: red;
+    float:left;
+    width: auto;
+    height: 120px;
+  }
+
+  .right {
+    background-color: blue;
+    float:right;
+    width: auto;
+    height: 150px;
+  }
+
+  .right2 {
+    background-color: yellow;
+    float:right;
+    width: auto;
+    height: 200px;
+  }
+</style>
+
+<body>
+  <div class="outer">
+    outer outer2
+    <div class="left">
+      left
+    </div>
+    out er3
+    <div class="left2">
+      left2
+    </div>
+    ou ter4
+    <div class="right">
+      right
+    </div>
+    outer5
+    <div class="right2">
+      right2
+    </div>
+    <div class="right2">
+      left3
+    </div>
+    oo uuutt
+  </div>
+</body>
+
+<script>
+  var cssKeyValues = {
+    width: ["120px", "180px", "240px", "auto"]
+  };
+
+  var outerDiv = new Div("outer");
+  var divs = [outerDiv];
+  var bugs = [
+  ];
+
+  function init(ltr) {
+    if (ltr) {
+      outerDiv.changeStyle("direction", "ltr");
+    } else {
+      outerDiv.changeStyle("direction", "rtl");
+    }
+    outerDiv.changeStyle("width", "120px");
+  }
+
+  function testStart() {
+    var stepper = Stepper("stepper", divs, "width", cssKeyValues.width);
+
+    function iterate(ltr) {
+      outerDiv.elems[0].offsetHeight;
+      var names = name(divs, function (divs, styles) {
+        styles.push("4");
+        divs.forEach(function(div) {
+          styles.push(div.elems[0].style.width);
+        });
+      });
+      console.log("img : " + names.img);
+      screenShot(names.img, function () {
+        testImgDiff(names.img, names.expectedImg);
+
+        if (stepper.finished()) {
+          testEnd();
+        } else {
+          do {
+            stepper.step();
+            if (stepper.finished()) {
+              iterate(ltr);
+              return;
+            }
+          } while (canSkip(divs, bugs));
+
+          iterate(ltr);
+        }
+      });
+    }
+
+    init(true);
+    iterate(true);
+  }
+</script>
+</html>

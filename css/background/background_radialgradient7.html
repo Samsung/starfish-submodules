@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="pixel-test">
+    <style>
+        div {
+            border: 5px solid black;
+            margin-top: 3px;
+            height: 50px;
+        }
+
+        #test1 {
+            background: radial-gradient(closest-side at 200px 30px, red, yellow, green);
+        }
+
+        #test2 {
+            background: radial-gradient(closest-side circle at 20px 30px, red, yellow, green);
+        }
+
+        #test3 {
+            background: radial-gradient(closest-side at 20px 30px, red, yellow, green);
+        }
+
+        #test4 {
+            background: radial-gradient(20px 20px at 200px 30px, red, yellow, green);
+        }
+
+        #test5 {
+            background: radial-gradient(20px 30px at 200px 30px, red, yellow, green);
+        }
+
+        #test6 {
+            background: radial-gradient(20px 30px at right top, red, yellow, green);  
+        }
+
+        #test7 {
+            background: radial-gradient(closest-side circle at 500px 30px, red, yellow, green);
+        }
+
+        #test8 {
+            background: radial-gradient(20px 20px at 500px 30px, red, yellow, green);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="test1"></div>
+    <div id="test2"></div>
+    <div id="test3"></div>
+    <div id="test4"></div>
+    <div id="test5"></div>
+    <div id="test6"></div>
+    <div id="test7"></div>
+    <div id="test8"></div>
+</body>
+<script>
+    function testStart() {
+        screenShot("background_radialgradient7.png", function () {
+            testImgDiff("background_radialgradient7.png", "background_radialgradient7_expected.png");
+            testEnd();
+        });
+
+    }
+</script>
+
+</html>

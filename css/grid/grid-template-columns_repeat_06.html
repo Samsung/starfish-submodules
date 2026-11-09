@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        .test1 {
+            margin-top: 10px;
+            --col-gap: 14px;
+            display: grid;
+            width: 500px;
+            grid-template-columns: repeat(auto-fit, calc((100% - var(--col-gap) * 3) / 4));
+            column-gap: var(--col-gap);
+            background-color: blue;
+        }
+        .test2 {
+            margin-top: 10px;
+            --col-gap: 14px;
+            display: grid;
+            width: 500px;
+            grid-template-columns: repeat(auto-fill, calc((100% - var(--col-gap) * 3) / 4));
+            column-gap: var(--col-gap);
+            background-color: blue;
+        }
+        .item{
+            background-color: lime;
+            height: 60px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="test1">
+        <div class="item"></div>
+        <div class="item"></div>
+        <div class="item"></div>
+    </div>
+    <div class="test2">
+        <div class="item"></div>
+        <div class="item"></div>
+        <div class="item"></div>
+    </div>
+    <div class="test1">
+        <div class="item"></div>
+        <div class="item"></div>
+        <div class="item"></div>
+        <div class="item"></div>
+        <div class="item"></div>
+        <div class="item"></div>
+    </div>
+    <div class="test2">
+        <div class="item"></div>
+        <div class="item"></div>
+        <div class="item"></div>
+        <div class="item"></div>
+        <div class="item"></div>
+        <div class="item"></div>
+    </div>
+    <script>
+        function testStart() {
+            screenShot("grid-template-columns_repeat_06.png", function () {
+                testImgDiff("grid-template-columns_repeat_06.png", "grid-template-columns_repeat_06_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</body>
+
+</html>

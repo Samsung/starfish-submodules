@@ -1,0 +1,29 @@
+<html>
+
+<head>
+  <meta name="pixel-test">
+  <style>
+    .test {
+      width: 250px;
+      height: 250px;
+      background-color: black;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="test">
+    <!--The width is equal to the width of the containing block, and the height must be applied follow the aspect ratio of the instrict size.-->
+    <img src="./italian-flag_no_border.svg" alt="">
+  </div>
+</body>
+<script>
+  function testStart() {
+    screenShot("svg_03.png", function () {
+      testImgDiff("svg_03.png", "svg_03_expected.png");
+      testEnd();
+    });
+  }
+</script>
+
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="pixel-test">
+<style> 
+:root {
+  --border: 2px solid red;
+  --padding: 10px;
+  --radius1: 25px;
+  --radius2: 50px 20px;
+  --spacing: -0.0190em;
+  --lineHeight: 2.125rem;
+}
+#example1 {
+  border: var(--border);
+  padding: var(--padding);
+  border-radius: var(--radius1);
+}
+
+#example2 {
+  border: var(--border);
+  padding: var(--padding);
+  border-radius: var(--radius2);
+  letter-spacing: var(--spacing);
+  line-height: var(--lineHeight);
+}
+</style>
+</head>
+<body>
+
+<h2>border-radius: 25px:</h2>
+<div id="example1">
+  <p>Six silver-walled preprint reaches two meadow in old village's gardens.</p>
+</div>
+
+<h2>border-radius: 50px 20px:</h2>
+<div id="example2">
+  <p>By old stream far off; one small oak at low two map-side for golden-river meadow, one little elm got two map-front and silver-lake garden.</p>
+</div>
+
+</body>
+<script>
+  function testStart() {
+      screenShot("customproperty_35.png", function () {
+          testImgDiff("customproperty_35.png", "customproperty_35_expected.png");
+          testEnd();
+      });
+  }
+</script>
+</html>

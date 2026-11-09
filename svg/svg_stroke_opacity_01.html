@@ -1,0 +1,31 @@
+<html><head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+</head><body style="margin:0">
+
+<svg viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="500" height="500" style="background:red">
+  <defs>
+    <linearGradient id="myGradient">
+      <stop offset="0%" stop-color="blue"></stop>
+      <stop offset="100%" stop-color="blue"></stop>
+    </linearGradient>
+  </defs>
+
+  <rect x="1" y="1" width="2" height="2" fill="black" stroke-width="1" stroke="blue" stroke-opacity="0.5"></rect>
+  <rect x="4" y="4" width="2" height="2" fill="black" stroke-width="1" stroke="url(#myGradient)" stroke-opacity="0.5"></rect>
+
+</svg>
+
+<script>
+function testStart() {
+    screenShot("svg_stroke_opacity_01.png", function () {
+        testImgDiff("svg_stroke_opacity_01.png", "svg_stroke_opacity_01_expected.png");
+        testEnd();
+    });
+}
+</script>
+
+
+</body></html>
+

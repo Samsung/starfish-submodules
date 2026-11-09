@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        .gridContainer {
+            position: relative;
+            display: grid;
+            align-items: center;
+            grid-template: "a b" / max-content max-content;
+        }
+
+        .gridItem1 {
+            position: relative;
+            width: 200px;
+            height: 70%;
+            grid-area: a;
+            background-color: blue;
+        }
+
+        .gridItem2 {
+            position: relative;
+            width: 200px;
+            height: 100%;
+            grid-area: b;
+            background-color: yellow;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="gridContainer">
+        <div class="gridItem1">
+            <div style="width: 100px; height: 100%; background-color: red;"></div>
+        </div>
+        <div class="gridItem2">
+            <div style="width: 100px; height: 100px; background-color: green;"></div>
+        </div>
+    </div>
+</body>
+<script>
+    function testStart() {
+        screenShot("grid_align-items_height_03.png", function () {
+            testImgDiff("grid_align-items_height_03.png", "grid_align-items_height_03_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+</html>

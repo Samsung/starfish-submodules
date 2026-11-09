@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="pixel-test">
+<meta charset="UTF-8" />
+<style>
+    body {
+        height: 100vh;
+        margin: 0rem;
+        overflow: hidden;
+    }
+    main {
+        background: yellow;
+        position: absolute;
+        height: 100vh;
+        transition: all 1s;
+    }
+    main.hide {
+        width: 0rem;
+        transform: translateX(calc(100vh - 7.5rem));
+        visibility: hidden;
+    }
+    main.show {
+        width: calc(100vh - 7.5rem);
+        transform: translateX(0rem);
+        visibility: visible;
+    }
+</style>
+</head>
+<body>
+    <main id="main" class="hide"></main>
+    <header></header>
+    <script>
+        const main = document.getElementById('main');
+        function testStart() {
+            window.setTimeout(function() { 
+                
+                main.className = 'show';
+                window.setTimeout(function() { 
+                    screenShot("transition01_1.png", function () {
+                        testImgDiff("transition01_1.png", "transition01_1_expected.png");
+                    });    
+                    main.className = 'hide';
+
+                    window.setTimeout(function() { 
+                        screenShot("transition01_2.png", function () {
+                            testImgDiff("transition01_2.png", "transition01_2_expected.png");
+                            testEnd();
+                        });                            
+                    }, 1500);
+                }, 2000);
+            }, 1000);
+        }    
+    </script>
+</body>
+

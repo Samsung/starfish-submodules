@@ -1,0 +1,64 @@
+<html>
+
+<head>
+  <meta name="pixel-test">
+  <style>
+    body {
+      width: 800px;
+    }
+
+    .gridContainer {
+      display: grid;
+      background-color: green;
+      width: 400px;
+    }
+
+    .blockContainer {
+      display: block;
+      background-color: green;
+      width: 400px;
+    }
+
+    .inlineContainer {
+      display: inline;
+      background-color: green;
+      width: 400px;
+    }
+
+    .targetStyle {
+      margin-bottom: 30px;
+      display: flex;
+      flex-direction: row;
+      max-height: 72px;
+      background-color: red;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="gridContainer">
+    <div class="targetStyle">
+      <img src="landscape.svg">
+    </div>
+  </div>
+  <div class="blockContainer">
+    <div class="targetStyle">
+      <img src="landscape.svg">
+    </div>
+  </div>
+  <div class="inlineContainer">
+    <div class="targetStyle">
+      <img src="landscape.svg">
+    </div>
+  </div>
+</body>
+<script>
+  function testStart() {
+    screenShot("flex_svg_maxHeight_01.png", function () {
+      testImgDiff("flex_svg_maxHeight_01.png", "flex_svg_maxHeight_01_expected.png");
+      testEnd();
+    });
+  }
+</script>
+
+</html>

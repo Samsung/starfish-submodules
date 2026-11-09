@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      #no-border {
+        width: 400px;
+      }
+
+      #floated-left
+      {
+        background-color: steelblue;
+        float: left;
+        width: 100px;
+        height: 50px;
+      }
+
+      #green-container
+      {
+        background-color: green;
+        width: 100px;
+      }
+
+      #clear-left {
+        clear: left;
+        margin-top: 200px;
+        margin-bottom: 70px;
+        width: 100px;
+        height: 70px;
+        background: rosybrown;
+      }
+
+      #following-sibling {
+        margin-top: 99px;
+        width: 200px;
+        height: 100px;
+        background: greenyellow;
+      }
+
+      #margin-big {
+        margin-top: 100px;
+        width: 10px;
+        height: 10px;
+      }
+  </style>
+ </head>
+
+ <body>
+  <div id="no-border">
+    <div id="floated-left"></div>
+  </div>
+
+  <div id="green-container">
+    <div id="clear-left">
+      <div id="margin-big"></div>
+    </div>
+    <div id="following-sibling"></div>
+  </div>
+ </body>
+ <script>
+  function testStart() {
+    screenShot("ignore-margin-collapse2.png", function () {
+      testImgDiff("ignore-margin-collapse2.png", "ignore-margin-collapse2_expected.png");
+      testEnd();
+    });
+  }
+</script>
+</html>

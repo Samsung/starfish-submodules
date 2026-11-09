@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<meta name="pixel-test">
+<body bgcolor="red" text="blue" background="../eee.png" style="font-family:Ahem">
+TEST
+<script>
+        function testStart() {
+            screenShot("body_legacy_attrs.png", function() {
+                testImgDiff("body_legacy_attrs.png", "body_legacy_attrs_expected.png");
+                testEnd();
+            });
+        }
+</script>
+

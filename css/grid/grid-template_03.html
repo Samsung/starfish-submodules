@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        .gridContainer {
+            display: grid;
+            grid-template:
+                "a a a" 40px "b c c" 40px "b c c" 40px / 1fr 1fr 1fr;
+        }
+
+        .areaA {
+            grid-area: a;
+            background-color: yellow;
+        }
+
+        .areaB {
+            grid-area: b;
+            background-color: red;
+
+        }
+
+        .areaC {
+            grid-area: c;
+            background-color: blue;
+
+        }
+    </style>
+</head>
+
+<body>
+    <div class="gridContainer">
+        <div class="areaA"></div>
+        <div class="areaB"></div>
+        <div class="areaC"></div>
+    </div>
+
+</body>
+<script>
+    function testStart() {
+        screenShot("grid-template_03.png", function () {
+            testImgDiff("grid-template_03.png", "grid-template_03_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+</html>

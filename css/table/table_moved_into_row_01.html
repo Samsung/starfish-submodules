@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="pixel-test">
+<style>
+  .cells #date {
+    display: table;
+    float: right;
+    height: 23px;
+    width: 100%;
+  }
+
+  .panel table {
+
+    border-spacing: 0;
+    width: 100%;
+
+  }
+
+  .cells #time,
+  .cells#time {
+
+    font-family: sans-serif;
+    font-size: 28px;
+    width: 70px;
+
+  }
+
+  .panel th {
+    text-align: left;
+  }
+
+  .cells #edge,
+  .cells#edge {
+
+    width: 24px;
+
+  }
+
+  .cells #gap1,
+  .cells#gap1 {
+
+    width: 4px;
+
+  }
+
+  .cells #meridiem,
+  .cells#meridiem {
+
+    font-family: sans-serif;
+    font-size: 16px;
+
+  }
+
+  .cells #gap2,
+  .cells#gap2 {
+
+    width: 8px;
+
+  }
+
+  .panel table {
+
+    border-spacing: 0;
+    width: 100%;
+
+  }
+
+  .cells #date,
+  .cells#date {
+
+    font-family: sans-serif;
+    font-size: 16px;
+    text-align: right;
+    clear: both;
+    display: table;
+    float: right;
+    height: 23px;
+
+  }
+</style>
+</head>
+
+<body>
+  <div class='panel'>
+    <span class='cells'>
+      <table id='test1'>
+        <tbody>
+
+          <tr style="height: 14px;"></tr>
+          <tr id="date"></tr>
+        </tbody>
+      </table>
+      <table class="wrapper">
+        <tbody>
+          <tr id="test2">
+            <th id="edge"></th>
+            <th id="time">07:52</th>
+            <th id="gap1"></th>
+            <th id="meridiem">AM</th>
+            <th id="gap2"></th>
+
+            <th id="edge"></th>
+          </tr>
+        </tbody>
+      </table>
+    </span>
+  </div>
+
+  <script>
+    window.onload = function () {
+      window["test2"].insertBefore(window['test1'], window['gap2']);
+      window["date"].innerHTML = "Monday, May 21";
+    }
+  </script>
+</body>
+<script>
+function testStart() {
+    screenShot("table_moved_into_row_01.png", function () {
+        testImgDiff("table_moved_into_row_01.png", "table_moved_into_row_01_expected.png");
+        testEnd();
+    });
+}
+</script>
+
+</html>

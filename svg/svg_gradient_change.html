@@ -1,0 +1,105 @@
+<style>
+* { margin: 0 }
+</style>
+<svg width="300" height="300" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g1">
+      <stop class="stop1" offset="0%" stop-color="red"/>
+      <stop class="stop3" offset="100%" stop-color="red" />
+    </linearGradient>
+    <linearGradient id="g2" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="blue" />
+      <stop offset="100%" stop-color="blue" />
+    </linearGradient>
+  </defs>
+  <rect id="rect1" x="0" y="0" width="100" height="100" fill="url(#g1)" />
+</svg>
+
+<script>
+
+function testStart()
+{
+    var g = document.getElementById("g1");
+    var p = g.parentElement;
+    p.removeChild(g)
+    /*
+    setTimeout(function() {
+        p.appendChild(g)
+    }, 300);
+    */
+    screenShot("svg_gradient_change_02.png", function() {
+        testImgDiff("svg_gradient_change_02.png", "svg_gradient_change_02_expected.png");
+        p.appendChild(g)
+        screenShot("svg_gradient_change_01.png", function() {
+            testImgDiff("svg_gradient_change_01.png", "svg_gradient_change_01_expected.png");
+            t2();
+        });
+    });
+}
+
+function t2()
+{
+    var g = document.getElementById("g1");
+    g.firstElementChild.setAttribute("stop-color", "blue");
+    g.firstElementChild.nextElementSibling.setAttribute("stop-color", "blue");
+/*
+    setTimeout(function() {
+        g.firstElementChild.setAttribute("stop-color", "red");
+        g.firstElementChild.nextElementSibling.setAttribute("stop-color", "red");
+    }, 300);
+*/
+    screenShot("svg_gradient_change_03.png", function() {
+        testImgDiff("svg_gradient_change_03.png", "svg_gradient_change_03_expected.png");
+        g.firstElementChild.setAttribute("stop-color", "red");
+        g.firstElementChild.nextElementSibling.setAttribute("stop-color", "red");
+        screenShot("svg_gradient_change_01.png", function() {
+            testImgDiff("svg_gradient_change_01.png", "svg_gradient_change_01_expected.png");
+            t3();
+        });
+    });
+}
+
+
+function t3()
+{
+    var g = document.getElementById("g1");
+    g.id=""
+/*
+    setTimeout(function() {
+        g.id="g1"
+    }, 300);
+*/
+    screenShot("svg_gradient_change_02.png", function() {
+        testImgDiff("svg_gradient_change_02.png", "svg_gradient_change_02_expected.png");
+        g.id="g1"
+        screenShot("svg_gradient_change_01.png", function() {
+            testImgDiff("svg_gradient_change_01.png", "svg_gradient_change_01_expected.png");
+            t4();
+        });
+    });
+
+}
+
+
+function t4()
+{
+    var g = document.getElementById("g1");
+    g.id="g2"
+/*
+    setTimeout(function() {
+        g.id="g1"
+    }, 300);
+*/
+    screenShot("svg_gradient_change_02.png", function() {
+        testImgDiff("svg_gradient_change_02.png", "svg_gradient_change_02_expected.png");
+        g.id="g1"
+        screenShot("svg_gradient_change_01.png", function() {
+            testImgDiff("svg_gradient_change_01.png", "svg_gradient_change_01_expected.png");
+            testEnd();
+        });
+    });
+
+}
+
+
+</script>

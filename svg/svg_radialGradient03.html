@@ -1,0 +1,24 @@
+<html><meta name="pixel-test">
+
+<body>
+    <svg viewBox="0 0 500 500" width=500 height=500 xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <radialGradient gradientUnits="userSpaceOnUse" cx="200" cy="200" r="120" fx="150" fy="150" fr="30" id="a">
+                <stop stop-color="gold" offset="5%"></stop>
+                <stop stop-color="red" offset="95%"></stop>
+            </radialGradient>
+        </defs>
+        <rect x="50" y="50" width="500" height="500" stroke="red" fill="url('#a')" />
+    </svg>
+</body>
+</html>
+
+<script>
+    function testStart() {
+        screenShot("svg_radialGradient03.png", function() {
+             testImgDiff("svg_radialGradient03.png", "svg_radialGradient03_expected.png");
+             testEnd();
+        });
+    }
+    </script>
+</html>

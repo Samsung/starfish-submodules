@@ -1,0 +1,17 @@
+<meta name="pixel-test">
+<style>
+    :root {
+       --header-color: #06c;
+       font-family: Ahem;
+    }
+    h1 { background-color: var(--header-color); }
+</style>
+<h1>HEADER</h1>
+<script>
+    function testStart() {
+        screenShot("customproperty_13.png", function () {
+            testImgDiff("customproperty_13.png", "customproperty_13_expected.png");
+            testEnd();
+        });
+    }
+</script>

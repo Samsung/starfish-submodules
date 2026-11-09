@@ -1,0 +1,27 @@
+<html>
+<head>
+<style type="text/css">
+  #c {
+   width: 100px;
+   height: 100px;
+   overflow: hidden;
+   transform: translateZ(0);
+   background: red;
+   box-shadow: 0px 0px 0px 2px rgba(0,0,0,1);
+ }
+</style>
+</head>
+<body>
+<script>
+function testStart()
+{
+    screenShot("box-shadow-graphics-buffer-owner.png", function () {
+        testImgDiff("box-shadow-graphics-buffer-owner.png", "box-shadow-graphics-buffer-owner_expected.png");
+        testEnd()
+    });
+}
+</script>
+  <div id="c">
+  </div>
+</body>
+</html>

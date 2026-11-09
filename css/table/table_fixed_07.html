@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta name="pixel-test">
+<style>
+  * {
+      font-family: ahem;
+  }
+  .blue {
+      border-style: solid;
+      border-color: blue;
+  }
+  .red {
+      border-style: solid;
+      border-color: red;
+  }
+  .green {
+      border-style: solid;
+      border-color: green;
+  }
+  .black {
+      border-style: solid;
+      border-color: black;
+  }
+  td {
+      border-width: 20px;
+  }
+  table {
+      background-color: yellow;
+      border-width: 10px;
+      padding: 20px;
+      margin: 30px;
+      table-layout: fixed;
+  }
+  .rgroup {
+      display: table-row-group;
+      border: 30px solid red;
+  }
+  .captionTop {
+      caption-side: top;
+  }
+  .captionBottom {
+      caption-side: bottom;
+  }
+  .special {
+      border-style: solid;
+      border-width: 40px;
+      border-color: green;
+  }
+  </style>
+</head>
+<body class="green">
+
+<div>empty table. i.e., table, tbody, tr, td only</div>
+<table class="blue">
+    <tbody>
+        <tr><td></td></tr>
+    </tbody>
+</table>
+
+</body>
+
+<script>
+function testStart() {
+    screenShot("table_fixed_07.png", function () {
+      testImgDiff("table_fixed_07.png", "table_fixed_07_expected.png");
+      testEnd();
+    });
+  }
+</script>
+
+</html>

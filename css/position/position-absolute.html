@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+
+<meta name="pixel-test">
+
+<style>
+img {
+background: rgba(255,0,0,0.3);
+}
+
+body {
+border: 10px black solid;
+padding: 5px;
+position: relative;
+}
+</style>
+
+<div style="text-align:center;width:200px;background:green;">
+asdf1<div style="display:block; position:absolute;background:red;">
+block 123 1 23 123 12 3asd fasd fa sdf as asd f asd fa sdf
+</div><div style="display:inline; position:absolute;background:blue;">
+inline asdf as df as df asd f asd f as df
+</div>
+asdf2<br>
+next line!
+</div>
+<br>
+<div style="text-align:center;width:200px;background:green; border: 10px pink solid;"><span style="border:2px black solid">asdf1<div style="display:block; position:absolute;background:yellow">block</div><div style="display:inline; position:absolute;background:gray">inline 123  sdf asd fa sdf asd fas df</div><br>asdf2</span>next line!</div>
+
+
+<div dir="rtl"><div style="text-align:center;width:200px;background:green">asdf1<div style="display:block; position:absolute;background:red">block</div><div style="display:inline; position:absolute;background:red">inline</div>asdf2<br>next line!</div>
+
+
+<div style="text-align:center;width:200px;background:green"><span style="border:2px black solid">asdf1<div style="display:block; position:absolute;background:red">block</div><div style="display:inline; position:absolute;background:red">inline</div><br>asdf2</span>next line!</div>
+
+<div dir="ltr">
+0<div style="position:absolute;background:blue;border:5px black solid;margin:5px">
+ltr f asd f asd f asd f as df as df as df a s df as df asd fa sdf 
+</div>
+1<br>
+2<br>
+</div>
+<div dir="ltr">
+<div style="position:absolute;background:blue;border:5px black solid;margin:5px">
+ltr f asd f asd f asd f as df as df as df a s df as df asd fa sdf 
+</div>
+1<br>
+2<br>
+</div>
+<div dir="rtl">
+<div style="position:absolute;background:blue;border:5px black solid;margin:5px">
+rtl f asd f asd f asd f as df as df as df a s df as df asd fa sdf 
+</div>
+</div>
+
+<script>
+
+
+function testStart() {
+    screenShot("position-absolute-basic-1.png", function() {
+         testImgDiff("position-absolute-basic-1.png", "position-absolute-basic-1_expected.png");
+         testEnd();
+    });
+
+}
+
+
+</script>

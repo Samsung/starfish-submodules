@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<meta name="pixel-test">
+<head>
+  <style>
+  body {
+  margin: 40px;
+}
+
+.wrapper {
+  display: inline-grid;
+  grid-template-columns: 100px 100px;
+  background-color: #fff;
+  color: #444;
+  border:solid 1px teal;
+}
+
+.box {
+  background-color: #444;
+  color: #fff;
+  font-size: 150%;
+  border:solid 3px black;
+}
+
+.a {
+  background-color: orange;
+  border:solid 3px black;
+}
+.b {
+  grid-column-start:3;
+  grid-column-end:4;
+}
+.c {
+  grid-column-start:4;
+  grid-column-end:5;
+}
+  </style>
+</head>
+<body style="font-family:Ahem;">
+<div id="c" class="wrapper">
+  <div class="box a" style="width:30px;">A</div>
+  <div class="box b" style="width:30px;">B</div>
+  <div class="box c" style="width:30px;">C</div>
+</div>
+</body>
+<script>
+  function testStart() {
+    screenShot("gridbox_simple-box-11.png", function() {
+      testImgDiff("gridbox_simple-box-11.png", "gridbox_simple-box-11_expected.png");
+      testEnd();
+    });
+  }
+</script>
+</html>

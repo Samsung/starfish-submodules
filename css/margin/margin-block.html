@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        .flexContainer {
+            display: flex;
+            flex-direction: row;
+            height: 256px;
+            width: 500px;
+            background-color: gray;
+        }
+
+        .flexItem1 {
+            width: fit-content;
+            margin-top: 50px;
+            margin-bottom: 50px;
+            background-color: red;
+        }
+
+        .flexItem2 {
+            width: fit-content;
+            margin-block-start: 50px;
+            margin-bottom: 50px;
+            background-color: yellow;
+        }
+
+        .flexItem3 {
+            width: fit-content;
+            margin-block-start: 50px;
+            margin-block-end: 50px;
+            background-color: blue;
+        }
+
+        .flexItem4 {
+            width: fit-content;
+            margin-block: 50px 50px;
+            background-color: green;
+        }
+
+        .flexItem5 {
+            width: fit-content;
+            margin-block: 50px calc(50px);
+            background-color: purple;
+        }
+
+        .flexItemChild {
+            width: 100px;
+            height: 100px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="flexContainer">
+        <div id="targe1" class="flexItem1">
+            <div class="flexItemChild"></div>
+        </div>
+        <div id="targe2" class="flexItem2">
+            <div class="flexItemChild"></div>
+        </div>
+        <div id="targe3" class="flexItem3">
+            <div class="flexItemChild"></div>
+        </div>
+        <div id="targe4" class="flexItem4">
+            <div class="flexItemChild"></div>
+        </div>
+        <div id="targe5" class="flexItem5">
+            <div class="flexItemChild"></div>
+        </div>
+    </div>
+    <script>
+        function testStart() {
+            screenShot("margin-block.png", function () {
+                testImgDiff("margin-block.png", "margin-block_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</body>
+
+</html>

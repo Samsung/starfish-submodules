@@ -1,0 +1,59 @@
+<svg width="300px" height="72px" viewBox="0 0 300 72" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" data-autoflip="true">
+
+<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+
+
+<use id="asdf" xlink:href="#rect1" x="72" ></use>
+
+<use id="asdf-2" xlink:href="#rect1" x="144" fill="green"></use></g>
+
+
+<rect width="50" height="50" id="rect1"/>
+<defs>
+</defs>
+
+
+</svg>
+
+<style>
+
+svg {
+    color: red;
+}
+
+rect {
+   fill: currentColor;
+   color: black;
+}
+
+svg > rect {
+   color: yellow;
+}
+
+.path11 {
+   color: blue;
+}
+
+</style>
+
+
+<script>
+
+function asdf1()
+{
+document.querySelector("#rect1").setAttribute("class", "path11")
+}
+
+screenShot("shadowdom-svg-use_01.png", function () {
+  testImgDiff("shadowdom-svg-use_01.png", "shadowdom-svg-use_01_expected.png");
+  asdf1()
+  screenShot("shadowdom-svg-use_02.png", function() {
+      testImgDiff("shadowdom-svg-use_02.png", "shadowdom-svg-use_02_expected.png");
+      testEnd();
+  });
+});
+
+
+</script>
+
+

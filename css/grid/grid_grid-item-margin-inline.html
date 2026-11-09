@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        .gridContainer {
+            position: relative;
+            display: grid;
+            width: 400px;
+            grid-template: "a b" / max-content max-content;
+            background-color: blue;
+        }
+
+        .gridItem {
+            position: relative;
+            width: 100px;
+            height: 100%;
+            margin-inline-start: 50px;
+            margin-inline-end: 100px;
+            grid-area: a;
+            background-color: yellow;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="gridContainer">
+        <div id="target" class="gridItem ">
+            <div style="width: 100px; height: 100%; background-color: red;"></div>
+        </div>
+        <div>
+            <div style="width: 100px; height: 200px; background-color: green;"></div>
+        </div>
+    </div>
+</body>
+<script>
+    function testStart() {
+        screenShot("grid_grid-item-margin-inline.png", function () {
+            testImgDiff("grid_grid-item-margin-inline.png", "grid_grid-item-margin-inline_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+</html>

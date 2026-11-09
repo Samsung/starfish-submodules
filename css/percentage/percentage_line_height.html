@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<script>
+    function testStart() {
+    screenShot("percentage_line_height.png", function () {
+        testImgDiff("percentage_line_height.png","percentage_line_height_expected.png");
+        testEnd();
+    }) 
+}
+</script>
+<style>
+    p { 
+	font-size : 12px ;
+	border : 1px solid red;
+    }
+</style>
+<body style>
+    <p style="line-height:300%;"> line-height:300% </p>
+    <p style="line-height:200%;"> line-height:200% </p>
+    <p style="line-height:100%;"> line-height:100% </p>
+    <p style="line-height:50%;"> line-height:50% </p>
+    <p style="line-height:0%;"> line-height:0% </p>
+    <p style="line-height:-50%;"> line-height:-50% </p>
+    <p style="line-height:-200%;"> line-height:-200% </p>
+</body>
+</html>

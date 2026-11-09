@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        #grid1 {
+            display: grid;
+            width: 100%;
+            grid-template-columns: repeat(2, 50%);
+        }
+
+        #area1 {
+            background-color: lime;
+            height: 60px;
+        }
+
+        #area2 {
+            background-color: yellow;
+            height: 60px
+        }
+
+        #area3 {
+            background-color: blue;
+            height: 60px
+        }
+
+        #area4 {
+            background-color: red;
+            height: 60px
+        }
+    </style>
+</head>
+
+<body>
+    <div id="grid1">
+        <div id="area1"></div>
+        <div id="area2"></div>
+        <div id="area3"></div>
+        <div id="area4"></div>
+    </div>
+</body>
+<script>
+    function testStart() {
+        screenShot("grid-template-columns_repeat_01.png", function () {
+            testImgDiff("grid-template-columns_repeat_01.png", "grid-template-columns_repeat_01_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+</html>

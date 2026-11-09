@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<script>
+    function testStart() {
+    screenShot("percentage_div_height.png", function () {
+        testImgDiff("percentage_div_height.png","percentage_div_height_expected.png");
+        testEnd();
+    }) 
+}
+</script>
+<style>
+    div { 
+	font-size : 12px ;
+	border : 1px solid red;
+	margin : 20px;
+    }
+    #h {
+	height: 20px
+    }
+</style>
+<body style="height: 50px; width: 700px">
+    <p> body height is 50px, width is 440px. the height of div is 20px. </p>
+    <div style="height:300%;" id="h"> 300%, valid percentage, height is 150px </div>
+    <div style="height:200%;" id="h"> 200%, valid percentage, height is 100px </div>
+    <div style="height:100%;" id="h"> 100%, valid percentage, height is 50px </div>
+    <div style="height:50%;" id="h"> 50%, valid percentage, height is 25px </div>
+    <div style="height:0%;" id="h"> 0%, valid percentage, height is 0px </div>
+    <div style="height:-50%;" id="h"> -50%, unvalid percentage, height is 20px </div>
+    <div style="height:-200%;" id="h"> -200%, unvalid percentage, height is 20px </div>
+
+</body>
+</html>

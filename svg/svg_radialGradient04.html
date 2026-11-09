@@ -1,0 +1,35 @@
+<html>
+<head>
+    <meta name="pixel-test">
+</head>
+<body>
+    <svg viewBox="0 0 500 500" width="500" height="250" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <radialGradient gradientUnits="userSpaceOnUse" cx="200" cy="200" r="120" fx="150" fy="150" fr="30" id="userSpaceOnUseGradient">
+                <stop stop-color="gold" offset="5%"></stop>
+                <stop stop-color="red" offset="95%"></stop>
+            </radialGradient>
+        </defs>
+        <rect x="50" y="50" width="400" height="200" stroke="black" fill="url('#userSpaceOnUseGradient')" />
+    </svg>
+    
+    <svg viewBox="0 0 500 500" width="500" height="250" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <radialGradient gradientUnits="objectBoundingBox" cx="0.5" cy="0.5" r="0.5" fx="0.4" fy="0.4" fr="0.1" id="objectBoundingBoxGradient">
+                <stop stop-color="gold" offset="5%"></stop>
+                <stop stop-color="red" offset="95%"></stop>
+            </radialGradient>
+        </defs>
+        <rect x="50" y="50" width="400" height="200" stroke="black" fill="url('#objectBoundingBoxGradient')" />
+    </svg>
+</body>
+</html>
+
+<script>
+    function testStart() {
+        screenShot("svg_radialGradient04.png", function() {
+             testImgDiff("svg_radialGradient04.png", "svg_radialGradient04_expected.png");
+             testEnd();
+        });
+    }
+</script>

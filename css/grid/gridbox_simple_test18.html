@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<head>
+<style>
+body {
+  font-family: Ahem;
+  font-size: 30px;
+}
+.flex-container-outer {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+}
+.grid {
+  display: grid; 
+  grid-template-columns: 33.33% 33.33% 33.33%;
+  border-radius: 5px;
+  color: black;
+}
+
+#cell-a{
+  grid-row-start: 1;
+  grid-row-end: 2;
+  grid-column-start: 1;
+  grid-column-end: 2;
+}
+#cell-b {
+  grid-row-start: 1;
+  grid-row-end: 2;
+  grid-column-start: 2;
+  grid-column-end: 4;
+}
+#cell-d {
+  grid-row-start: 3;
+  grid-row-end: 4;
+  grid-column-start: 1;
+  grid-column-end: 2;
+}
+#cell-e {
+  grid-row-start: 3;
+  grid-row-end: 4;
+  grid-column-start: 2;
+  grid-column-end: 3;
+}
+#cell-f {
+  grid-row-start: 3;
+  grid-row-end: 4;
+  grid-column-start: 3;
+  grid-column-end: 4;
+}
+
+.wide {
+  grid-row-start: 2;
+  grid-row-end: 3;
+  grid-column-start: 1;
+  grid-column-end: 3;
+  width: 230px;
+}
+
+.narrow {
+  width: 120px;
+}
+
+.padding-div {
+  width: 50px;
+}
+
+.grid > div {
+  border: 2px solid #ffa94d;
+}
+
+</style>
+</head>
+<body>
+  <div class="flex-container-outer">
+    <div class="grid">
+      <div></div>
+      <div id="cell-a" class="top">AA</div>
+      <div></div>
+      <div id="cell-b" class="top">BB</div>
+      <div></div>
+      <div class="wide" id="cell-c">CC</div>
+      <div id="cell-d" class="narrow">DD</div>
+      <div id="cell-e" class="narrow">EE</div>
+      <div id="cell-f" class="narrow">FF</div>
+   </div>
+ </div>
+</body>
+ <script>
+  function testStart() {
+    screenShot("gridbox_simple_test18.png", function() {
+      testImgDiff("gridbox_simple_test18.png", "gridbox_simple_test18_expected.png");
+      testEnd();
+    });
+  }
+ </script>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        .margin-inline-start {
+            width: 200px;
+            margin-inline-start: 0px;
+            margin: 10px;
+            margin-inline-start: 30px;
+            background-color: yellow;
+        }
+
+        .margin-inline-start_rtl {
+            width: 200px;
+            margin-inline-start: 0px;
+            margin: 10px;
+            margin-inline-start: 30px;
+            background-color: yellow;
+            direction: rtl;
+        }
+
+        .margin-block-start {
+            width: 200px;
+            margin-block-start: 0px;
+            margin: 10px;
+            margin-block-start: 30px;
+            background-color: yellow;
+        }
+
+        .margin-block-start_rtl {
+            width: 200px;
+            margin-block-start: 0px;
+            margin: 10px;
+            margin-block-start: 30px;
+            background-color: yellow;
+            direction: rtl;
+        }
+
+        .content {
+            width: 100px;
+            height: 50px;
+            background-color: green;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="margin-inline-start">
+        <div class="content"></div>
+    </div>
+    <div class="margin-inline-start_rtl">
+        <div class="content"></div>
+    </div>
+    <div class="margin-block-start">
+        <div class="content"></div>
+    </div>
+    <div class="margin-block-start_rtl">
+        <div class="content"></div>
+    </div>
+    <script>
+        function testStart() {
+            screenShot("margin_apply-order_direction-aware.png", function () {
+                testImgDiff("margin_apply-order_direction-aware.png", "margin_apply-order_direction-aware_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</body>
+</body>
+
+</html>

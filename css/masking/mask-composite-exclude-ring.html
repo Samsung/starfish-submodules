@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>CSS Masking: gradient border drawn with mask-clip and mask-composite</title>
+    <link href="https://drafts.fxtf.org/css-masking/#the-mask-composite" rel="help">
+    <meta content="Two mask layers, one clipped to the content box, combined with exclude leave only the padding ring, whose inner corners follow the reduced border radius." name="assert">
+    <style>
+        body { margin: 0; background: white; }
+        #ring {
+            position: absolute; left: 20px; top: 20px;
+            width: 200px; height: 120px; padding: 6px;
+            border-radius: 24px;
+            background: blue;
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask-composite: exclude;
+        }
+    </style>
+</head>
+<body>
+    <div id="ring"></div>
+    <script>
+        function testStart() {
+            var s = getComputedStyle(document.getElementById("ring"));
+            testAssert(s.maskClip === "content-box, border-box");
+            testAssert(s.maskComposite === "exclude, exclude");
+            screenShot("mask-composite-exclude-ring.png", function () {
+                testImgDiff("mask-composite-exclude-ring.png", "mask-composite-exclude-ring_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</body>
+</html>

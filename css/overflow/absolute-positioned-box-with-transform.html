@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    .container {
+      overflow: hidden;
+      position: relative;
+      margin-top: 62px;
+      width: 200px;
+      height: 300px;
+      background: blue;
+      border: 5px solid blue;
+    }
+
+    .container2 {
+      overflow: hidden;
+      transform: translateX(2em);
+      width: 300px;
+      height: 200px;
+      background: purple;
+      border: 5px solid purple;
+    }
+
+    .box {
+      position: fixed;
+      top: 0px;
+      left: 0px;
+      width: 500px;
+      height: 500px;
+      border: 10px solid red;
+    }
+
+    .box2 {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      width: 300px;
+      height: 300px;
+      border: 5px solid green;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="container2">
+      <div class="box"></div>
+      <div class="box2"></div>
+    </div>
+  </div>
+</body>
+<script>
+  function testStart() {
+    screenShot("absolute-positioned-box-with-transform.png", function () {
+      testImgDiff("absolute-positioned-box-with-transform.png", "absolute-positioned-box-with-transform_expected.png");
+      testEnd();
+    });
+  }
+</script>
+</html>

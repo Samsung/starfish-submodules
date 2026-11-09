@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+<meta name="pixel-test">
+<body>
+
+
+<div style="background:green; width:400px;height:400px">
+    <div id="main" style="width:200px;height:200px;border:2px solid red;"></div>
+</div>
+</body>
+<script>
+
+var mainDIV = document.getElementById("main");
+
+var length_units=[
+                    'px ',
+                    'em ',
+                    'ex ',
+                    'in ',
+                    'cm ',
+                    'mm ',
+                    'pt ',
+                    'pc '
+                ];
+
+var testSTR=[];
+
+function make_testcase(){
+
+    for (var i=0;i<=100;i+=10){
+        var length  = " "+i+length_units[i%8];
+        var percentage = " "+i+"% ";
+        testSTR.push(length);
+        testSTR.push(length+length);
+        testSTR.push(length+length+length);
+        testSTR.push(length+length+length+length);
+
+        testSTR.push(percentage);
+        testSTR.push(percentage+percentage);
+        testSTR.push(percentage+percentage+percentage);
+        testSTR.push(percentage+percentage+percentage+percentage);
+    }
+
+    //invalid-Case
+    testSTR.push("   nocolor #11111 ");
+
+}
+
+function testStart() {
+    make_testcase();
+    doTest("margin_shorthand_",mainDIV,'margin',testSTR,0);
+}
+
+function doTest(filePrefix,element,styleName,values,current){
+    if(current<values.length){
+        element.style[styleName] = values[current];
+        var name = filePrefix+current;
+        screenShot(name+".png", function() {
+            testImgDiff(name+".png", name+"_expected.png");
+            var newIDX= current+1;
+            doTest(filePrefix,element,styleName,testSTR,newIDX);
+        });
+    }else{
+        testEnd();
+    }
+}
+//testStart()
+
+</script>
+</html>

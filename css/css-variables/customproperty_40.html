@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+ <head>
+	<meta name="pixel-test">
+	<style>
+		:root {
+		  --first-color: #488cff;
+		  --second-color: #ffff8c;
+		  font-family: Ahem;
+		}
+
+		div {
+		  background-color: var(--first-color);
+		  color: var(--second-color);
+		}
+
+		p {
+		  background-color: var(--second-color);
+		  color: var(--first-color);
+		}
+
+	</style>
+ </head>
+
+ <body>
+  	<div id="test1" style="--first-color: #ff0000; --second-color: #0000ff;">
+		This paragraph should have a blue background and red text.
+		<p>
+			This paragraph should have a red background and blue text.
+		</p>
+	</div>
+</body>
+ <script>
+	var div = document.getElementById("test1");
+	div.style="--first-color: #0000ff; --second-color: #ff0000;"
+
+
+	function testStart() {
+		screenShot("customproperty_40.png", function () {
+			testImgDiff("customproperty_40.png", "customproperty_40_expected.png");
+			testEnd();
+		});
+	}
+ </script>
+</html>

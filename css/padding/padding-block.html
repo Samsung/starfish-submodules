@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        .container {
+            display: flex;
+            flex-direction: row;
+            height: 200px;
+            width: 500px;
+            background-color: gray;
+        }
+
+        .item1 {
+            width: fit-content;
+            padding-top: 50px;
+            padding-bottom: 50px;
+            background-color: red;
+        }
+
+        .item2 {
+            width: fit-content;
+            padding-block-start: 50px;
+            padding-bottom: 50px;
+            background-color: yellow;
+        }
+
+        .item3 {
+            width: fit-content;
+            padding-block-start: 50px;
+            padding-block-end: 50px;
+            background-color: blue;
+        }
+
+        .item4 {
+            width: fit-content;
+            padding-block: 50px 50px;
+            background-color: green;
+        }
+
+        .item5 {
+            width: fit-content;
+            padding-block: 50px calc(50px);
+            background-color: purple;
+        }
+
+        .itemChild {
+            width: 100px;
+            height: 100px;
+            background-color: black;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div id="targe1" class="item1">
+            <div class="itemChild"></div>
+        </div>
+        <div id="targe2" class="item2">
+            <div class="itemChild"></div>
+        </div>
+        <div id="targe3" class="item3">
+            <div class="itemChild"></div>
+        </div>
+        <div id="targe4" class="item4">
+            <div class="itemChild"></div>
+        </div>
+        <div id="targe5" class="item5">
+            <div class="itemChild"></div>
+        </div>
+    </div>
+    <script>
+        function testStart() {
+            screenShot("padding-block.png", function () {
+                testImgDiff("padding-block.png", "padding-block_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</body>
+
+</html>

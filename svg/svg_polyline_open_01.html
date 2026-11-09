@@ -1,0 +1,42 @@
+<html lang="en"><head></head><body>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      body {
+        padding: 0;
+        margin: 0;
+        background: #ffffff;
+      }
+    </style>
+
+<!--
+  Regression test for SVG <polyline> rendering.
+
+  A <polyline> is an OPEN shape: unlike <polygon> it must not be closed.
+  A regression once added an implicit closePath() to the polyline geometry,
+  which drew a spurious straight segment from the last point back to the
+  first point (here: the horizontal line across the top at y=120).
+
+  This polyline is a simple "V". With the bug, the closing segment fills in
+  the top edge of the triangle (a clearly visible connected stroke), so the
+  rendered image differs from the expected image and the test FAILs.
+  With the fix, only the two "V" segments are drawn and the test PASSes.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <polyline points="100,120 400,480 700,120"
+            fill="none" stroke="black" stroke-width="12"
+            stroke-linecap="round" stroke-linejoin="round" />
+</svg>
+
+<script>
+
+  function testStart() {
+    screenShot("svg_polyline_open_01.png", function() {
+      testImgDiff("svg_polyline_open_01.png", "svg_polyline_open_01_expected.png");
+      testEnd();
+    });
+  }
+
+</script>
+
+</body></html>

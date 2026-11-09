@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        .mainFlexContainer {
+            display: flex;
+            flex-direction: column;
+            margin: 20px;
+        }
+
+        .floatContainer {
+            float: left;
+            background-color: burlywood;
+        }
+
+        .flexContainer1 {
+            height: 300px;
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            float: left;
+            margin-left: 10px;
+        }
+
+        .flexContainer1 .item1 {
+            height: 100px;
+            background-color: yellowgreen;
+        }
+
+        .flexContainer1 .item2 {
+            height: 100%;
+            background-color: #7b77d0;
+        }
+
+        .flexContainer2 {
+            height: 300px;
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            float: left;
+            margin-left: 25px;
+        }
+
+        .flexContainer2 .item1 {
+            flex-basis: 100px;
+            background-color: yellowgreen;
+        }
+
+        .flexContainer2 .item2 {
+            flex-basis: 100%;
+            background-color: #7b77d0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="mainFlexContainer">
+        <div class="floatContainer">
+            <div id="target" class="flexContainer1">
+                <div id="item1" class="item1"></div>
+                <div id="item2" class="item2"></div>
+            </div>
+            <div id="target" class="flexContainer2">
+                <div id="item1" class="item1"></div>
+                <div id="item2" class="item2"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function testStart() {
+            screenShot("flex_column_direction_percent_size.png", function () {
+                testImgDiff("flex_column_direction_percent_size.png", "flex_column_direction_percent_size_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</body>
+
+</html>

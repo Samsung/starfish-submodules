@@ -1,0 +1,56 @@
+<html>
+<head>
+<meta name="pixel-test">
+<style>
+* {
+  font-family: Ahem;
+}
+
+.panel {
+  box-sizing: border-box;
+  height: 1080px;
+  width: 1920px;
+  background-color: rgba(25, 25, 25, 1.0)
+}
+
+.panel-text {
+  margin: 230px 68px auto 112px;
+  //width: 920px
+}
+
+.panel-row {
+  //display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between
+}
+
+.logo {
+  margin-bottom: 30px;
+  //display: flex;
+  flex-direction: row;
+  //max-height: 72px;
+  width: 920px; // added
+}
+
+img {
+  border: 1px solid red;
+  width: 200px;
+  height: 100px;
+}
+</style>
+</head>
+<body>
+      <div class="logo">
+        <img src="badge.svg">
+      </div>
+</body>
+<script>
+  function testStart() {
+    screenShot("svg_01.png", function() {
+      testImgDiff("svg_01.png", "svg_01_expected.png");
+      testEnd();
+    });
+  }
+</script>
+</html>

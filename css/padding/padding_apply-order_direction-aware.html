@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        .padding-inline-start {
+            width: 200px;
+            padding-inline-start: 0px;
+            padding: 10px;
+            padding-inline-start: 30px;
+            background-color: yellow;
+        }
+
+        .padding-inline-start_rtl {
+            width: 200px;
+            padding-inline-start: 0px;
+            padding: 10px;
+            padding-inline-start: 30px;
+            background-color: yellow;
+            direction: rtl;
+        }
+
+
+        .content {
+            width: 100px;
+            height: 50px;
+            background-color: green;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="padding-inline-start">
+        <div class="content"></div>
+    </div>
+    <div class="padding-inline-start_rtl">
+        <div class="content"></div>
+    </div>
+    <script>
+        function testStart() {
+            screenShot("padding_apply-order_direction-aware.png", function () {
+                testImgDiff("padding_apply-order_direction-aware.png", "padding_apply-order_direction-aware_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</body>
+
+</html>

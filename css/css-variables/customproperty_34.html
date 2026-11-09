@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="pixel-test">
+<style>
+:root {
+  --padding: 70px;
+}
+
+div {
+  padding: var(--padding);
+  border: 1px solid #4CAF50;
+}
+</style>
+</head>
+<body>
+
+<h2>Box Gutters</h2>
+<div>Five windows got a pattern on 70px.</div>
+
+</body>
+<script>
+  function testStart() {
+      screenShot("customproperty_34.png", function () {
+          testImgDiff("customproperty_34.png", "customproperty_34_expected.png");
+          testEnd();
+      });
+  }
+</script>
+</html>
+

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="pixel-test">
+        <style>
+            #fId {
+                background-color: var(--first-color);
+                color: var(--second-color);
+            }
+
+            .fClass {
+                --first-color: #488cff;
+                --second-color: #ffff8c;
+                width: 500px;
+                font-family: Ahem;
+            }
+        </style>
+    </head>
+
+    <body>
+        <p id="fId" class="fClass">This paragraph should have a blue background and yellow text.</p>
+    </body>
+    <script>
+        function testStart() {
+            screenShot("customproperty_02.png", function () {
+                testImgDiff("customproperty_02.png", "customproperty_02_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</html>

@@ -1,0 +1,29 @@
+<div>
+XXXXXX
+</div>
+
+<style>
+
+div {
+  background: blue;
+  width: 100px;
+  height: 100px;
+  opacity: 1;
+}
+
+div#a {
+  background: red;
+  opacity: 0;
+}
+
+</style>
+<script>
+screenShot("element-style-changing-opacity-repaint.png", function () {
+  var div = document.querySelector("div");
+  div.id = "a"
+  screenShot("element-style-changing-opacity-repaint.png", function () {
+    testImgDiff("element-style-changing-opacity-repaint.png", "element-style-changing-opacity-repaint_expected.png");
+    testEnd();
+  });
+});
+</script>

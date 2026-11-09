@@ -1,0 +1,136 @@
+<html>
+<meta name="pixel-test">
+<style>
+  /** {
+    font-family: ahem;
+  }*/
+
+  div {
+    margin-bottom: 10px;
+  }
+
+  .rtl {
+    direction: rtl;
+  }
+
+  .ltr {
+    direction: ltr;
+  }
+
+  .big-container {
+    background: yellow;
+  }
+
+  .container {
+    position: relative;
+    display: inline-block;
+    width: 150px;
+    height: 20px;
+    border: 2px solid black;
+  }
+
+  .abs {
+    position: absolute;
+    height: 10px;
+  }
+
+  .red {
+    background: red;
+  }
+
+  .blue {
+    background: blue;
+  }
+
+  .green {
+    background: green;
+  }
+
+  .purple {
+    background: purple;
+  }
+
+  .left-fixed {
+    left: 17px;
+  }
+
+  .right-fixed {
+    right: 24px;
+  }
+
+  .width-fixed {
+    width: 13px;
+  }
+</style>
+<div>left auto, right auto, width fixed</div>
+<div class="big-container">
+  <div class="container ltr">
+    <div class="abs red width-fixed ltr">abs1</div>
+  </div>
+  <div class="container ltr">
+    <div class="abs blue width-fixed rtl">abs2</div>
+  </div>
+  <div class="container rtl">
+    margin-left: 5px;
+    <div class="abs green width-fixed ltr">abs3</div>
+  </div>
+  <div class="container rtl">
+    <div class="abs purple width-fixed rtl">abs4</div>
+  </div>
+</div>
+<div>left fixed, right auto, width fixed</div>
+<div class="big-container">
+  <div class="container ltr">
+    <div class="abs red left-fixed width-fixed ltr">abs1</div>
+  </div>
+  <div class="container ltr">
+    <div class="abs blue left-fixed width-fixed rtl">abs2</div>
+  </div>
+  <div class="container rtl">
+    <div class="abs green left-fixed width-fixed ltr">abs3</div>
+  </div>
+  <div class="container rtl">
+    <div class="abs purple left-fixed width-fixed rtl">abs4</div>
+  </div>
+</div>
+<div>left auto, right fixed, width fixed</div>
+<div class="big-container">
+  <div class="container ltr">
+    <div class="abs red right-fixed width-fixed ltr">abs1</div>
+  </div>
+  <div class="container ltr">
+    <div class="abs blue right-fixed width-fixed rtl">abs2</div>
+  </div>
+  <div class="container rtl">
+    <div class="abs green right-fixed width-fixed ltr">abs3</div>
+  </div>
+  <div class="container rtl">
+    <div class="abs purple right-fixed width-fixed rtl">abs4</div>
+  </div>
+</div>
+<div>left fixed, right fixed, width fixed</div>
+<div class="big-container">
+  <div class="container ltr">
+    <div class="abs red left-fixed right-fixed width-fixed ltr">abs1</div>
+  </div>
+  <div class="container ltr">
+    <div class="abs blue left-fixed right-fixed width-fixed rtl">abs2</div>
+  </div>
+  <div class="container rtl">
+    <div class="abs green left-fixed right-fixed width-fixed ltr">abs3</div>
+  </div>
+  <div class="container rtl">
+    <div class="abs purple left-fixed right-fixed width-fixed rtl">abs4</div>
+  </div>
+</div>
+<script>
+  function testStart() {
+    screenShot("left-margin-auto-right-margin-auto-width-fixed.png", function () {
+      testImgDiff("left-margin-auto-right-margin-auto-width-fixed.png", "left-margin-auto-right-margin-auto-width-fixed_expected.png");
+      testEnd();
+    });
+  }
+
+</script>
+
+</html>

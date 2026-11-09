@@ -1,0 +1,24 @@
+<html>
+<meta name="pixel-test">
+
+<body>
+    <svg width="600" height="400">
+        <mask id="svgmask1">
+            <circle fill="#ffffff" cx="75" cy="75" r="75"></circle>
+            <circle fill="#ffffff" cx="80" cy="260" r="75"></circle>
+            <circle fill="#ffffff" cx="270" cy="160" r="75"></circle>
+        </mask>
+        <rect width="600" height="400" style="fill:rgb(0,0,255);rgb(0,0,0)" mask="url(#svgmask1)" />
+    </svg>
+
+</body>
+<script>
+    function testStart() {
+        screenShot("svg_mask_01.png", function () {
+            testImgDiff("svg_mask_01.png", "svg_mask_01_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+</html>

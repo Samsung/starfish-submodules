@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="pixel-test">
+<style>
+  body { margin: 0; }
+  /* Outer has no transform, so the child's "transform: inherit" must
+     resolve to none. The child must NOT become a containing block for
+     position:fixed descendants. */
+  #outer {
+    width: 300px;
+    height: 300px;
+    margin: 100px;
+    background: lightblue;
+  }
+  #inherit {
+    width: 200px;
+    height: 200px;
+    background: yellow;
+    transform: inherit;
+  }
+  /* Should anchor to the viewport, not to #inherit.
+     Without the fix, transform:inherit allocates an empty transform group
+     making hasTransforms() return true, turning #inherit into the
+     containing block; the red box would render at #inherit's origin. */
+  #fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 80px;
+    height: 80px;
+    background: red;
+  }
+</style>
+</head>
+<body>
+  <div id="outer">
+    <div id="inherit">
+      <div id="fixed"></div>
+    </div>
+  </div>
+<script>
+  screenShot("transform-inherit-no-parent.png", function () {
+    testImgDiff("transform-inherit-no-parent.png",
+                "transform-inherit-no-parent_expected.png");
+    testEnd();
+  });
+</script>
+</body>
+</html>

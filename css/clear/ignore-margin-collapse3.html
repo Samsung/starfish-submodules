@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style type="text/css">
+            #div1 {
+                height: 10px;
+            }
+            #div2
+            {
+                background: blue;
+                float: left;
+                height: 20px;
+                width: 100px;
+            }           
+            #div3 {
+                float: left;
+                width: 20px;
+                height: 70px;
+                background: purple;
+            }
+            #div4
+            {
+                background: orange;
+                clear: left;
+                margin-top: 20px;
+                height: 100px;
+                width: 200px;
+            }
+            #div5 {
+                background: mediumpurple;
+                margin-top:120px;
+                height: 50px;
+                width: 100px;
+
+            }
+        </style>
+    </head>
+    <body>
+        <div id="div1">
+            <div id="div2"></div>
+            <div id="div3"></div>
+        </div>
+        <div id="div4">
+            <div id="div5">
+            </div>
+        </div>
+    </body>
+    <script>
+        function testStart() {
+            screenShot("ignore-margin-collapse3.png", function () {
+            testImgDiff("ignore-margin-collapse3.png", "ignore-margin-collapse3_expected.png");
+            testEnd();
+            });
+        }
+    </script>
+</html>

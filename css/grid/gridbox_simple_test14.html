@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+ <head>
+  <style>
+    body {
+      font-family: StarfishAhem;
+    }
+    .wrapper { 
+      width: 400px;
+      display: grid; 
+      border: 2px solid #f76707;
+      border-radius: 5px;
+      background-color: #fff4e6;
+    }
+
+    .wrapper > div {
+      border: 2px solid #ffa94d;
+      border-radius: 5px;
+      padding: 1em;
+      color: #d9480f;
+    }
+
+    .box1 {
+      background-color: yellow;
+    }
+    .box2 {
+      background-color: green;
+    }
+    .box3 {
+      background-color: blue;
+    }
+    .box4 {
+      background-color: orange;
+    }
+    .box5 {
+      background-color: pink;
+    }
+    #wrp1 {
+      grid-template-columns: 33.3% 33.3% 33.3%;
+    }
+  </style>
+ </head>
+ <body>
+  <div id="wrp1" class="wrapper">
+    <div class="box1">1</div>
+    <div class="box2">22</div>
+    <div class="box3">333</div>
+    <div class="box4">4444</div>
+    <div class="box5">55555</div>
+    <div class="box6">666666</div>
+    <div class="box7">7777777</div>
+    <div class="box8">666666</div>
+    <div class="box9">55555</div>
+    <div class="box10">4444</div>
+    <div class="box11">333</div>
+    <div class="box12">22</div>
+    <div class="box13">1</div>
+  </div>
+ </body>
+ <script>
+  function testStart() {
+    screenShot("gridbox_simple_test14.png", function() {
+      testImgDiff("gridbox_simple_test14.png", "gridbox_simple_test14_expected.png");
+      testEnd();
+    });
+  }
+ </script>
+</html>

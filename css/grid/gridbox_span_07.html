@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta name="pixel-test">
+    <style>
+        * {
+            font-family: Ahem;
+        }
+
+        .wrapper {
+            display: grid;
+            grid-template-columns: auto auto auto;
+            background-color: #2196F3;
+            padding: 10px;
+            width: 700px;
+            height: 500px;
+        }
+
+        .wrapper>div {
+            color: #d9480f;
+        }
+
+        .box1 {
+            background-color: red;
+        }
+
+        .box2 {
+            background-color: blue;
+        }
+
+        .box3 {
+            background-color: yellow;
+        }
+
+        .box4 {
+            background-color: purple;
+        }
+        .box5 {
+            background-color: green;
+            grid-area: span 2 / span 2;
+        }
+
+
+</style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="box1"></div>
+        <div class="box2"></div>
+        <div class="box3"></div>
+        <div class="box4"></div>
+        <div class="box5"></div>
+    </div>
+</body>
+<script>
+    function testStart() {
+        screenShot("gridbox_span_07.png", function() {
+            testImgDiff("gridbox_span_07.png", "gridbox_span_07_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+</html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="pixel-test">
+        <link rel="stylesheet" href="resources/style.css" type="text/css">
+    </head>
+    <body onload="doTest();">
+        <span>
+            This is styled dynamically via JavaScript.
+        </span>
+    </body>
+    <script type="text/javascript">
+        function doTest() {
+            var links = document.getElementsByTagName("link");
+            for (var i = 0; i < links.length; i++)
+                links[i].parentElement.removeChild(links[i]);
+        }
+
+        // Capture the screen
+        function testStart() {
+            screenShot("link-tag-remove.png", function() {
+                testImgDiff("link-tag-remove.png", "link-tag-remove_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</html>

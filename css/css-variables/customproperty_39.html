@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="pixel-test">
+<meta charset="UTF-8" />
+<style>
+    :root {
+        --startColor: #ffffff;
+        --endColor: #00ff00;
+    }    
+</style>
+<body>
+<svg viewBox="0 0 100 100" width="100" height="100"
+xmlns="http://www.w3.org/2000/svg">
+<defs>
+    <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="a">
+        <stop stop-color="#ffffff " offset="0"></stop>
+        <stop stop-color="#00ff00" offset="0.5"></stop>
+        <stop stop-color="#ffffff" offset="1.2" id="test"></stop>
+    </linearGradient>
+</defs>
+<g fill="none" fill-rule="evenodd">
+    <path fill="url(#a)" d="M0 0h100v100H0z"></path>
+</g>
+</svg><svg viewBox="0 0 100 100" width="100" height="100"
+xmlns="http://www.w3.org/2000/svg">
+<defs>
+    <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="b">
+        <stop stop-color="var(--startColor)" offset="0"></stop>
+        <stop id="s1" stop-color="var(--endColor)" offset="0.5"></stop>
+        <stop stop-color="var(--startColor)" offset="1.2" id="test"></stop>
+    </linearGradient>
+</defs>
+<g fill="none" fill-rule="evenodd">
+    <path fill="url(#b)" d="M0 0h100v100H0z"></path>
+</g>
+</svg>
+</body>
+<script>
+    function testStart() {
+        screenShot("customproperty_39.png", function () {
+            testImgDiff("customproperty_39.png", "customproperty_39_expected.png");
+            testEnd();
+        });
+    }
+</script>
+</html>

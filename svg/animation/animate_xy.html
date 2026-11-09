@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #cssTarget {
+            x: 100;
+            y: 50;
+        }
+
+        svg {
+            border: 1px solid black;
+            display: block;
+            margin-top: 1px;
+        }
+    </style>
+</head>
+
+<body>
+    <svg width="300px" height="100px" viewBox="0 0 220 150" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="100" height="100">
+            <animate id="xAnimation" attributeName="x" from="0" to="100" dur="1s" fill="freeze" />
+            <animate id="yAnimation" attributeName="y" from="0" to="50" dur="1s" fill="freeze" />
+        </rect>
+    </svg>
+
+    <!-- expected result about end of animation -->
+    <svg width="300px" height="100px" viewBox="0 0 220 150" xmlns="http://www.w3.org/2000/svg">
+        <rect id="cssTarget" x="0" y="0" width="100" height="100"></rect>
+    </svg>
+</body>
+<script>
+    if (window['testAssert'] === undefined) {
+        testAssert = console.log
+        testEnd = console.log
+    }
+
+    let xAnimationBeginEventCount = 0;
+    let xAnimationendEventCount = 0;
+    let XAnimationState = 'none'
+
+    xAnimation.addEventListener("beginEvent", (e) => {
+        xAnimationBeginEventCount++;
+        XAnimationState = 'begin';
+        testAssert(xAnimationBeginEventCount == 1);
+    });
+    xAnimation.addEventListener("endEvent", (e) => {
+        xAnimationendEventCount++;
+        XAnimationState = 'end';
+        testAssert(xAnimationendEventCount == 1);
+        checkAnimationEnd()
+    });
+
+    let yAnimationBeginEventCount = 0;
+    let yAnimationendEventCount = 0;
+    let YAnimationState = 'none'
+    yAnimation.addEventListener("beginEvent", (e) => {
+        yAnimationBeginEventCount++;
+        YAnimationState = 'begin';
+        testAssert(yAnimationBeginEventCount == 1);
+    });
+    yAnimation.addEventListener("endEvent", (e) => {
+        yAnimationendEventCount++;
+        YAnimationState = 'end';
+        testAssert(yAnimationendEventCount == 1);
+        checkAnimationEnd()
+    });
+
+    function checkAnimationEnd() {
+        if (XAnimationState == 'end' && YAnimationState == 'end') {
+            console.log("try screen shot!")
+            screenShot("animate_xy.png", function () {
+                testImgDiff("animate_xy.png", "animate_xy_expected.png");
+                testEnd();
+            });
+        }
+    }
+
+</script>
+
+</html>

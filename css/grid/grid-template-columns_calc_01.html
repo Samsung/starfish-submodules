@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        #grid {
+            display: grid;
+            width: 100%;
+            grid-template-columns: 25% calc(100% - 50%);
+        }
+
+        #areaA {
+            background-color: lime;
+            height: 50px;
+        }
+
+        #areaB {
+            background-color: yellow;
+            height: 50px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="grid">
+        <div id="areaA"></div>
+        <div id="areaB"></div>
+    </div>
+
+</body>
+<script>
+    function testStart() {
+        screenShot("grid-template-columns_calc_01.png", function () {
+            testImgDiff("grid-template-columns_calc_01.png", "grid-template-columns_calc_01_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<script src="../framework.js"></script>
+<style>
+  .outer {
+    background-color: black;
+    width: 500px;
+    height: 400px;
+  }
+
+  .inner {
+    background-color: red;
+    width: 100px;
+    height: 100px;
+  }
+
+  .inner2 {
+    background-color: green;
+    width: 100px;
+    height: 100px;
+  }
+
+  .inner3 {
+    background-color: blue;
+    width: 100px;
+    height: 100px;
+  }
+</style>
+
+<body>
+  <div class="outer">
+    <div class="inner">
+        inner1
+    </div>
+    <div class="inner2">
+        inner2
+    </div>
+    <img class="inner3" src="orange.png">
+        inner3
+    </img>
+  </div>
+</body>
+
+<script>
+  var cssKeyValues = {
+    display: ["block", "inline", "inline-block", "none"]
+  };
+
+  var outerDiv = new Div("outer");
+  var innerDiv = new Div("inner");
+  var inner2Div = new Div("inner2");
+  var inner3Div = new Div("inner3");
+  var divs = [innerDiv, inner2Div, inner3Div];
+  var bugs = [];
+
+  function init(ltr) {
+    if (ltr) {
+      outerDiv.changeStyle("direction", "ltr");
+    } else {
+      outerDiv.changeStyle("direction", "rtl");
+    }
+    outerDiv.changeStyle("display", "inline-block");
+    innerDiv.changeStyle("display", "block");
+    inner2Div.changeStyle("display", "block");
+    inner3Div.changeStyle("display", "block");
+  }
+
+  function testStart() {
+    var stepper = Stepper("stepper", divs, "display", cssKeyValues.display);
+
+    function iterate(ltr) {
+      outerDiv.elems[0].offsetHeight;
+      var names = name(divs, function (divs, styles) {
+        styles.push(outerDiv.elems[0].style.direction);
+        styles.push(outerDiv.elems[0].style.display);
+
+        divs.forEach(function(div, index) {
+          if (index == 2) {
+            styles.push("[img]" + div.elems[0].style.display)
+          } else {
+            styles.push(div.elems[0].style.display);
+          }
+        });
+      });
+      console.log("img : " + names.img);
+      screenShot(names.img, function () {
+        testImgDiff(names.img, names.expectedImg);
+        if (stepper.finished()) {
+          if (ltr) {
+            stepper.reset();
+            init(false);
+            iterate(false);
+          } else {
+            testEnd();
+          }
+        } else {
+          do {
+            stepper.step();
+          } while (canSkip(divs, bugs));
+
+          iterate(ltr);
+        }
+      });
+    }
+
+    init(true);
+    iterate(true);
+  }
+</script>
+</html>

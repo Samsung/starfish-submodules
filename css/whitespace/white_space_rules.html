@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<head>
+<style>
+div, span {
+    padding: 0;
+    margin: 0;
+}
+span {
+    background-color: lightblue;
+}
+span.A {
+    white-space: normal;
+}
+span.B {
+    white-space: nowrap;
+}
+span.C {
+    white-space: pre;
+}
+span.D {
+    white-space: pre-line;
+}
+span.E {
+    white-space: pre-wrap;
+}
+div.box {
+    width: 383px;
+    background-color: pink;
+}
+div.line {
+    width: 383px;
+    height: 5px;
+    background-color: black;
+}
+</style>
+</head>
+<body>
+<div class="box">
+<div class="line"></div>
+<span class="B">
+[nowrap] This is some text. This is some text. This is some text.       
+               
+This is some text.     This is some text. This is some text. 
+
+  
+
+</span>
+<div class="line"></div>
+<span class="C">
+[pre] This is some text. This is some text. This is some text.       
+               
+This is some text.     This is some text. This is some text. 
+
+  
+
+</span>
+<div class="line"></div>
+<span class="D">
+[pre-line] This is some text. This is some text. This is some text.       
+               
+This is some text.     This is some text. This is some text. 
+
+  
+
+</span>
+<div class="line"></div>
+<span class="E">
+[pre-wrap] This is some text. This is some text. This is some text.       
+               
+This is some text.     This is some text. This is some text. 
+
+  
+
+</span>
+<div class="line"></div>
+</div>
+</body>
+<script>
+  function testStart() {
+    screenShot("white_space_rules.png", function () {
+      testImgDiff("white_space_rules.png", "white_space_rules_expected.png");
+      testEnd();
+    });
+  }
+</script>
+</html>

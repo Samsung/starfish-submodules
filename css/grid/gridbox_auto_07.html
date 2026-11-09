@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+<meta name="pixel-test">
+<style>
+* {
+  font-family: Ahem;
+}
+
+body {
+  margin: 40px;
+}
+
+.wrapper {
+  display: grid;
+  background-color: #fff;
+  border: solid 10px;
+}
+
+.box {
+  background-color: #777;
+  color: #fff;
+  font-size: 150%;
+}
+
+.a {
+  grid-column-start:2;
+  grid-column-end:5;
+}
+
+.b {
+  grid-column-start:1;
+  grid-column-end:3;
+  width: 50px;
+  padding: 10px;
+}
+</style>
+</head>
+<body style="font-family: Ahem">
+  <div class="wrapper">
+    <div class="box a">A</div>
+    <div class="box b" style="background-color:orange;">F</div>
+    <div class="box" style="background-color:green;">H</div>
+  </div>
+</body>
+<script>
+  function testStart() {
+    screenShot("gridbox_auto_07.png", function() {
+      testImgDiff("gridbox_auto_07.png", "gridbox_auto_07_expected.png");
+      testEnd();
+    });
+  }
+</script>
+</html>

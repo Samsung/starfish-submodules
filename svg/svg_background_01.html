@@ -1,0 +1,109 @@
+<html>
+
+<head>
+  <meta name="pixel-test">
+  <style>
+    .floatBox {
+      float: left;
+      margin-left: 10px;
+    }
+
+    .test1 {
+      width: 250px;
+      height: 250px;
+      background-image: url(./circle.svg);
+      background-color: black;
+      background-repeat: no-repeat;
+      background-position: center;
+      margin-bottom: 20px;
+    }
+
+
+    .test2 {
+      width: 250px;
+      height: 250px;
+      background-image: url(./circle.svg);
+      background-color: black;
+      background-repeat: repeat;
+      background-position: center;
+      background-size: 30%;
+      margin-bottom: 20px;
+    }
+
+
+    .test3 {
+      width: 250px;
+      height: 250px;
+      background-image: url(./circle.svg);
+      background-color: black;
+      background-repeat: repeat-x;
+      background-position: center;
+      background-size: 30%;
+      margin-bottom: 20px;
+    }
+
+    .test4 {
+      width: 250px;
+      height: 250px;
+      background-image: url(./circle_no_viewport.svg);
+      background-color: black;
+      background-repeat: no-repeat;
+      background-position: center;
+      margin-bottom: 20px;
+    }
+
+    .test5 {
+      width: 250px;
+      height: 250px;
+      background-image: url(./circle_no_viewport.svg);
+      background-color: black;
+      background-repeat: repeat;
+      background-position: center;
+      background-size: 30%;
+      margin-bottom: 20px;
+    }
+
+    .test6 {
+      width: 250px;
+      height: 250px;
+      background-image: url(./circle_no_viewport.svg);
+      background-color: black;
+      background-repeat: repeat-x;
+      background-position: center;
+      background-size: 30%;
+      margin-bottom: 20px;
+      clear: left;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="floatBox">
+    <div class="test1"></div>
+  </div>
+  <div class="floatBox">
+    <div class="test2"></div>
+  </div>
+  <div class="floatBox">
+    <div class="test3"></div>
+  </div>
+  <div class="floatBox" style="clear:left">
+    <div class="test4"></div>
+  </div>
+  <div class="floatBox">
+    <div class="test5"></div>
+  </div>
+  <div class="floatBox">
+    <div class="test6"></div>
+  </div>
+</body>
+<script>
+  function testStart() {
+    screenShot("svg_background_01.png", function () {
+      testImgDiff("svg_background_01.png", "svg_background_01_expected.png");
+      testEnd();
+    });
+  }
+</script>
+
+</html>

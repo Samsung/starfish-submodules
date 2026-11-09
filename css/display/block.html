@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+
+<div style="direction: rtl;border: 5px black solid">
+
+<div style="background: red;
+    border: 5px blue solid;
+    width: 300px;
+    font-size: 12px;">
+rtl block
+</div>
+
+<div style="background: red;
+    border: 5px blue solid;
+    width: 150px;
+    font-size: 12px;
+    margin-left: 50px;
+    margin-right: 100px;">
+rtl block
+</div>
+
+<div style="background: red;
+    border: 5px blue solid;
+    font-size: 12px;
+    margin-left: 50px;
+    margin-right: 100px;">
+rtl block
+</div>
+
+<div style="background: red;
+    border: 5px blue solid;
+    width: 150px;
+    font-size: 12px;
+    margin-left: auto;
+    margin-right: auto;">
+rtl block
+</div>
+</div>
+
+<div style="direction: ltr;border: 5px black solid">
+<div style="background: red;
+    border: 5px blue solid;
+    width: 300px;
+    font-size: 12px;">
+ltr block
+</div>
+<div style="background: red;
+    border: 5px blue solid;
+    width: 150px;
+    font-size: 12px;
+    margin-left: 50px;
+    margin-right: 100px;">
+ltr block
+</div>
+
+<div style="background: red;
+    border: 5px blue solid;
+    font-size: 12px;
+    margin-left: 50px;
+    margin-right: 100px;">
+ltr block
+</div>
+
+<div style="background: red;
+    border: 5px blue solid;
+    width: 150px;
+    font-size: 12px;
+    margin-left: auto;
+    margin-right: auto;">
+ltr block
+</div>
+</div>
+
+<script>
+
+function testStart() {
+    screenShot("block-1.png", function() {
+         testImgDiff("block-1.png", "block-1_expected.png");
+         testEnd();
+    });
+
+}
+
+
+</script>

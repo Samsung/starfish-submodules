@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="pixel-test">
+  <style>
+    * {
+      font-family: Ahem;
+    }
+
+    .grid {
+      display: grid;
+      background-color: yellow;
+    }
+
+    .flex_auto {
+      display: flex;
+      margin: auto;
+      background-color: blue;
+    }
+
+    .flex_left_auto {
+      display: flex;
+      margin: 0 auto 0 0;
+      background-color: blue;
+    }
+
+    .flex_right_auto {
+      display: flex;
+      margin: 0 0 0 auto;
+      background-color: blue;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grid">
+    <div class="flex_auto">
+      xxx xxx
+    </div>
+    <div class="flex_left_auto">
+      xxx xxx
+    </div>
+    <div class="flex_right_auto">
+      xxx xxx
+    </div>
+  </div>
+</body>
+<script>
+  function testStart() {
+    screenShot("gridbox_child_flexbox_with_margin_auto_no_border.png", function () {
+      testImgDiff("gridbox_child_flexbox_with_margin_auto_no_border.png",
+        "gridbox_child_flexbox_with_margin_auto_no_border_expected.png");
+      testEnd();
+    });
+  }
+</script>
+
+</html>

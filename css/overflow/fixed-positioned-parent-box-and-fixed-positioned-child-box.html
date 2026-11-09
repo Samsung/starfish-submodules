@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>    
+    <style>
+        .container {
+          z-index: 11;
+          position: fixed;
+          overflow: hidden;          
+          width: 300px;
+          height: 200px;
+          background: purple;
+          border: 5px solid purple;
+        }
+    
+        .box1 {
+          margin-bottom: 20px;
+          width: 400px;
+          height: 100px;          
+          background: red;
+          border: 10px solid red;
+        }
+
+        .box2 {          
+          position:fixed;
+          top: 150px;
+          width: 400px;
+          height: 100px;          
+          background: red;
+          border: 10px solid red;
+        }
+      </style>
+</head>
+<body>
+    <div class="container" id="c1">        
+        <div class="box1" id="i1"></div>
+        <div class="box2" id="i2"></div>        
+    </div>
+</body>
+<script>
+  function testStart() {
+    screenShot("fixed-positioned-parent-box-and-fixed-positioned-child-box.png", function () {
+      testImgDiff("fixed-positioned-parent-box-and-fixed-positioned-child-box.png", "fixed-positioned-parent-box-and-fixed-positioned-child-box_expected.png");
+      testEnd();
+    });
+  }
+</script>
+</html>

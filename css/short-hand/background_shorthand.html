@@ -1,0 +1,125 @@
+<!doctype html>
+<html>
+<meta name="pixel-test">
+<body>
+
+
+<div style="background:green; width:400px;height:400px">
+    <div id="main" style="width:200px;height:200px"></div>
+</div>
+</body>
+<script>
+
+var image_data_uri = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAA8AFADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDrvsftR9j9q3fsft+lH2P2/Sv2/wCteZ+UeyML7H7UfY/at37H7fpR9j9v0o+teYeyML7H7UfY/at37H7fpR9j9v0o+teYeyML7H7Vs6F4D1jxLFLLpti1xFEwVnLqi564BYjJ+nTI9RUn2P2/SvpXSrSzsdOt4LBI0s1QeUIjlSp5yD3znOe+c1+Y8dcb4jhbDUXhKanUqN2cr8qUbXvZptu+iuur6Wf1WQZFTzarP20rRjbbd3va179tT5W1DQ7nSb2a0u4WguYm2vG3UH+o7gjgiq32P2r3b4z6fZy6ZY3BSMX/AJ3lq/8AGY9rEj3AO36Z9+fJvsft+lfRcLcTS4hyqnj5w5JO6a6XWja8n0vttra783NsrWW4uWHUuZLVej7+ZufY/aj7H7Vt/Y/YUfY/YVH1oj2RifY/aj7H7VkeN/iLpfgwvbnF9qY2n7HG23aDzlmwQvHOOTyOMHNUPA3xV07xO8VlfKmnam7LHGpJMczEfwnHynII2k91AJJrhecYeNb2Dmub+tL7X8hci2Om+x+1H2P2rb+x+wo+x+wru+tD9kYn2P2rodA8Xan4dtGtoPKmgzuVJwWCeu3BGM+n+Jqjfy2ulWkl1e3ENnax43zXEgRFyQBljwOSB+NV9D1TTfEtgl7pd5DfWrYHmQtnacA7WHVWwRlTgjPIrzcdTweZUvquNgpxetn5df8AgnTh6tXC1PaUJOMvIdrF5da7fvd3b75W4AH3UXsqjsP89apfY/atv7H7Cj7H7CuuhUp4alGjRioxirJLRJLojKopVZOc3dvdlnxBq+m+FtON9qt0lnahgm9gSSx6AAAknqcAdAT0Br5+8a/H6TxLdXGmeH5X062j2F5Adt0xHUblOFGcDCknjk8laf4hz4q1Jr/VXe8uioTezFQqjoAowAOpwB1JPUmvK/DngjTtK8ZX6XV7mCzeOO3SVghlaVCVUnPJAyMDqeeOlfk2JzyeITjTvGP4s0lzzu4LRb+l7fm0WqK7j/hG9O/59/8Ax9v8aP8AhG9O/wCff/x9v8a8D6xDszDlY/wP8Y77wX5VvqDm/wBH3KGSViZYlC4xESfQD5Tx8uBtyTWl41/ah82FrfwtpzQsy4N7qCjchIYfJGCRkfKQzEjqCtcB4403RPC+jNfHTTc3EjiGIPPJjcQSC3zZwAp6deBx1DfBWlaF4s0RbxtL8iZHMMqiaTaWAByvzdCCOvTpz1Pr0s2rUqPKpO3yHzyXu3OY8S+MNZ8Y3YudZ1Ga+kX7iuQEj4AO1BhVztGcAZxk81X0LxBqXhnUEvtKvZrG6XH7yFsbhkHaw6MuQMqcg45Fd/Z6D4Sv9RurC3jjlu7b/WxLNJlf15weDjoeDg15Ubm70TVb06hpYkCMY3t5C6xxOwJTDA5xxkcncAee4xji/aSctb/j+ZlJ8urPprwP+05pt/tt/FFn/Zk3P+m2itJAfvH5k5deAoGN+SSflFe46dNZ6xZx3dhcwXtpJnZPbSCSNsEg4YEg4II/CvjnwVpWheLNEW8bS/ImRzDKomk2lgAcr83Qgjr06c9T6H4SurjwL5g0O4nso5MlofNaSIk4y2xyV3fKo3YzgYzivVpcQOk+Ssm/uv8AmdUJ99iKvMvin4Rl1DVdOvbZ4kN1IlkysNvzkna5I6jHB7jaOvb02q17p1vqPkfaI/M8iVZ4/mI2uvQ8devQ18ZTm4S5kOCg3apfle9t/wCrjtPtns7C2glma5kiiVGmfrIQACx5PJ69anoorPczKOu6aNX0a9sisbGeFkXzR8obHyk/Q4Oe2KNC00aRo1lZBY1MEKo3lD5S2PmI+pyc981eop3drF83u8tv8/vPNfBfgeHSfHOpMty8iabt8kFQC3mIfvH2BI46nnjpXXal4Xgu4NcKfvJ9ThVGWbBjVlUhCOMjBwc88jitiO2himlmSJEllx5kiqAz4GBk98VJWkqkpO5opxptqkrJpXT1vs38rq5R0LTRpGjWVkFjUwQqjeUPlLY+Yj6nJz3zV6iis27u5k3d3P/Z"
+
+
+var mainDIV = document.getElementById("main");
+
+var image_uri = " url("+image_data_uri+")"
+//var image_uri = " url(scene.jpg)"
+
+// 6-notation
+var valueSet1=[
+//                "",
+                " #ffffff",
+                " #00ff00",
+                " #00ffff",
+                // " #aaffaa",
+                // " #111111",
+                " #121212",
+                " "
+                ];
+
+// named-color
+var valueSet2=[
+                ' black',
+                ' silver',
+                ' gray',
+                ' white',
+                // ' maroon',
+                // ' red',
+                // ' purple',
+                ' fuchsia',
+                ' green',
+                // ' lime',
+                // ' olive',
+                ' yellow',
+                ' navy',
+                ' blue',
+                // ' teal',
+                // ' aqua',
+                // ' orange',
+                // ' aliceblue',
+                // ' antiquewhite',
+                // ' aquamarine',
+                // ' azure',
+                // ' beige',
+                // ' bisque',
+                // ' blanchedalmond',
+                // ' blueviolet'
+                ];
+
+// etc
+var valueSet3=[
+                '',
+                " no-repeat ",
+                " repeat ",
+                " repeat-x ",
+                " repeat-y "
+                ];
+
+
+var testSTR=[];
+
+function make_testcase(){
+    for (var i=0;i<valueSet2.length;i++){
+        testSTR.push(valueSet2[i]);
+    }
+    for (var i=0;i<valueSet1.length;i++){
+        testSTR.push(valueSet1[i]);
+    }
+    testSTR.push(image_uri);
+    for (var i=0;i<valueSet3.length;i++){
+        testSTR.push(image_uri+valueSet3[i]);
+    }
+    for (var i=0;i<valueSet2.length;i++){
+        for(var j=0;j<valueSet3.length;j++){
+            testSTR.push(valueSet2[i]+valueSet3[j]+image_uri);
+        }
+    }
+
+    testSTR.push(valueSet1[2]+valueSet3[2]+valueSet3[3]);
+    testSTR.push(valueSet3[1]+valueSet3[3]+valueSet1[0]);
+    testSTR.push(valueSet2[2]+valueSet1[1]+valueSet3[0]);
+
+    testSTR.push(valueSet1[2]+valueSet3[1]+valueSet3[0]+image_uri);
+    testSTR.push(image_uri+valueSet1[1]+valueSet3[1]+valueSet3[3]);
+    testSTR.push(valueSet1[1]+image_uri+valueSet3[1]+valueSet3[3]);
+
+    //invalid-Case
+    testSTR.push("nocolor #11111");
+    testSTR.push("repeat-z #999999");
+}
+
+function testStart() {
+    make_testcase();
+    doTest("background_shorthand_",mainDIV,'background',testSTR,0);
+}
+
+function doTest(filePrefix,element,styleName,values,current){
+    if(current<values.length){
+        element.style[styleName] = values[current];
+        var name = filePrefix+current;
+        screenShot(name+".png", function() {
+            testImgDiff(name+".png", name+"_expected.png");
+            var newIDX= current+1;
+            doTest(filePrefix,element,styleName,testSTR,newIDX);
+        });
+    }else{
+        testEnd();
+    }
+}
+//testStart()
+
+</script>
+</html>

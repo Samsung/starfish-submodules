@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    .item1 {
+      width: 200px;
+      height: 50px;
+      background-color: yellow;
+    }
+
+    .item2 {
+      background-color: blue;
+      width: 50px;
+      height: 50px;
+    }
+
+    .flexContainer {
+      display: flex;
+      -webkit-box-orient: vertical;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="target" class="flexContainer">
+    <div class="item1"></div>
+    <div class="item2"></div>
+  </div>
+  <script>
+    function testStart() {
+      screenShot("flex_with_-webkit-box_prefix.png", function () {
+        testImgDiff("flex_with_-webkit-box_prefix.png", "flex_with_-webkit-box_prefix_expected.png");
+        testEnd();
+      });
+    }
+  </script>
+</body>
+
+</html>

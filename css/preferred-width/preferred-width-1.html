@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<meta name="pixel-test">
+<div style="display:inline-block;padding:10px; margin: 10px; border:10px black solid">
+	<div style="padding:10px; margin: 10px; border:10px black solid">
+	content 123
+	</div>
+</div>
+
+<div style="width:0">
+<div style="display:inline-block;padding:10px; margin: 10px; border:10px black solid">
+	<div style="padding:10px; margin: 10px; border:10px black solid">
+	A
+        <div style="padding: 10px; margin: 10px; border: 10px black solid;display:inline-block">
+        ABCD
+        </div>
+	</div>
+</div>
+</div>
+
+<div><div style="position:absolute;padding:10px; margin: 10px; border:10px black solid">
+	<div style="padding:10px; margin: 10px; border:10px black solid">
+	content 123
+	</div>
+</div></div>
+
+<div style="width:0"><div style="position:absolute;padding:10px; margin: 10px; border:10px black solid">
+	<div style="padding:10px; margin: 10px; border:10px black solid">
+	content 123
+	</div>
+</div></div>
+
+<script>
+
+function testStart() {
+    screenShot("preferred-width-1.png", function() {
+         testImgDiff("preferred-width-1.png", "preferred-width-1_expected.png");
+         testEnd();
+    });
+
+}
+
+</script>

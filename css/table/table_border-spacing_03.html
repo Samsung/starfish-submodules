@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="pixel-test">
+    <style>
+        * {
+            font-family: ahem;
+        }
+        .blue {
+            border-style: solid;
+            border-color: blue;
+        }
+        .red {
+            border-style: solid;
+            border-color: red;
+        }
+        .green {
+            border-style: solid;
+            border-color: green;
+        }
+        .black {
+            border-style: solid;
+            border-color: black;
+        }
+        table {
+            background-color: yellow;
+            table-layout: fixed;
+            border-spacing: 20px 3px 4px;
+        }
+        caption {
+            margin: 10px;
+        }
+    </style>
+</head>
+
+<body class="green">
+    <div>border-spacing: 20px 3px 4px; incorrect format is ignored</div>
+    <table class="blue">
+        <caption class="red">caption</caption>
+        <thead>
+            <tr>
+                <td class="black">thead cell11</td>
+                <td class="black">thead cell12</td>
+                <td class="black">thead cell13</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="black">tbody cell11</td>
+                <td class="black">tbody cell12</td>
+                <td class="black">tbody cell13</td>
+            </tr>
+            <tr>
+                <td class="black">tbody cell21</td>
+                <td class="black">tbody cell22</td>
+                <td class="black">tbody cell23</td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td class="black">tfoot cell11</td>
+                <td class="black">tfoot cell12</td>
+                <td class="black">tfoot cell13</td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+<script>
+    function testStart() {
+        screenShot("table_border-spacing_03.png", function () {
+            testImgDiff("table_border-spacing_03.png", "table_border-spacing_03_expected.png");
+            testEnd();
+        });
+    }
+
+</script>
+
+</html>

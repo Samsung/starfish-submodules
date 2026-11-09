@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        .test-parent {
+            background-color: yellow;
+            display: flex;
+            flex-wrap: wrap;
+            flex-direction: column;
+            column-gap: clamp(10px, 50px, 100px);
+
+            width: 600px;
+            height: 500px;
+
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .test-parent>div {
+            width: 100px;
+            background: gray;
+            margin-bottom: 5px;
+            height: 100px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="test-parent">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
+</body>
+<script>
+    function testStart() {
+        screenShot("flex_column-gap_15.png", function () {
+            testImgDiff("flex_column-gap_15.png", "flex_column-gap_15_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+</html>

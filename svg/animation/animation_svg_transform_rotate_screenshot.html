@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>animation_svg_transform_rotate</title>
+    <style>
+        @keyframes rotate-animation {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(180deg);
+            }
+        }
+
+        .rotation {
+            animation: rotate-animation 1s linear forwards;
+            transform-origin: 60px 70px;
+        }
+    </style>
+</head>
+
+<body>
+    <svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+        <rect id="test1" x="60" y="60" width="40" height="40" fill="red" />
+    </svg>
+
+</body>
+<script>
+
+    function screenshotTest(filename, endTest) {
+        console.log("screenshotTest : " + filename); // 파일 이름 출력
+        let expectedFilename = filename.replace(".png", "_expected.png"); // expected.png로 변경
+        screenShot(filename, function () {
+            testImgDiff(filename, expectedFilename);
+            if (endTest == true) {
+                console.log("test end")
+                testEnd();
+            }
+        });
+    }
+
+    screenshotTest("animation_svg_transform_rotate_screenshot_before.png", false);
+
+    test1.classList.add("rotation");
+
+    setTimeout(() => {
+        setTimeout(() => {
+            screenshotTest("animation_svg_transform_rotate_screenshot_after.png", true);
+        }, 0);
+    }, 1500); // 1초 대기 (animation duration + delay 시간보다 길게 설정해야 함.)
+
+
+</script>
+
+</html>

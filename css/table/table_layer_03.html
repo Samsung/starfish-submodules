@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="pixel-test">
+    <style>
+        * {
+            font-family: ahem;
+        }
+        .blue {
+            border-style: solid;
+            border-color: blue;
+        }
+        .red {
+            border-style: solid;
+            border-color: red;
+        }
+        .green {
+            border-style: solid;
+            border-color: green;
+        }
+        .black {
+            border-style: solid;
+            border-color: black;
+        }
+        .special {
+            background-color:brown;
+        }
+        colgroup {
+            background-color:violet;
+        }
+        table {
+            background-color: yellow;
+            table-layout: fixed;
+        }
+        caption {
+            margin: 10px;
+        }
+    </style>
+</head>
+
+<body class="green">
+    <div>If the background color of the col is specified</div>
+    <div>Paint over the background color of cells belonging to the specified col</div>
+    <table class="blue">
+        <colgroup>
+            <col>
+            <col class="special">
+        </colgroup>
+        <caption class="red">caption</caption>
+        <thead>
+            <tr>
+                <td class="black">thead cell11</td>
+                <td class="black">thead cell12</td>
+                <td class="black">thead cell13</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="black">tbody cell11</td>
+                <td class="black">tbody cell12</td>
+                <td class="black">tbody cell13</td>
+            </tr>
+            <tr>
+                <td class="black">tbody cell21</td>
+                <td class="black">tbody cell22</td>
+                <td class="black">tbody cell23</td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td class="black">tfoot cell11</td>
+                <td class="black">tfoot cell12</td>
+                <td class="black">tfoot cell13</td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+<script>
+    function testStart() {
+        screenShot("table_layer_03.png", function () {
+            testImgDiff("table_layer_03.png", "table_layer_03_expected.png");
+            testEnd();
+        });
+    }
+
+</script>
+
+</html>

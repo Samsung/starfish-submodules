@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="pixel-test">
+  <style>
+    * {
+      font-family: Ahem;
+    }
+
+    .grid_container {
+      display: grid;
+      background-color: yellow;
+    }
+
+    .flex_container {
+      display: flex;
+      margin: auto;
+      background-color: blue;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grid_container">
+    <div style="background-color: aqua;">
+      left
+    </div>
+    <div class="flex_container">
+      center
+    </div>
+  </div>
+  <div>normal</div>
+</body>
+<script>
+  function testStart() {
+    screenShot("gridbox_child_flexbox_with_margin_auto.png", function () {
+      testImgDiff("gridbox_child_flexbox_with_margin_auto.png", "gridbox_child_flexbox_with_margin_auto_expected.png");
+      testEnd();
+    });
+  }
+</script>
+
+</html>

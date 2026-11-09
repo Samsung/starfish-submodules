@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <span style="color: red; text-decoration: underline;">
+            red text, red underline
+            <span style="color: green; text-decoration: line-through;">
+                green text, red underline, green line-through
+                <span style="color: blue;">
+                    blue text, red underline, green line-through
+                </span>
+                green text, red underline, green line-through
+            </span>
+            red text, red underline
+        </span>
+    </body>
+    <script type="text/javascript">
+        // Capture the screen
+        function testStart() {
+            screenShot("text-decoration-color-001.png", function() {
+                testImgDiff("text-decoration-color-001.png", "text-decoration-color-001_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</html>

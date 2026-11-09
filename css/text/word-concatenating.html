@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<style>
+  * {
+    font-family: Ahem;
+  }
+</style>
+<!-- issue1 -->
+<div style="width:5em;">XX<span>XXXXX</span></div>
+<!-- issue2 -->
+<div>
+  <div style="display:inline-block">XXXXXX  XXX</div>
+</div>
+<div>
+  <div style="display:inline-block;white-space:nowrap;">XXXXXX  XXX</div>
+</div>
+<div>
+  <div style="display:inline-block;">XXXXXX<span>XXX</span></div>
+</div>
+<script>
+  function testStart() {
+    screenShot("word-concatenating.png", function () {
+      testImgDiff("word-concatenating.png", "word-concatenating_expected.png");
+      testEnd();
+    });
+  }
+</script>
+</html>

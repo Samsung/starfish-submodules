@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+    <div>
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="background-color: gray;">
+            <defs>
+                <linearGradient id="linear0" x1="0%" x2="100%" y1="0%" y2="0%">
+                    <stop offset="0%" stop-color="yellow" />
+                    <stop offset="100%" stop-color="red" />
+                </linearGradient>
+            </defs>
+            <g>
+                <g>
+                    <path stroke="url(#linear0)" stroke-width="16" d="M 20 20 L 100 20 L 100 100 L 20 100 L 20 20" fill="none"></path>
+                    <path stroke="url(#linear0)" stroke-width="16" d="M 120 20 L 200 20 L 200 100 L 120 100 L 120 20" ></path>
+                </g>
+            </g>
+        </svg>
+    </div>
+</body>
+<script>
+    function testStart() {
+        screenShot("svg_stroke_gradient01.png", function () {
+            testImgDiff("svg_stroke_gradient01.png", "svg_stroke_gradient01_expected.png");
+            testEnd();
+        });
+    }
+</script>
+</html>

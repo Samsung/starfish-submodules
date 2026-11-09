@@ -1,0 +1,33 @@
+<div id="a">
+  <div id="b">
+  </div>
+</div>
+<style>
+div {
+width: 100px;
+height: 100px;
+}
+
+#a {
+background: red;
+opacity: 0.5;
+transform: translateZ(0)
+}
+
+#b {
+background: blue;
+opacity: 0.5;
+transform: translateZ(0) translateX(100px);
+}
+
+</style>
+<script>
+
+function testStart() {
+    screenShot("3d-layer-overlapped.png", function() {
+         testImgDiff("3d-layer-overlapped.png", "3d-layer-overlapped_expected.png");
+         testEnd();
+    });
+}
+
+</script>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<style>
+  body {
+    margin: 0px;
+    color: #fff;
+    background-color: #444;
+    overflow: hidden;
+  }
+  #c {
+    width: 400px;
+    height: 400px;
+  }
+</style>
+<html>
+<canvas id='c'></canvas>
+<script>
+  let c = document.getElementById('c');
+  let gl = c.getContext('webgl');
+  let red = 0.941176, green = 0.941176, blue = 1, alpha = 1;
+  gl.clearColor(red, green, blue, alpha);
+  gl.clearDepth(1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+</script>
+
+</html>

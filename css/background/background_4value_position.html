@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        .background_1_star {
+            border: 1px black solid;
+            width: 250px;
+            height: 250px;
+            background-image: url(./star.png);
+            background-position: left 25px top 25%;
+            background-repeat: no-repeat;
+            margin: 10px;
+            float: left;
+        }
+
+        .background_2_star {
+            border: 1px black solid;
+            width: 250px;
+            height: 250px;
+            background-image: url(./star.png), url(./star.png);
+            background-position: left 25px top 25%, right 25px bottom 25%;
+            background-repeat: no-repeat, no-repeat;
+            margin: 10px;
+            float: left;
+        }
+
+        .background_3_star {
+            border: 1px black solid;
+            width: 250px;
+            height: 250px;
+            background-image: url(./star.png), url(./star.png), url(./star.png);
+            background-position: left calc(25px) top 10%, right 25px top calc(10%), right calc(50%) bottom calc(25%);
+            background-repeat: no-repeat, no-repeat, no-repeat;
+            margin: 10px;
+            clear: left;
+            float: left;
+        }
+
+        .background_4_star {
+            border: 1px black solid;
+            width: 250px;
+            height: 250px;
+            background-image: url(./star.png), url(./star.png), url(./star.png), url(./star.png);
+            background-position: left calc(25px) top 10%, right 25px top calc(10%), left calc(25px) bottom calc(25%), right calc(25px) bottom calc(25%);
+            background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+            margin: 10px;
+            float: left;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="background_1_star"></div>
+    <div class="background_2_star"></div>
+    <div class="background_3_star"></div>
+    <div class="background_4_star"></div>
+</body>
+<script>
+    function testStart() {
+        screenShot("background_4value_position.png", function () {
+            testImgDiff("background_4value_position.png", "background_4value_position_expected.png");
+            testEnd();
+        });
+
+    }
+</script>
+
+</html>

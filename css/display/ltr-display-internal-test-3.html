@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<script src="../framework.js"></script>
+<style>
+  .outer {
+    background-color: gray;
+    width: 500px;
+    height: 400px;
+  }
+
+  .inner {
+    background-color: pink;
+    width: 100px;
+    height: 100px;
+  }
+
+  .inner2 {
+    background-color: green;
+    width: 100px;
+    height: 100px;
+  }
+
+  .inner3 {
+    background-color: skyblue;
+    width: 100px;
+    height: 100px;
+  }
+
+  .inner4 {
+    background-color: purple;
+    width: 100px;
+    height: 100px;
+  }
+</style>
+
+<body>
+  body
+  <div class="outer">
+    outer
+    <div class="inner">
+        inner1
+    </div>
+    outer2
+    <div class="inner2">
+        inner2
+        <div class="inner3">
+            inner3
+        </div>
+        inner22
+    </div>
+    outer3
+    <div class="inner4">
+        inner4
+    </div>
+    outer4
+  </div>
+  body2
+</body>
+
+<script>
+  var cssKeyValues = {
+    display: ["block", "inline", "inline-block", "none"]
+  };
+
+  var outerDiv = new Div("outer");
+  var innerDiv = new Div("inner");
+  var inner2Div = new Div("inner2");
+  var inner3Div = new Div("inner3");
+  var inner4Div = new Div("inner4");
+  var divs = [innerDiv, inner2Div, inner3Div, inner4Div];
+  var bugs = [];
+
+  function init(ltr) {
+    if (ltr) {
+      outerDiv.changeStyle("direction", "ltr");
+    } else {
+      outerDiv.changeStyle("direction", "rtl");
+    }
+    outerDiv.changeStyle("display", "inline-block");
+    innerDiv.changeStyle("display", "block");
+    inner2Div.changeStyle("display", "block");
+    inner3Div.changeStyle("display", "block");
+    inner4Div.changeStyle("display", "block");
+  }
+
+  function testStart() {
+    var stepper = Stepper("stepper", divs, "display", cssKeyValues.display);
+
+    function iterate(ltr) {
+      outerDiv.elems[0].offsetHeight;
+      var names = name(divs, function (divs, styles) {
+        styles.push(outerDiv.elems[0].style.direction);
+        styles.push(outerDiv.elems[0].style.display);
+
+        divs.forEach(function(div) {
+          styles.push(div.elems[0].style.display);
+        });
+      });
+      console.log("img : " + names.img);
+      screenShot(names.img, function () {
+        testImgDiff(names.img, names.expectedImg);
+
+        if (stepper.finished()) {
+          testEnd();
+        } else {
+          do {
+            stepper.step();
+            if (stepper.finished()) {
+              testEnd();
+            }
+          } while (canSkip(divs, bugs));
+
+          iterate(ltr);
+        }
+      });
+    }
+
+    init(true);
+    iterate(true);
+  }
+</script>
+</html>

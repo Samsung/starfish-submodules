@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        .margin1.margin2 {
+            float: left;
+            margin-inline-end: 0px;
+            margin-inline-start: 50px;
+            background-color: blue;
+        }
+
+        .margin1.margin3 {
+            margin-left: 50px;
+            margin-right: 50px;
+            margin-inline-start: 0px;
+            margin-inline-end: 50px;
+            background-color: yellow;
+        }
+
+        .content {
+            width: 100px;
+            height: 50px;
+            background-color: green;
+        }
+    </style>
+</head>
+
+<body>
+    <div style="float: left;">
+        <div class="margin1 margin2 margin3">
+            <div class="content"></div>
+        </div>
+        <div class="margin1 margin2">
+            <div class="content"></div>
+        </div>
+    </div>
+    <script>
+        function testStart() {
+            screenShot("margin_with_direction-aware.png", function () {
+                testImgDiff("margin_with_direction-aware.png", "margin_with_direction-aware_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</body>
+
+</html>

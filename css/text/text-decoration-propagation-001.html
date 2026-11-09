@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            p { text-decoration: underline; }
+            span { text-decoration: line-through; }
+            div { text-decoration: line-through; }
+            .ib { display: inline-block; }
+        </style>
+    </head>
+    <body>
+        <p>This text has <span>some inline-level children</span> in it.</p>
+        <p>This text has <span class="ib">some inline-block-level children</span> in it.</p>
+        <p>This text has <div>some block-level children</div> in it.</p>
+    </body>
+    <script type="text/javascript">
+        // Capture the screen
+        function testStart() {
+            screenShot("text-decoration-propagation-001.png", function() {
+                testImgDiff("text-decoration-propagation-001.png", "text-decoration-propagation-001_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</html>

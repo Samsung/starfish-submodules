@@ -1,0 +1,30 @@
+<html>
+<meta name="pixel-test">
+<body>
+    <svg width="800" height="600">
+        <defs>
+            <linearGradient id="grad1" x1="0%" x2="100%" y1="0%" y2="50%">
+                <stop offset="0%" stop-color="yellow" />
+                <stop offset="100%" stop-color="red" />
+              </linearGradient>
+            <g id="svgmask1_1">
+                <path id="svgmask1_2" stroke="url(#grad1)" stroke-width="50px"
+                    d="M 20 20 L 120 20 L 120 120 L 20 120 L 20 20" ></path>
+            </g>
+            <mask id="svgmask1" mask-type="alpha">
+                <use href="#svgmask1_1"></use>
+            </mask>
+        </defs>
+        <rect width="500" height="500" style="fill:rgb(100,100,255);" mask="url(#svgmask1)"/>
+    </svg>
+</body>
+<script>
+    function testStart() {
+        screenShot("svg_mask_03.png", function () {
+            testImgDiff("svg_mask_03.png", "svg_mask_03_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+</html>

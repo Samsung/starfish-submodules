@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<style type="text/css">
+    #outer {
+        font-family: ahem;
+        border: 3px solid blue;
+    }
+</style>
+
+<body>
+    <span id="outer">
+        aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    </span>
+</body>
+
+<script>
+  function testStart() {
+    screenShot("next-line-dont-show-end-mbp.png", function () {
+      testImgDiff("next-line-dont-show-end-mbp.png", "next-line-dont-show-end-mbp_expected.png");
+      testEnd();
+    });
+  }
+</script>
+</html>

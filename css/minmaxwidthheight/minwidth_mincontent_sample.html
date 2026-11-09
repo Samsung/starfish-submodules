@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    font-family: StarfishAhem;
+    flex-direction: column;
+    align-items: center;
+  }
+
+
+  .example-container {
+    border: 2px solid black;
+    padding: 15px;
+    width: 400px;
+  }
+
+  /* Flex container for the items */
+  .flex-container {
+    display: flex;
+    border: 1px dashed white;
+    padding: 10px;
+    justify-content: flex-start; /* Align items to the start */
+  }
+
+  /* Flex items with different min-width properties */
+  .flex-item {
+    padding: 20px;
+    border: 1px solid blue;
+    background-color: red;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: blue;
+    overflow-x: hidden;
+  }
+
+  .item-min-content {
+    min-width: min-content;
+  }
+
+</style>
+</head>
+<body>
+  <div class="example-container">
+    <div class="flex-container item-min-content">
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+    </div>
+    <div class="flex-container item-min-content">
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+    </div>
+    <div class="flex-container item-min-content">
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-container">
+    <div class="flex-container">
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+    </div>
+    <div class="flex-container">
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+    </div>
+    <div class="flex-container">
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+      <div class="flex-item">
+        <span>XXXXX</span>
+      </div>
+    </div>
+  </div>
+  <script>
+    function testStart() {
+      screenShot("minwidth_mincontent_sample.png", function () {
+        testImgDiff("minwidth_mincontent_sample.png", "minwidth_mincontent_sample_expected.png");
+        testEnd();
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="pixel-test">
+        <style>
+            span { color: blue; }
+        </style>
+    </head>
+    <body>
+        <span>
+            This is styled dynamically via JavaScript.
+        </span>
+    </body>
+    <script type="text/javascript">
+        var styles = document.getElementsByTagName("style");
+        for (var i = 0; i < styles.length; i++)
+            styles[i].parentElement.removeChild(styles[i]);
+
+        // Capture the screen
+        function testStart() {
+            screenShot("style-tag-remove.png", function() {
+                testImgDiff("style-tag-remove.png", "style-tag-remove_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</html>

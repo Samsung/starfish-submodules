@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+  <meta name="pixel-test">
+  <meta charset="UTF-8">
+</head>
+<body>
+  <svg style="margin:100px; border:black 1px solid; background-color: yellow;" id="s1">
+    <defs>
+      <linearGradient id="bl-g" x1="0%" y1="100%" x2="100%" y2="100%" id="l1">
+        <stop offset="0%" stop-color="#ffffff" />
+        <stop offset="100%" stop-color="#004d80" />
+      </linearGradient>
+    </defs>
+    <rect fill="url(#bl-g)" x="0" y="0" width="100" height="100" transform="rotate(45 50 50)" id="r1" />
+  </svg>
+</body>
+<script>
+  function testStart() {
+    screenShot("svg_transform_rotate.png", function () {
+      testImgDiff("svg_transform_rotate.png", "svg_transform_rotate_expected.png");
+      testEnd();
+    });
+  }
+</script>
+
+</html>

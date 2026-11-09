@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<style>
+    body {
+	background-color: yellow;
+    }
+
+    #origin {
+	color: red;
+    }
+
+</style>
+<body>
+<div id="origin"> the color of this sentence will be changed. </div>
+</body>
+<script>
+    if (window.screenShot) {
+    function testStart() {
+        screenShot("color_change.png", function () {
+            testImgDiff("color_change.png","color_change_expected.png");
+
+            document.getElementById("origin").style['color'] = 'pink';
+
+            screenShot("color_change_after.png", function () {
+                testImgDiff("color_change_after.png","color_change_after_expected.png");
+                testEnd(); 
+            })
+        })
+    }
+    } else {
+        document.getElementById("origin").style['color'] = 'pink';
+    }
+</script>
+
+</html>

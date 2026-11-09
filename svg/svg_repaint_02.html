@@ -1,0 +1,36 @@
+<style>
+* { margin: 0 }
+</style>
+
+<svg viewBox="0 0 300 200" width="800" height="400" style="background:red" id="svgsvg">
+  <rect width="100%" height="10">
+  </rect>
+  <g id="g1" transform="translate(100 0)">
+    <path d="M100,100 L200,100 L200,200 L100,200z"></path>
+  </g>
+  <g id="g2">
+    <path d="M100,100 L200,100 L200,200 L100,200z"></path>
+  </g>
+</svg>
+
+<script>
+var target = g1;
+
+screenShot("svg_repaint_02_01.png", function () {
+  testImgDiff("svg_repaint_02_01.png", "svg_repaint_02_01_expected.png");
+  svgsvg.removeChild(target)
+
+  screenShot("svg_repaint_02_02.png", function () {
+    testImgDiff("svg_repaint_02_02.png", "svg_repaint_02_02_expected.png");
+    svgsvg.insertBefore(target, g2)
+
+    screenShot("svg_repaint_02_03.png", function () {
+      testImgDiff("svg_repaint_02_03.png", "svg_repaint_02_03_expected.png");
+      testEnd();
+    });
+  });
+
+});
+
+
+</script>

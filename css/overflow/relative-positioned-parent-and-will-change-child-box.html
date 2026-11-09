@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+ </head>
+ <body>
+	  <div id="container2" style="width:305px; height:456px; overflow:hidden;">
+		  <div id="container3" style="background-color:red; position:relative; width:100%; height:100%; ">
+			<div id="c1" style="background-color:orange; position:absolute; width:335px; height:100%; ">
+			</div>
+			<div id="c2" style="background-color:yellow; position:absolute; width:335px; height:100%; transform:translate(30%, 0px);">
+			</div>
+			<div id="c3" style="background-color:blue; position:absolute; width:335px; height:100%; transform:translate(60%, 0px); will-change:transform;">
+			</div>
+		  </div>
+	  </div>
+ </body>
+ <script>
+  function testStart() {
+    screenShot("relative-positioned-parent-and-will-change-child-box.png", function () {
+      testImgDiff("relative-positioned-parent-and-will-change-child-box.png", "relative-positioned-parent-and-will-change-child-box_expected.png");
+      testEnd();
+    });
+  }
+</script>
+
+</html>
+

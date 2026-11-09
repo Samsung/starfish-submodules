@@ -1,0 +1,49 @@
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+* { margin: 0; line-height: 0 }
+</style>
+</head><body>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="offset" width="200" height="200">
+      <feOffset in="SourceGraphic" dx="50" dy="50" />
+    </filter>
+  </defs>
+
+  <rect x="0" y="0" width="200" height="200" stroke="black" fill="gray" />
+  <rect
+    x="0"
+    y="0"
+    width="100"
+    height="100"
+    stroke="black"
+    fill="green"
+    filter="url(#offset)" />
+</svg><br><svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="offset2" width="200" height="200" primitiveUnits="objectBoundingBox">
+      <feOffset in="SourceGraphic" dx="0.5" dy="0.5" />
+    </filter>
+  </defs>
+
+  <rect x="0" y="0" width="200" height="200" stroke="black" fill="gray" />
+<g filter="url(#offset2)" >
+  <rect
+    x="0"
+    y="0"
+    width="100"
+    height="100"
+    stroke="black"
+    fill="green"
+    />
+</g>
+</svg>
+<script>
+    function testStart() {
+        screenShot("svg_fe_offset_01.png", function () {
+            testImgDiff("svg_fe_offset_01.png", "svg_fe_offset_01_expected.png");
+            testEnd();
+        });
+    }
+</script>

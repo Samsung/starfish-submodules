@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="pixel-test">
+  <style>
+    * {
+      font-family: Ahem;
+    }
+
+    .grid_container {
+      display: grid;
+    }
+
+    .flex_container {
+      display: flex;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grid_container">
+    <div class="flex_container">
+      Some text hello world
+    </div>
+    <div>
+      Some text hello world
+    </div>
+  </div>
+</body>
+<script>
+  function testStart() {
+    screenShot("gridbox_child_flexbox_simple.png", function () {
+      testImgDiff("gridbox_child_flexbox_simple.png", "gridbox_child_flexbox_simple_expected.png");
+      testEnd();
+    });
+  }
+</script>
+
+</html>

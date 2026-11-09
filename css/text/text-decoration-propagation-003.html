@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!-- Adapted from Mozilla's layout/reftests/text-decoration/decoration-css21-block.html
+     (https://searchfox.org/mozilla-central/source/layout/reftests/text-decoration/decoration-css21-block.html).
+     This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
+<html>
+    <head>
+        <style>
+            .high { vertical-align: 5em; }
+            .invisible { color: transparent; }
+        </style>
+    </head>
+    <body>
+        <div style="text-decoration: underline;">
+            underline<span class="invisible high">continued<span class="invisible high">continued</span></span><br>
+            also underlined
+        </div>
+    </body>
+    <script type="text/javascript">
+        // Capture the screen
+        function testStart() {
+            screenShot("text-decoration-propagation-003.png", function() {
+                testImgDiff("text-decoration-propagation-003.png", "text-decoration-propagation-003_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</html>

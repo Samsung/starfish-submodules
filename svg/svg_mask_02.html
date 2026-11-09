@@ -1,0 +1,29 @@
+<html>
+<meta name="pixel-test">
+<body>
+    <svg width="800" height="600">
+        <defs>
+            <g id="svgmask1_1">
+                <circle fill="blue" cx="50" cy="200" r="35"></circle>
+                <path id="svgmask1_2" stroke="white" stroke-width="4"
+                    d="M 20 20 L 120 20 L 120 120 L 20 120 L 20 20" fill="blue"></path>
+                <path stroke="blue" stroke-width="4"
+                    d="M 170 20 L 270 20 L 270 120 L 170 120 L 170 20" fill="none"></path>
+            </g>
+            <mask id="svgmask1" mask-type="alpha">
+                <use href="#svgmask1_1"></use>
+            </mask>
+        </defs>
+        <rect width="350" height="350" style="fill:rgb(0,0,255);" mask="url(#svgmask1)" />
+    </svg>
+</body>
+<script>
+    function testStart() {
+        screenShot("svg_mask_02.png", function () {
+            testImgDiff("svg_mask_02.png", "svg_mask_02_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+</html>

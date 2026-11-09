@@ -1,0 +1,33 @@
+<html lang="en"><head></head><body>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>      body {
+        padding: 0;
+        margin: 0;
+      }
+
+    </style>
+
+    
+  
+<svg viewBox="0 0 6 6" xmlns="http://www.w3.org/2000/svg" width="800" height="600">
+  <line x1="1" y1="1" x2="5" y2="1" stroke="black" stroke-linecap="butt" />
+  <line x1="1" y1="3" x2="5" y2="3" stroke="black" stroke-linecap="round" />
+  <line x1="1" y1="5" x2="5" y2="5" stroke="black" stroke-linecap="square" />
+  <path d="M1,1 h4 M1,3 h4 M1,5 h4" stroke="pink" stroke-width="0.025" />
+</svg>  
+
+<script>
+
+  function testStart() {
+    screenShot("svg_stroke_linecap_01.png", function() {
+      testImgDiff("svg_stroke_linecap_01.png", "svg_stroke_linecap_01_expected.png");
+      testEnd();
+    });
+  }
+
+</script>
+  
+  
+
+</body></html>

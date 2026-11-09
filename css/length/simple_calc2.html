@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="pixel-test">
+  <style>
+    .container {
+      width: calc(100px + (15px + (100px + 20vw)));
+      height: calc(10vw / 2 + 10vh / 5   + 50px);
+      background: blue;
+    }
+
+    .item {
+      width: calc((100px + 5%) * 2);
+      height: calc(100px * 3 + 20% / 2);
+      background: red;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="item"></div>
+  </div>
+</body>
+<script>
+console.log(document.styleSheets[0].rules[0].style.width)
+testAssert(document.styleSheets[0].rules[0].style.width == "calc(100px + (15px + (100px + 20vw)))")
+
+  function testStart() {
+    screenShot("simple_calc2.png", function () {
+      testImgDiff("simple_calc2.png", "simple_calc2_expected.png");
+      testEnd();
+    });
+  }
+
+</script>
+</html>

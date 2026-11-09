@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        html, body {                        
+            width: 800px;
+            height: 600px; 
+            font-family: StarfishAhem;           
+            font-size: 30px;
+            color: #fafafa;
+            background-color: rgba(17, 45, 70, 0.98);
+            margin: 0;
+        }
+        
+        .device {
+            overflow: hidden;
+        }
+
+        #root {
+            overflow-x: auto;
+            overflow-y: visible;            
+            min-height: 0;
+            width: 100%;            
+            height: 400px;
+            position: absolute;            
+            z-index: 1;            
+            opacity: 1;            
+            will-change: opacity, height, top;
+            transition: opacity 583ms cubic-bezier(0.3, 0, 0.4, 1);            
+            background-color: white;
+        }
+        
+        .container {
+            left: 200px;
+            right: 200px;
+            bottom: 100px;
+            transition: opacity 583ms cubic-bezier(0.3, 0, 0.4, 1);
+            z-index: 11;
+            position: fixed;
+            height: 40px;            
+        }
+
+        .parent {
+            transition: opacity 583ms cubic-bezier(0.3, 0, 0.4, 1);
+            will-change: opacity;
+            position: absolute;
+            display: flex;            
+        }
+
+        .first {
+            width: 24px;
+            height: 24px;
+            margin-right: 8px;
+            box-sizing: border-box;
+        }
+        .second {
+            width: 24px;
+            height: 24px;
+            margin-left: 8px;
+            box-sizing: border-box;
+        }
+        .device * {
+            outline: none;
+        }
+    </style>
+</head>
+<body class="device">
+    <div id="root">
+        <div class="container">
+            <div class="parent">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAL0lEQVR42mNgGAXDHjBiE/z//38DWYYxMmLoY6K1D0YtGLVg1IJRCwaDBaNgBAAA3X8EHOohG3QAAAAASUVORK5CYII=" class="first">Note A background<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAVklEQVR42u2TOw4AIAhDSU/uzXE34RsUB7pSsI8g0Wh0iplXxI/M8MgjuE2M7Gq8FH8QSGk9FP0EVkqrjoqb13x9K4r+WMnfQxBNr/W9J8imr+of1WsDO947av0jaiIAAAAASUVORK5CYII=" class="second">
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+        function testStart() {
+          screenShot("fixed-positioned-parent-box-and-will-change-child-box.png", function () {
+            testImgDiff("fixed-positioned-parent-box-and-will-change-child-box.png", "fixed-positioned-parent-box-and-will-change-child-box_expected.png");
+            testEnd();
+          });
+        }
+      </script>
+</html>

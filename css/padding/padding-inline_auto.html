@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        .container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .item1 {
+            width: fit-content;
+            padding-left: auto;
+            padding-right: 20px;
+            background-color: red;
+        }
+
+        .item2 {
+            width: fit-content;
+            padding-inline-start: auto;
+            padding-right: 20px;
+            background-color: yellow;
+        }
+
+        .item3 {
+            width: fit-content;
+            padding-inline-start: auto;
+            padding-inline-end: 20px;
+            background-color: blue;
+        }
+
+        .itemChild {
+            width: 100px;
+            height: 100px;
+            background-color: black;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div>
+            <div class="item1">
+                <div class="itemChild"></div>
+            </div>
+            <div class="item2">
+                <div class="itemChild"></div>
+            </div>
+            <div class="item3">
+                <div class="itemChild"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function testStart() {
+            screenShot("padding-inline_auto.png", function () {
+                testImgDiff("padding-inline_auto.png", "padding-inline_auto_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</body>
+
+</html>

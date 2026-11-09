@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<style>
+		.wrapper_inlineBlock {
+			display: inline-block;
+background: green;
+		}
+
+.wrapper_inlineBlock > div {
+background: yellow
+}
+
+		.plus_text {
+			margin-top: 20px;
+			position: relative;
+		}
+
+		.plus_text:active {
+			color: gray;
+		}
+
+		.effect {
+			display: none;
+			position: absolute;
+		}
+#box {
+background: red;
+}
+	</style>
+</head>
+
+<body>
+	<div id="box">
+		<div class="wrapper_inlineBlock">
+			<div>
+				<div class="plus_text" id="target"> &nbsp; </div>
+				<div class="effect">
+					<img>
+				</div>
+			</div>
+		</div>
+&nbsp;
+		<div class="wrapper_inlineBlock">
+			<div>
+				<div class="plus_text"> &nbsp; </div>
+				<div class="effect">
+					<img>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+<script>
+target.click();
+screenShot("inlineblock_ascender.html.png", function() {
+    testImgDiff("inlineblock_ascender.html.png", "inlineblock_ascender.html_excepted.png");
+    testEnd();
+});
+
+</script>
+
+</html>

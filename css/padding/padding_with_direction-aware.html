@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        .padding1.padding2 {
+            float: left;
+            padding-inline-end: 100px;
+            padding-inline-start: 100px;
+            padding: 0px;
+            background-color: blue;
+        }
+
+        .padding1.padding3 {
+            padding: 0px;
+            padding-inline-start: 25px;
+            padding-inline-end: 50px;
+            background-color: yellow;
+        }
+
+        .content {
+            width: 100px;
+            height: 50px;
+            background-color: green;
+        }
+    </style>
+</head>
+
+<body>
+    <div style="float: left;">
+        <div class="padding1 padding2">
+            <div class="content"></div>
+        </div>
+        <div class="padding1 padding2 padding3">
+            <div class="content"></div>
+        </div>
+    </div>
+    <script>
+        function testStart() {
+            screenShot("padding_with_direction-aware.png", function () {
+                testImgDiff("padding_with_direction-aware.png", "padding_with_direction-aware_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</body>
+
+</html>

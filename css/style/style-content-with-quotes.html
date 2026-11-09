@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+a::after {
+    content: "(" attr(href) ")";
+}
+</style>
+</head>
+<body style="font-family: StarfishAhem">
+<h1>Six harbour Samplers</h1>
+<p>Six harbour preprint on blue at golden mountains harvest.</p>
+<p>Some do one:</p>
+<p>
+<a href="AAA">A</a><br>
+<a href="BBB">B</a>
+</p>
+    <script type="text/javascript">
+        // Capture the screen
+        function testStart() {
+            screenShot("style-content-with-quotes.png", function() {
+                testImgDiff("style-content-with-quotes.png", "style-content-with-quotes_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</body>
+</html>

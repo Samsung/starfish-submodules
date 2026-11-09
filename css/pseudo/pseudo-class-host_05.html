@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+</head>
+
+<body id="body01">
+    <div id="shadowRoot" attrTest="true" onclick="handleOnClick(event)"></div>
+    <script>
+        window.addEventListener("DOMContentLoaded", () => {
+            const shadowStyle = document.createElement("style");
+            const shadow = shadowRoot.attachShadow({
+                mode: "open"
+            });
+            const container = document.createElement("div");
+            const child = document.createElement("div");
+            container.id = 'container';
+            child.id = 'child';
+            child.className = 'testClass';
+
+            shadowStyle.textContent = `
+                :host {
+                    background-color: red;
+                    width: 600px; height: 300px;
+                }
+                :host([attrTest="true"]) {
+                    background-color: green;
+                    width: 600px; height: 300px;
+                }
+                :host > #container {
+                    background-color: blue;
+                    width: 400px; height: 300px;
+                }
+                .testClass {
+                    background-color: yellow
+                }
+            `;
+
+            shadow.appendChild(shadowStyle);
+            container.appendChild(child);
+            shadow.appendChild(container);
+        });
+        let toogleValue = "false"
+        setTimeout(() => {
+            shadowRoot.setAttribute('attrTest', "false");
+            setTimeout(() => {
+                screenShot("pseudo-class-host_05.png", function () {
+                    testImgDiff("pseudo-class-host_05.png",
+                    "pseudo-class-host_05_expected.png");
+                    testEnd();
+                });
+            }, 1000)
+        }, 1000);
+    </script>
+
+</html>

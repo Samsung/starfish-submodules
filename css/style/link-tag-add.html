@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="pixel-test">
+    </head>
+    <body>
+        <span>
+            This is styled dynamically via JavaScript.
+        </span>
+    </body>
+    <script type="text/javascript">
+        var linkNode = document.createElement("link");
+        linkNode.rel = "stylesheet"
+        linkNode.href = "resources/style.css"
+        linkNode.type = "text/css";
+        document.getElementsByTagName("head")[0].appendChild(linkNode);
+
+        // Capture the screen
+        function testStart() {
+            screenShot("link-tag-add.png", function() {
+                testImgDiff("link-tag-add.png", "link-tag-add_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</html>

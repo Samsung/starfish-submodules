@@ -1,0 +1,38 @@
+<html><head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+</head><body style="margin:0">
+
+<svg viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="500" height="500" style="background:red">
+  <defs>
+    <linearGradient id="myGradient">
+      <stop offset="0%" stop-color="blue"></stop>
+      <stop offset="100%" stop-color="blue"></stop>
+    </linearGradient>
+    <linearGradient id="myGradient2">
+      <stop offset="0%" stop-color="white"></stop>
+      <stop offset="100%" stop-color="white"></stop>
+    </linearGradient>
+    <mask id="mask">
+        <rect fill="url(#myGradient2)" fill-opacity="0.5" width="10" height="10"/>
+    </mask>
+  </defs>
+
+  <rect x="0" y="0" width="2" height="2" fill-opacity="0.5" fill="blue"></rect>
+  <rect x="2" y="0" width="2" height="2" fill-opacity="0.5" fill="url(#myGradient)"></rect>
+  <rect x="4" y="0" width="2" height="2" fill="url(#myGradient)" mask="url(#mask)"></rect>
+
+</svg>
+
+<script>
+function testStart() {
+    screenShot("svg_fill_opacity_01.png", function () {
+        testImgDiff("svg_fill_opacity_01.png", "svg_fill_opacity_01_expected.png");
+        testEnd();
+    });
+}
+</script>
+
+</body></html>
+

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<html style="width: 100%;height: 100%">
+    <body style="margin-top:0px;margin-left: 0px;margin-right: 0px;margin-bottom: 0px;">
+        <div style="width:800px;height:600px;background-color:#333" id="sample">
+            <svg viewBox="0 0 800 300" preserveAspectRatio="xMidYMid meet" style="width: 100%; height:100%;">
+                <defs>
+                    <mask id="alpha-mask" mask-type="alpha">
+                        <g>
+                            <path stroke="rgb(255,255,255)" stroke-width="30" d="M 1.666 194.976 C 1.666 194.976 1918.336 194.901 1918.336 194.901"></path>
+                        </g>
+                    </mask>
+                </defs>
+                    <g id="test0" mask="url(#alpha-mask)" style="display: block;">
+                        <path id="test1" fill="red" d="M 360 195.25 M 360 -139.75 C 544.8865 -139.75 695 10.3635 695 195.25 C 695 380.1365 544.8865 530.25 360 530.25 C 175.1135 530.25 25 380.1365 25 195.25 C 25 10.3635 175.1135 -139.75 360 -139.75 z"></path>
+                    </g>
+            </svg>
+        </div>
+<script>
+    function testStart() {
+        screenShot("svg_mask_09.png", function () {
+            testImgDiff("svg_mask_09.png", "svg_mask_09_expected.png");
+            testEnd();
+        });
+    }
+</script>
+    </body>
+</html>
+
+
+</body></html>

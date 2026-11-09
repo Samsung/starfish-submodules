@@ -1,0 +1,21 @@
+<html>
+<head>
+<meta name="pixel-test">
+<style>
+* {
+  font-family: Ahem;
+}
+</style>
+</head>
+<body>
+    <img src="search_icon.svg">
+</body>
+<script>
+  function testStart() {
+    screenShot("search_icon.png", function() {
+      testImgDiff("search_icon.png", "search_icon_expected.png");
+      testEnd();
+    });
+  }
+</script>
+</html>

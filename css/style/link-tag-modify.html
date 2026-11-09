@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="pixel-test">
+        <link rel="stylesheet" href="resources/style.css" type="text/css">
+    </head>
+    <body>
+        <span>
+            This is styled dynamically via JavaScript.
+        </span>
+    </body>
+    <script type="text/javascript">
+        var links = document.getElementsByTagName("link");
+        for (var i = 0; i < links.length; i++)
+            links[i].href = "resources/style_new.css";
+
+        // Capture the screen
+        function testStart() {
+            screenShot("link-tag-modify.png", function() {
+                testImgDiff("link-tag-modify.png", "link-tag-modify_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</html>

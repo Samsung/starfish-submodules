@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta name="pixel-test">
+</head>
+<body class="green">
+    Testing storage
+    <div id="main">
+    </div>
+</body>
+
+<script type="text/javascript">
+<!--
+var elem = document.getElementById("main");
+
+elem.innerHTML += "Testing local storage<br>";
+elem.innerHTML += window.localStorage.length + "<br>";
+
+window.localStorage.setItem("key1", "value1");
+elem.innerHTML += window.localStorage.length + "<br>";
+window.localStorage.setItem("key2", "value2");
+elem.innerHTML += window.localStorage.length + "<br>";
+window.localStorage.setItem("key1", "value1");
+elem.innerHTML += window.localStorage.length + "<br>";
+
+window.localStorage.removeItem("key1");
+window.localStorage.removeItem("key2");
+elem.innerHTML += window.localStorage.length + "<br>";
+
+elem.innerHTML += "Testing session storage<br>";
+
+elem.innerHTML += window.sessionStorage.length + "<br>";
+window.sessionStorage.setItem("key1", "value1");
+elem.innerHTML += window.sessionStorage.length + "<br>";
+window.sessionStorage.setItem("key2", "value2");
+elem.innerHTML += window.sessionStorage.length + "<br>";
+elem.innerHTML += window.sessionStorage.getItem("key1")+"<br>";
+window.sessionStorage.removeItem("key1");
+window.sessionStorage.removeItem("key2");
+elem.innerHTML += window.sessionStorage.length + "<br>";
+
+console.log("Success!");
+-->
+
+function testStart() {
+    screenShot("storage_01.png", function () {
+      testImgDiff("storage_01.png", "storage_01_expected.png");
+      testEnd();
+    });
+}
+</script>
+
+</html>

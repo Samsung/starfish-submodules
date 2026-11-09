@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<script src="../framework.js"></script>
+<style>
+  .outer {
+    background-color: gray;
+    float: left;
+    border: 2px solid black;
+    width: 240px;
+  }
+
+  .outer2 {
+    background-color: skyblue;
+    float: right;
+    border: 2px solid black;
+    overflow: hidden;
+    width: auto;
+  }
+
+  .left {
+    background-color: teal;
+    float:left;
+    width: auto;
+    height: 100px;
+  }
+
+  .left2 {
+    background-color: yellow;
+    float:left;
+    width: auto;
+    height: 200px;
+  }
+
+  .right {
+    background-color: red;
+    float:right;
+    width: auto;
+    height: 120px;
+  }
+
+  .right2 {
+    background-color: blue;
+    float:right;
+    width: auto;
+    height: 150px;
+  }
+</style>
+
+<body>
+  <div class="outer">
+    outer
+    <div class="left">
+      left
+    </div>
+    <div class="right">
+      right
+    </div>
+    <div class="right2">
+      right2
+    </div>
+    outer2 outer3outer4
+  </div>
+  <div class="outer2">
+    outer5
+    <div class="left">
+      left2
+    </div>
+    ou
+    <div class="right2">
+      right3
+    </div>
+    ter outer6
+    <div class="right">
+      right4
+    </div>
+    outer7
+    <div class="right2">
+      right5
+    </div>
+    outer8
+  </div>
+  <div class="outer">
+    outer9
+    <div class="left">
+      left3
+    </div>
+    <div class="right">
+      right6
+    </div>
+    <div class="right">
+      right7
+    </div>
+    outer10
+  </div>
+</body>
+
+<script>
+  var cssKeyValues = {
+    width: ["120px", "200px", "400px", "auto"],
+    overflow: ["hidden"]
+  };
+
+  var outer2Div = new Div("outer2");
+  var divs = [outer2Div];
+  var bugs = [];
+
+  function init(ltr) {
+    if (ltr) {
+      outer2Div.changeStyle("direction", "ltr");
+    } else {
+      outer2Div.changeStyle("direction", "rtl");
+    }
+    outer2Div.changeStyle("width", "120px");
+    outer2Div.changeStyle("overflow", "hidden");
+  }
+
+  function testStart() {
+    var stepper2 = Stepper("stepper2", divs, "width", cssKeyValues.width);
+    var stepper = Stepper("stepper", divs, "overflow", cssKeyValues.overflow, stepper2);
+
+    function iterate(ltr) {
+      outer2Div.elems[0].offsetHeight;
+      var names = name(divs, function (divs, styles) {
+        styles.push("8");
+        divs.forEach(function(div) {
+          styles.push(div.elems[0].style.overflow);
+          styles.push(div.elems[0].style.width);
+        });
+      });
+      console.log("img : " + names.img);
+      screenShot(names.img, function () {
+        testImgDiff(names.img, names.expectedImg);
+
+        if (stepper.finished()) {
+          testEnd();
+        } else {
+          do {
+            stepper.step();
+            if (stepper.finished()) {
+              iterate(ltr);
+              return;
+            }
+          } while (canSkip(divs, bugs));
+
+          iterate(ltr);
+        }
+      });
+    }
+
+    init(true);
+    iterate(true);
+  }
+</script>
+</html>

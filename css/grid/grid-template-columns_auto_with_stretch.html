@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta name="pixel-test">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            font-family: StarfishAhem;
+        }
+
+        .gridBox {
+            width: 500px;
+            background-color: yellow;
+            display: grid;
+            grid-template-columns: auto 50px;
+        }
+
+        .item1 {
+            background-color: yellowgreen;
+        }
+
+        .item1-1 {
+            background-color: salmon;
+        }
+
+        .item2 {
+            height: 100%;
+            background-color: hotpink;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="gridBox">
+        <div class="item1">
+            xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx
+            xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx
+        </div>
+        <div class="item2">
+            <div style="width: 50px; height: 50px; background-color: red;"></div>
+        </div>
+    </div>
+    <div style="width: 500px; height: 70px; background-color: blue; margin-top: 10px;"></div>
+</body>
+<script>
+    function testStart() {
+        screenShot("grid-template-columns_auto_with_stretch.png", function () {
+            testImgDiff("grid-template-columns_auto_with_stretch.png", "grid-template-columns_auto_with_stretch_expected.png");
+            testEnd();
+        });
+    }
+</script>
+</html>

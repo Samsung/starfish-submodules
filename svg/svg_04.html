@@ -1,0 +1,28 @@
+<html>
+
+<head>
+  <meta name="pixel-test">
+  <style>
+    .test {
+      width: 250px;
+      height: 250px;
+      background-image: url(./italian-flag_no_border.svg);
+      background-repeat: no-repeat;
+      background-color: black;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="test"></div>
+</body>
+<script>
+  function testStart() {
+    screenShot("svg_04.png", function () {
+      testImgDiff("svg_04.png", "svg_04_expected.png");
+      testEnd();
+    });
+  }
+</script>
+
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<body id="body01">
+    <div id="shadowRoot" class="hostClass" attrTest="true"></div>
+    <script>
+        window.addEventListener("DOMContentLoaded", () => {
+            const shadowStyle = document.createElement("style");
+            const shadow = shadowRoot.attachShadow({
+                mode: "open"
+            });
+
+            shadowStyle.textContent = `
+                :host {
+                    /* This should not apply. */
+                    background-color: red;
+                    width: 800px; height: 300px;
+                }
+                :host([attrTest="true"]) {
+                    background-color: green;
+                    width: 300px; height: 300px;
+                }
+            `;
+            shadow.appendChild(shadowStyle);
+        });
+    </script>
+    <script>
+        function testStart() {
+            screenShot("pseudo-class-host_03.png", function () {
+                testImgDiff("pseudo-class-host_03.png", "pseudo-class-host_03_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</html>

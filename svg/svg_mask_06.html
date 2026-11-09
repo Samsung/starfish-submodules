@@ -1,0 +1,32 @@
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head><body>
+    <svg width="800" height="600" viewBox="0 0 300 300">
+        <defs>
+            <g id="svgmask1_2">
+                <circle fill="black" cx="50" cy="50" r="15" transform="matrix(1,0,0,1,10,10)"></circle>
+            </g>
+            <g id="svgmask1_1">
+                <circle fill="black" mask="url(#svgmask2)" cx="50" cy="50" r="35" transform="matrix(1,0,0,1,10,10)"></circle>
+            </g>
+            <mask id="svgmask1" mask-type="alpha">
+                <use href="#svgmask1_1"></use>
+            </mask>
+            <mask id="svgmask2" mask-type="alpha">
+                <use href="#svgmask1_2"></use>
+            </mask>
+        </defs>
+        <rect width="500" height="500" style="fill:rgb(0,0,255);" mask="url(#svgmask1)"></rect>
+    </svg>
+
+<script>
+    function testStart() {
+        screenShot("svg_mask_06.png", function () {
+            testImgDiff("svg_mask_06.png", "svg_mask_06_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+
+</body></html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+        </style>
+    </head>
+    <body>
+        <div style="text-decoration: underline">
+            underlined
+            <img src="resources/scene.jpg" width="100" height="100">
+            underlined
+        </div>
+    </body>
+    <script type="text/javascript">
+        // Capture the screen
+        function testStart() {
+            screenShot("text-decoration-propagation-005.png", function() {
+                testImgDiff("text-decoration-propagation-005.png", "text-decoration-propagation-005_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</html>

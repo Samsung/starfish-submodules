@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="pixel-test">
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Document</title>
+<style>
+    /*define the variables*/
+    :root { --color: blue; }
+    div { --color: green; }
+    #alert { --color: red; }
+    
+    /*use the variable */
+    * { color: var(--color); }
+</style>
+</head>
+<body>
+<p>What's my color?</p>
+<div>and me?</div>
+<div id='alert'>What's my color too?<p>color?</p></div>
+</body>
+<script>
+    function testStart() {
+        screenShot("customproperty_38.png", function () {
+            testImgDiff("customproperty_38.png", "customproperty_38_expected.png");
+            testEnd();
+        });
+    }
+</script>
+</html>

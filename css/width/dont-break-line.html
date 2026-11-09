@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+
+<meta name="pixel-test">
+
+<style>
+  * {
+    font-family: ahem;
+  }
+  
+  .container {
+    background-color: gray;
+  }
+  
+  .outer {
+    display: inline-block;
+    border: 2px solid red;
+  }
+  
+  .width {
+    width: 5em;
+  }
+  
+  .no-wrap {
+    white-space: nowrap;
+  }
+  
+  .absoluted {
+    position: absolute;
+    border: 3px solid green;
+  }
+</style>
+
+<div class="container width">
+  <div class="outer">X<span>XXXXX</span>XX<span><span>XX</span></span>
+  </div>
+</div>
+<div class="container width">
+  <div class="outer width">X<span>XXXXX</span>XX<span><span>XX</span></span>
+  </div>
+</div>
+<div>
+  <div class="width">XX<span>XXXXX</span></div>
+</div>
+<div>
+  <div class="outer">XXXXXX XXX</div>
+</div>
+<div>
+  <div class="outer no-wrap">XXXXXX XXX</div>
+</div>
+<div>
+  <div class="outer">XXXXXX<span>XXX</span></div>
+</div>
+<div>
+  <div class="outer">XXXXXX<span class="absoluted">YY</span>XXX</span>
+  </div>
+</div>
+<script>
+
+
+function testStart() {
+    screenShot("dont-break-line.png", function() {
+         testImgDiff("dont-break-line.png", "dont-break-line_expected.png");
+         testEnd();
+    });
+
+}
+
+
+</script>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CSS Animation Example</title>
+    <style>
+         @keyframes example {
+            0% { width: 100%;  }
+            100% { width: 0%; }
+        }
+
+        #animated-element {
+            /*position: absolute; */
+            position: relative;
+            left: 50px;
+            top: 50px;
+            color: transparent;
+            line-height: 40px;
+            background-color: blue;
+            animation-name: example;
+            animation-duration: 1s;
+            animation-fill-mode: forwards;
+        }
+
+        span {
+        }
+    </style>
+</head>
+<body>
+<div id="holder">
+    <div id="animated-element"><img style="width: 200px; height: 30px;background: red;
+    vertical-align: top"></div>
+</div>
+    <script type="text/javascript">
+    setTimeout(function() {
+        screenShot("stacking-context-owner-element-animation-repaint-test-1.png", function () {
+            testImgDiff("stacking-context-owner-element-animation-repaint-test-1.png", "stacking-context-owner-element-animation-repaint-test-1_expected.png");
+            testEnd();
+        });
+    }, 2000);
+    </script>
+</body>
+</html>

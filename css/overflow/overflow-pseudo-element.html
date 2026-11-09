@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<div id="a">
+<div id="b">
+</div>
+</div>
+<style>
+
+#a {
+  width: 100px;
+  height: 100px;
+  background: red;
+  transform: translateZ(0);
+  overflow: hidden;
+}
+
+#b:before {
+  width: 1000px;
+  height: 1000px;
+  position: absolute;
+  content: '';
+  background: blue;
+}
+
+</style>
+<script>
+  function testStart() {
+    screenShot("overflow-pseudo-element.png", function () {
+      testImgDiff("overflow-pseudo-element.png", "overflow-pseudo-element_expected.png");
+      testEnd();
+    });
+  }
+</script>

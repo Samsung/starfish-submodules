@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        .gridContainer {
+            display: grid;
+            width: 500px;
+            height: 400px;
+            grid-template-rows: 100px 100px 200px;
+            grid-template-columns: auto;
+            grid-template-areas:
+                "item1 item2"
+                "item3 item3"
+                "item4 item5";
+            background-color: gray;
+        }
+
+        .item1 {
+            background-color: yellow;
+            grid-area: item1;
+            width: 50%;
+        }
+
+        .item2 {
+            background-color: red;
+            grid-area: item2;
+        }
+
+        .item3 {
+            background-color: green;
+            grid-area: item3;
+            width: 50%;
+        }
+
+        .item4 {
+            background-color: blue;
+            grid-area: item4;
+        }
+
+        .item5 {
+            background-color: purple;
+            grid-area: item5;
+            width: 50%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="target" class="gridContainer">
+        <div class="item1"></div>
+        <div class="item2"></div>
+        <div class="item3"></div>
+        <div class="item4"></div>
+        <div class="item5"></div>
+    </div>
+</body>
+<script>
+    function testStart() {
+        screenShot("grid-template-columns_auto_grid-item_width_percent_02.png", function () {
+            testImgDiff("grid-template-columns_auto_grid-item_width_percent_02.png", "grid-template-columns_auto_grid-item_width_percent_02_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+</html>

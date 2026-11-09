@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>animateTransform_rotate_without_transformOrigin</title>
+    <style>
+    </style>
+</head>
+
+<body>
+
+    <svg id="my-svg" style="position: relative; left: 100px; top: 100px" width="300" height="300" viewBox="0 0 300 300"
+        xmlns="http://www.w3.org/2000/svg">
+        <polygon id="test1" points="60,30 90,90 30,90">
+            <animateTransForm id="animateOrigin" attributeName="transform" attributeType="XML" type="rotate"
+                from="0 60 70" to="180 60 70" dur="1s" repeatCount="1" fill="freeze" />
+        </polygon>
+    </svg>
+
+    <script>
+        function screenshotTest(filename, endTest) {
+            console.log("screenshotTest : " + filename); // 파일 이름 출력
+            let expectedFilename = filename.replace(".png", "_expected.png"); // expected.png로 변경
+            screenShot(filename, function () {
+                testImgDiff(filename, expectedFilename);
+                if (endTest == true) {
+                    console.log("test end")
+                    testEnd();
+                }
+            });
+        }
+
+        screenshotTest("animateTransform_rotate_with_transformOrigin_before.png", false);
+
+        setTimeout(() => {
+            setTimeout(() => {
+                screenshotTest("animateTransform_rotate_with_transformOrigin_after.png", true);
+            }, 0);
+        }, 1500); // 1초 대기 (animation duration + delay 시간보다 길게 설정해야 함.)
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transform Scale Toggle</title>
+    <style>
+        .box {
+            margin-left: 100px;
+            margin-top: 100px;
+            width: 100px;
+            height: 100px;
+            background-color: lightblue;
+            transition: transform 0.3s ease;
+        }
+
+        @keyframes zoom-out-108 {
+            0% {
+                transform: scale(1)
+            }
+
+            to {
+                transform: scale(2)
+            }
+        }
+
+        .focusable_saver {
+            animation: zoom-out-108 1s forwards;
+            animation-timing-function: cubic-bezier(.21, 1.5, .54, 1)
+        }
+    </style>
+</head>
+
+<body>
+    <div class="box " tabindex="0"></div>
+    <script>
+        function toggleScale() {
+            console.log("toggleScale");
+            const box = document.querySelector('.box');
+            if (box.classList.contains('focusable_saver')) {
+                box.classList.remove('focusable_saver'); // Add the class to trigger the scale animation
+            } else {
+                box.classList.add('focusable_saver'); // Add the class to trigger the scale animation
+            }
+        }
+
+        function screenshotTest(filename, endTest) {
+            console.log("screenshotTest : " + filename); // 파일 이름 출력
+            let expectedFilename = filename.replace(".png", "_expected.png"); // expected.png로 변경
+            screenShot(filename, function () {
+                testImgDiff(filename, expectedFilename);
+                if (endTest == true) {
+                    console.log("test end")
+                    testEnd();
+                }
+            });
+        }
+
+        window.onload = () => {
+            screenshotTest("animation_forwards_remove_1.png", false);
+
+            setTimeout(() => {
+                toggleScale();
+            }, 1000);
+
+            setTimeout(() => {
+                screenshotTest("animation_forwards_remove_2.png", false); // 테스트 종료 후 스크린샷 찍기
+                toggleScale(); // 다시 원래 크기로 되돌리기 위해 toggleScale 함수 호출
+            }, 2500);
+
+            setTimeout(() => {
+                screenshotTest("animation_forwards_remove_3.png", true);
+            }, 4000);
+        }
+
+
+    </script>
+</body>
+
+</html>

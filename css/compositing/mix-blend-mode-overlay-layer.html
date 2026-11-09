@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>CSS Compositing: mix-blend-mode overlay on a composited solid layer</title>
+    <link href="https://drafts.fxtf.org/compositing-1/#blendingoverlay" rel="help">
+    <meta content="A semi-transparent solid layer with mix-blend-mode overlay darkens dark backdrop stripes and lightens light ones instead of covering them." name="assert">
+    <style>
+        body { margin: 0; background: white; }
+        @keyframes still { from { transform: translateX(0); } to { transform: translateX(0); } }
+        @keyframes fade { from { opacity: 0.75; } to { opacity: 0.75; } }
+        #backdrop { position: absolute; left: 0; top: 0; width: 500px; height: 200px; animation: still 1s infinite; }
+        .stripe { position: absolute; top: 0; width: 100px; height: 200px; }
+        #overlay {
+            position: absolute; left: 0; top: 50px; width: 500px; height: 100px;
+            background-color: #E7227C; mix-blend-mode: overlay; opacity: 0.75;
+            animation: fade 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div id="backdrop">
+        <div class="stripe" style="left: 0; background: #000000"></div>
+        <div class="stripe" style="left: 100px; background: #404040"></div>
+        <div class="stripe" style="left: 200px; background: #808080"></div>
+        <div class="stripe" style="left: 300px; background: #c08040"></div>
+        <div class="stripe" style="left: 400px; background: #ffffff"></div>
+    </div>
+    <div id="overlay"></div>
+    <script>
+        function testStart() {
+            screenShot("mix-blend-mode-overlay-layer.png", function () {
+                testImgDiff("mix-blend-mode-overlay-layer.png", "mix-blend-mode-overlay-layer_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</body>
+</html>

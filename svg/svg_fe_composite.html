@@ -1,0 +1,123 @@
+<style>
+* { margin: 0px }
+</style>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+<defs>
+  <filter id="filter_over">
+      <feGaussianBlur
+              stdDeviation="10 1"
+              in="SourceGraphic"
+              result="result1" />
+      <feColorMatrix
+      in="SourceGraphic"
+      type="matrix"
+      values="0 0 0 0 0
+              1 1 1 1 0
+              0 0 0 0 0
+              0 0 0 1 0" result="result2" />
+      <feComposite in="result1" in2="result2" operator="over"/>
+  </filter>
+  <filter id="filter_in">
+    <feGaussianBlur
+            stdDeviation="10 1"
+            in="SourceGraphic"
+            result="result1" />
+    <feColorMatrix
+    in="SourceGraphic"
+    type="matrix"
+    values="0 0 0 0 0
+            1 1 1 1 0
+            0 0 0 0 0
+            0 0 0 1 0" result="result2" />
+    <feComposite in="result1" in2="result2" operator="in"/>
+</filter>
+<filter id="filter_out">
+  <feGaussianBlur
+          stdDeviation="10 1"
+          in="SourceGraphic"
+          result="result1" />
+  <feColorMatrix
+  in="SourceGraphic"
+  type="matrix"
+  values="0 0 0 0 0
+          1 1 1 1 0
+          0 0 0 0 0
+          0 0 0 1 0" result="result2" />
+  <feComposite in="result1" in2="result2" operator="out"/>
+</filter>
+<filter id="filter_atop">
+  <feGaussianBlur
+          stdDeviation="10 1"
+          in="SourceGraphic"
+          result="result1" />
+  <feColorMatrix
+  in="SourceGraphic"
+  type="matrix"
+  values="0 0 0 0 0
+          1 1 1 1 0
+          0 0 0 0 0
+          0 0 0 1 0" result="result2" />
+  <feComposite in="result1" in2="result2" operator="atop"/>
+</filter>
+<filter id="filter_xor">
+  <feGaussianBlur
+          stdDeviation="10 1"
+          in="SourceGraphic"
+          result="result1" />
+  <feColorMatrix
+  in="SourceGraphic"
+  type="matrix"
+  values="0 0 0 0 0
+          1 1 1 1 0
+          0 0 0 0 0
+          0 0 0 1 0" result="result2" />
+  <feComposite in="result1" in2="result2" operator="xor"/>
+</filter>
+<filter id="filter_lighter">
+  <feGaussianBlur
+          stdDeviation="10 1"
+          in="SourceGraphic"
+          result="result1" />
+  <feColorMatrix
+  in="SourceGraphic"
+  type="matrix"
+  values="0 0 0 0 0
+          1 1 1 1 0
+          0 0 0 0 0
+          0 0 0 1 0" result="result2" />
+  <feComposite in="result1" in2="result2" operator="lighter"/>
+</filter>
+<filter id="filter_arithmetic">
+  <feGaussianBlur
+          stdDeviation="10 1"
+          in="SourceGraphic"
+          result="result1" />
+  <feColorMatrix
+  in="SourceGraphic"
+  type="matrix"
+  values="0 0 0 0 0
+          1 1 1 1 0
+          0 0 0 0 0
+          0 0 0 1 0" result="result2" />
+  <feComposite in="result1" in2="result2" operator="arithmetic" k1="0.1" k2="0.2" k3="0.3"  k4="0.4" />
+</filter>
+</defs>
+
+<g>
+  <rect style="fill:blue;" width="100" height="100"  filter="url(#filter_over)" x="20" y="20" />
+  <rect style="fill:blue;" width="100" height="100"  filter="url(#filter_in)" x="150" y="20" />
+  <rect style="fill:blue;" width="100" height="100"  filter="url(#filter_out)" x="20" y="150" />
+  <rect style="fill:blue;" width="100" height="100"  filter="url(#filter_atop)" x="150" y="150" />
+  <rect style="fill:blue;" width="100" height="100"  filter="url(#filter_xor)" x="20" y="280" />
+  <!-- <rect style="fill:blue;" width="100" height="100"  filter="url(#filter_lighter)" x="150" y="280" /> -->
+  <!-- <rect style="fill:blue;" width="100" height="100"  filter="url(#filter_arithmetic)" x="20" y="410" /> -->
+</g>
+</svg>
+<script>
+    function testStart() {
+        screenShot("svg_fe_composite.png", function () {
+            testImgDiff("svg_fe_composite.png", "svg_fe_composite_expected.png");
+            testEnd();
+        });
+    }
+</script>

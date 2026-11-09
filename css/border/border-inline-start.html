@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        .test1 {
+            background-color: yellow;
+            width: 300px;
+            height: 100px;
+            margin-bottom: 10px;
+
+            border-inline-start: red 10px solid;
+        }
+
+        .test2 {
+            direction: rtl;
+            background-color: yellow;
+            width: 300px;
+            height: 100px;
+            margin-bottom: 10px;
+
+            border-inline-start: red 1px solid;
+            border-right: green 10px double;
+            border-inline-start: blue 10px double;
+        }
+
+        .test3 {
+            background-color: yellow;
+            width: 300px;
+            height: 100px;
+            margin-bottom: 10px;
+
+            border: 10px double red;
+            border-inline-start: green solid 10px;
+        }
+
+        .test4 {
+            direction: rtl;
+            background-color: yellow;
+            width: 300px;
+            height: 100px;
+
+            border: 10px double red;
+            border-inline-start: green solid 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="test1"> </div>
+    <div class="test2"> </div>
+    <div class="test3"> </div>
+    <div class="test4"> </div>
+    <script>
+        function testStart() {
+            screenShot("border-inline-start.png", function () {
+                testImgDiff("border-inline-start.png", "border-inline-start_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</body>
+
+</html>

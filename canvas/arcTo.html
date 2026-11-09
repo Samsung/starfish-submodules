@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        canvas {
+            border: 1px solid black;
+            margin: 10px;
+            padding: 3px;
+        }
+    </style>
+    <script type="application/javascript">
+        function draw() {
+            const canvas = document.getElementById('canvas1');
+            const ctx = canvas.getContext('2d');
+
+            ctx.beginPath();
+            ctx.strokeStyle = 'gray';
+            ctx.moveTo(200, 20);
+            ctx.lineTo(200, 130);
+            ctx.lineTo(50, 20);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 5;
+            ctx.moveTo(200, 20);
+            ctx.arcTo(200, 130, 50, 20, 40);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.fillStyle = 'blue';
+            ctx.arc(200, 20, 5, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.fillStyle = 'red';
+            ctx.arc(200, 130, 5, 0, 2 * Math.PI);
+            ctx.arc(50, 20, 5, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // ****************************************************
+            const canvas2 = document.getElementById('canvas2');
+            const ctx2 = canvas2.getContext('2d');
+
+            ctx2.beginPath();
+            ctx2.moveTo(180, 90);
+            ctx2.arcTo(180, 130, 110, 130, 130);
+            ctx2.lineTo(110, 130);
+            ctx2.stroke();
+        }
+    </script>
+</head>
+
+<body onload="draw();">
+    <canvas id="canvas1">canvas1</canvas>
+    <canvas id="canvas2">canvas2</canvas>
+</body>
+<script>
+    function testStart() {
+        screenShot("arcTo.png", function () {
+            testImgDiff("arcTo.png", "arcTo_expected.png");
+            testEnd();
+        });
+    }
+</script>
+</html>

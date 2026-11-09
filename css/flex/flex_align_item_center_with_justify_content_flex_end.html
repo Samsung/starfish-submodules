@@ -1,0 +1,105 @@
+<html>
+
+<head>
+  <meta name="pixel-test">
+  <style>
+    * {
+      font-family: Ahem;
+    }
+
+    html {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      box-sizing: border-box;
+    }
+
+    .root {
+      margin-top: 0px;
+      flex: none;
+      position: relative;
+    }
+
+    .dialog-container {
+      max-width: 640px;
+      padding-left: 10px;
+      padding-right: 10px;
+
+      display: flex;
+      flex-direction: column;
+      margin: 0 auto;
+    }
+
+    .header {
+      position: absolute;
+      max-width: 640px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      left: 0;
+      right: 0;
+      justify-content: flex-end;
+      padding-top: 18px
+    }
+
+    .icon {
+      display: flex;
+      margin-right: 24px;
+      width: 24px;
+      height: 24px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .message {
+      text-align: start;
+      margin: 16px 0 20px;
+      word-break: keep-all;
+      word-wrap: break-word;
+    }
+
+    .message-text {
+      font-weight: 600;
+      font-size: 1.125rem;
+      line-height: calc(23 / 18);
+      word-break: keep-all;
+      word-wrap: break-word;
+    }
+  </style>
+</head>
+
+<body>
+
+  <body>
+    <div class="root">
+      <div class="dialog-container">
+        <div class="header">
+          <div class="icon">
+            "
+          </div>
+        </div>
+        <div class="message">
+          <div class="message-text">
+            Lore mi sum dolors it Ametcon
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+
+  <script>
+    function testStart() {
+      screenShot("flex_align_item_center_with_justify_content_flex_end.png", function () {
+        testImgDiff("flex_align_item_center_with_justify_content_flex_end.png", "flex_align_item_center_with_justify_content_flex_end_expected.png");
+        testEnd();
+      });
+    }
+  </script>
+
+</html>

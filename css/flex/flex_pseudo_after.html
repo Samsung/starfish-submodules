@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    .content-container {
+      background: gray;
+      transform: translateZ(0);
+      width: fit-content;
+    }
+
+    .flex:after {
+      background-color: blue;
+      content: "";
+      height: 100%;
+      left: 50px;
+      position: absolute;
+      right: 0;
+      top: 0;
+    }
+
+    .flex {
+      display: flex;
+    }
+
+    .item {
+      width: 200px;
+      height: 100px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="content-container ">
+    <div class="flex">
+      <div class="item"></div>
+    </div>
+  </div>
+  <script>
+    function testStart() {
+      screenShot("flex_pseudo_after.png", function () {
+        testImgDiff("flex_pseudo_after.png", "flex_pseudo_after_expected.png");
+        testEnd();
+      });
+    }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="pixel-test">
+        <style type="text/css">
+            div {
+                color: red;
+            }
+            #valid-without-quote {
+                color: green;
+                background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKoAAABVCAYAAADZsn9OAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4AcOBDc1SdLWygAAALVJREFUeNrt0gENAAAIwzDAv+djA5JWwrJOKgXHjQQYFYyKUcGoYFSMCkYFo2JUMCoYFaOCUTEqGBWMilHBqGBUjApGBaNiVDAqRgWjglExKhgVjIpRwahgVIwKRgWjYlQwKkYFo4JRMSoYFYyKUcGoYFSMCkbFqGBUMCpGBaOCUTEqGBWMilHBqGBUjApGxahgVDAqRgWjglExKhgVjIpRwagYFYwKRsWoYFQwKkYFo4JReWsBy28Dp+YDW7QAAAAASUVORK5CYII=) repeat;
+            }
+            #valid-with-single-quote {
+                color: green;
+                background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKoAAABVCAYAAADZsn9OAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4AcOBDc1SdLWygAAALVJREFUeNrt0gENAAAIwzDAv+djA5JWwrJOKgXHjQQYFYyKUcGoYFSMCkYFo2JUMCoYFaOCUTEqGBWMilHBqGBUjApGBaNiVDAqRgWjglExKhgVjIpRwahgVIwKRgWjYlQwKkYFo4JRMSoYFYyKUcGoYFSMCkbFqGBUMCpGBaOCUTEqGBWMilHBqGBUjApGxahgVDAqRgWjglExKhgVjIpRwagYFYwKRsWoYFQwKkYFo4JReWsBy28Dp+YDW7QAAAAASUVORK5CYII=') repeat;
+            }
+            #valid-with-double-quote {
+                color: green;
+                background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKoAAABVCAYAAADZsn9OAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4AcOBDc1SdLWygAAALVJREFUeNrt0gENAAAIwzDAv+djA5JWwrJOKgXHjQQYFYyKUcGoYFSMCkYFo2JUMCoYFaOCUTEqGBWMilHBqGBUjApGBaNiVDAqRgWjglExKhgVjIpRwahgVIwKRgWjYlQwKkYFo4JRMSoYFYyKUcGoYFSMCkbFqGBUMCpGBaOCUTEqGBWMilHBqGBUjApGxahgVDAqRgWjglExKhgVjIpRwagYFYwKRsWoYFQwKkYFo4JReWsBy28Dp+YDW7QAAAAASUVORK5CYII=") repeat;
+            }
+            #valid-without-quote-contains-newline {
+                color: green;
+                background: url(data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAKoAAABVCAYAAADZsn9OAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4AcOBDc1SdLWygAAALVJREFUeNrt0gENAAAIwzDAv+djA5JWwrJOKgXHjQQYFYyKUcGoYFSMCkYFo2JUMCoYFaOCUTEqGBWMilHBqGBUjApGBaNiVDAqRgWjglExKhgVjIpRwahgVIwKRgWjYlQwKkYFo4JRMSoYFYyKUcGoYFSMCkbFqGBUMCpGBaOCUTEqGBWMilHBqGBUjApGxahgVDAqRgWjglExKhgVjIpRwagYFYwKRsWoYFQwKkYFo4JReWsBy28Dp+YDW7QAAAAASUVORK5CYII=) repeat;
+            }
+            #valid-with-single-quote-contains-newline {
+                color: green;
+                background: url('data:image/png;base64,\
+iVBORw0KGgoAAAANSUhEUgAAAKoAAABVCAYAAADZsn9OAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4AcOBDc1SdLWygAAALVJREFUeNrt0gENAAAIwzDAv+djA5JWwrJOKgXHjQQYFYyKUcGoYFSMCkYFo2JUMCoYFaOCUTEqGBWMilHBqGBUjApGBaNiVDAqRgWjglExKhgVjIpRwahgVIwKRgWjYlQwKkYFo4JRMSoYFYyKUcGoYFSMCkbFqGBUMCpGBaOCUTEqGBWMilHBqGBUjApGxahgVDAqRgWjglExKhgVjIpRwagYFYwKRsWoYFQwKkYFo4JReWsBy28Dp+YDW7QAAAAASUVORK5CYII=') repeat;
+            }
+            #valid-with-double-quote-contains-newline {
+                color: green;
+                background: url("data:image/png;base64,\
+iVBORw0KGgoAAAANSUhEUgAAAKoAAABVCAYAAADZsn9OAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4AcOBDc1SdLWygAAALVJREFUeNrt0gENAAAIwzDAv+djA5JWwrJOKgXHjQQYFYyKUcGoYFSMCkYFo2JUMCoYFaOCUTEqGBWMilHBqGBUjApGBaNiVDAqRgWjglExKhgVjIpRwahgVIwKRgWjYlQwKkYFo4JRMSoYFYyKUcGoYFSMCkbFqGBUMCpGBaOCUTEqGBWMilHBqGBUjApGxahgVDAqRgWjglExKhgVjIpRwagYFYwKRsWoYFQwKkYFo4JReWsBy28Dp+YDW7QAAAAASUVORK5CYII=") repeat;
+            }
+            #invalid-with-quote {
+                color: green;
+                background: url("data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAKoAAABVCAYAAADZsn9OAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4AcOBDc1SdLWygAAALVJREFUeNrt0gENAAAIwzDAv+djA5JWwrJOKgXHjQQYFYyKUcGoYFSMCkYFo2JUMCoYFaOCUTEqGBWMilHBqGBUjApGBaNiVDAqRgWjglExKhgVjIpRwahgVIwKRgWjYlQwKkYFo4JRMSoYFYyKUcGoYFSMCkbFqGBUMCpGBaOCUTEqGBWMilHBqGBUjApGxahgVDAqRgWjglExKhgVjIpRwagYFYwKRsWoYFQwKkYFo4JReWsBy28Dp+YDW7QAAAAASUVORK5CYII=") repeat;
+            }
+            #should-be-ignored {
+                color: green;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="valid-without-quote">This text should be green with yellow background.</div>
+        <div id="valid-with-single-quote">This text should be green with yellow background.</div>
+        <div id="valid-with-double-quote">This text should be green with yellow background.</div>
+        <div id="valid-without-quote-contains-newline">This text should be green.</div>
+        <div id="valid-with-single-quote-contains-newline">This text should be green with yellow background.</div>
+        <div id="valid-with-double-quote-contains-newline">This text should be green with yellow background.</div>
+        <div id="invalid-with-quote">This text should be green.</div>
+        <div id="should-be-ignored">This text should be red.</div>
+    </body>
+    <script type="text/javascript">
+        // Capture the screen
+        function testStart() {
+            screenShot("url-invalid.png", function() {
+                testImgDiff("url-invalid.png", "url-invalid_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="pixel-test">
+    <style>
+        div {
+            border: 1px solid black;
+            margin-top: 5px;
+            margin-left: 5px;
+            height: 100px;
+            width: 100px;
+            float: left;
+        }
+
+        #test1 {
+            background-size: 25% 25%;
+            background-image: radial-gradient(blue, white);
+        }
+
+        #test2 {
+            background-size: 50% 50%;
+            background-image: radial-gradient(blue, white);
+        }
+
+        #test3 {
+            background-size: 50% 50%;
+            background-image: radial-gradient(farthest-side, blue, white);
+        }
+
+        #test4 {
+            background-size: 50% 50%;
+            background-image: radial-gradient(closest-side, blue, white);
+        }
+
+        #test5 {
+            clear: left;
+            background-size: 25% 25%;
+            background-position: left;
+            background-repeat: repeat-y;
+            background-image: radial-gradient(red, pink);
+        }
+
+        #test6 {
+            background-size: 50% 50%;
+            background-position: left;
+            background-repeat: repeat-y;
+            background-image: radial-gradient(red, pink);
+        }
+
+        #test7 {
+            background-size: 25% 25%;
+            background-position: right;
+            background-repeat: repeat-x;
+            background-image: radial-gradient(farthest-side, red, pink);
+        }
+
+        #test8 {
+            background-size: 50% 50%;
+            background-position: left;
+            background-repeat: repeat-x;
+            background-image: radial-gradient(closest-side, red, pink);
+        }
+
+        #test9 {
+            clear: left;
+            background-size: 25% 25%;
+            background-position: left;
+            background-repeat: no-repeat;
+            background-image: radial-gradient(farthest-side at top, red, green, blue);
+        }
+
+        #test10 {
+
+            background-size: 50% 50%;
+            background-position: right;
+            background-repeat: no-repeat;
+            background-image: radial-gradient(farthest-side at bottom right, red, green, blue);
+        }
+
+        #test11 {
+            background-size: 25% 25%;
+            background-position: left top;
+            background-repeat: no-repeat;
+            background-image: radial-gradient(20px 30px at right top, red, green, blue);
+        }
+
+        #test12 {
+            background-size: 50% 50%;
+            background-position: right bottom;
+            background-repeat: no-repeat;
+            background-image: radial-gradient(20px 30px at right top, red, green, blue);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="test1"></div>
+    <div id="test2"></div>
+    <div id="test3"></div>
+    <div id="test4"></div>
+    <div id="test5"></div>
+    <div id="test6"></div>
+    <div id="test7"></div>
+    <div id="test8"></div>
+    <div id="test9"></div>
+    <div id="test10"></div>
+    <div id="test11"></div>
+    <div id="test12"></div>
+</body>
+<script>
+    function testStart() {
+        screenShot("background_radialgradient8.png", function () {
+            testImgDiff("background_radialgradient8.png", "background_radialgradient8_expected.png");
+            testEnd();
+        });
+
+    }
+</script>
+
+</html>

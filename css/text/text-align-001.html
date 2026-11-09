@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>CSS Test: text-align</title>
+        <style>
+            * {
+                font-family: StarfishAhem;
+            }
+            section {
+                text-align: -webkit-center;
+            }
+            .image {
+                background-image: url('resources/scene.jpg');
+                width: 100px;
+                height: 100px;
+            }
+            .text{
+                background-color: yellow;
+                width: 100px;
+                height: 50px;
+            }
+        </style>
+    </head>
+    <body>
+        <section>
+            <div class="image">image1</div>
+            <div class="text">text1</div>
+            <div class="image">image2</div>
+            <div class="text">text2</div>
+            <div class="image">image3</div>
+            <div class="text">text3</div>
+        </section>
+    </body>
+    <script type="text/javascript">
+        function testStart() {
+            screenShot("text-align-001.png", function() {
+                testImgDiff("text-align-001.png", "text-align-001_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<script src="../framework.js"></script>
+<style>
+  .outer {
+    background-color: gray;
+    width: 500px;
+    height: 400px;
+    position: relative;
+  }
+
+  .inner {
+    background-color: pink;
+    width: 100px;
+    height: 100px;
+  }
+</style>
+
+<body>
+  <div class="outer">
+    outer1
+    <div class="inner">
+        inner1
+    </div>
+    outer2
+  </div>
+</body>
+
+<script>
+  var cssKeyValues = {
+    display: ["block", "inline"],
+    position: ["static", "absolute"],
+    left: ["auto", "30px"],
+    right: ["auto", "30px"],
+    "margin-left": ["auto", "30px"],
+    "margin-right": ["auto", "30px"],
+    width: ["auto", "50px"],
+  };
+
+  var outerDiv = new Div("outer");
+  var innerDiv = new Div("inner");
+  var divs = [innerDiv];
+  var bugs = [
+
+             ];
+  var duplicates = [
+                      {display: ["block"], position: ["static"], left: ["30px"]},
+                      {display: ["block"], position: ["static"], right: ["30px"]},
+                      {display: ["inline"], position: ["static"], left: ["30px"]},
+                      {display: ["inline"], position: ["static"], right: ["30px"]},
+                   ];
+
+  function init(ltr) {
+    if (ltr) {
+      outerDiv.changeStyle("direction", "ltr");
+    } else {
+      outerDiv.changeStyle("direction", "rtl");
+    }
+
+    innerDiv.changeStyle("display", "block");
+    innerDiv.changeStyle("position", "static");
+    innerDiv.changeStyle("left", "auto");
+    innerDiv.changeStyle("right", "auto");
+    innerDiv.changeStyle("margin-left", "auto");
+    innerDiv.changeStyle("margin-right", "auto");
+    innerDiv.changeStyle("width", "auto");
+  }
+
+  function testStart() {
+    var stepper7 = Stepper("stepper7", divs, "width", cssKeyValues.width);
+    var stepper6 = Stepper("stepper6", divs, "margin-right", cssKeyValues["margin-right"]);
+    var stepper5 = Stepper("stepper5", divs, "margin-left", cssKeyValues["margin-left"], stepper6);
+    var stepper4 = Stepper("stepper4", divs, "right", cssKeyValues.right, stepper5);
+    var stepper3 = Stepper("stepper3", divs, "left", cssKeyValues.left, stepper4);
+    var stepper2 = Stepper("stepper2", divs, "position", cssKeyValues.position, stepper3);
+    var stepper = Stepper("stepper", divs, "display", cssKeyValues.display, stepper2);
+
+    function iterate() {
+      outerDiv.elems[0].offsetHeight;
+      var names = name(divs, function (divs, styles) {
+        styles.push("div");
+        styles.push(outerDiv.elems[0].style.direction);
+
+        divs.forEach(function(div) {
+          styles.push(div.elems[0].style.display);
+          styles.push(div.elems[0].style.position);
+          styles.push(div.elems[0].style.left);
+          styles.push(div.elems[0].style.right);
+          styles.push(div.elems[0].style["margin-left"]);
+          styles.push(div.elems[0].style["margin-right"]);
+          styles.push(div.elems[0].style.width);
+        });
+      });
+
+      console.log("img : " + names.img);
+      screenShot(names.img, function () {
+        testImgDiff(names.img, names.expectedImg);
+        if (stepper.finished()) {
+          testEnd();
+        } else {
+          do {
+            stepper.step();
+          } while (canSkip(divs, bugs) || canSkip(divs, duplicates));
+
+          iterate();
+        }
+      });
+    }
+
+    init(false);
+    iterate();
+  }
+</script>
+</html>

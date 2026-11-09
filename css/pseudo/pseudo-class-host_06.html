@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        div {
+            background-color: green;
+        }
+
+        #shadowRoot {
+            background-color: green;
+        }
+
+        .shadowRoot {
+            background-color: green;
+        }
+
+        div[attrTest="true"] {
+            background-color: green;
+        }
+
+    </style>
+</head>
+
+<body id="body01">
+    <div id="shadowRoot" class="shadowRoot" attrTest="true"></div>
+    <script>
+        window.addEventListener("DOMContentLoaded", () => {
+            const shadowStyle = document.createElement("style");
+            const shadow = shadowRoot.attachShadow({
+                mode: "open"
+            });
+
+            shadowStyle.textContent = `
+                :host {
+                    background-color: red;
+                    width: 300px; height: 300px;
+                }
+            `;
+
+            shadow.appendChild(shadowStyle);
+        });
+    </script>
+    <script>
+        function testStart() {
+            screenShot("pseudo-class-host_06.png", function () {
+                testImgDiff("pseudo-class-host_06.png", "pseudo-class-host_06_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</html>

@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta name="pixel-test">
+    <style>
+        * {
+            font-family: Ahem;
+        }
+    </style>
+    <style>
+        .flex-container {
+            font-size: 15px;
+            line-height: 35px;
+            border: 1px black solid;
+            width: 600px;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 1;
+            padding: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .flex-item {
+            overflow: hidden;
+        }
+
+        .rtl {
+            direction: rtl;
+        }
+        .height {
+            height: 35px;
+        }
+        img {
+            width: 600px;
+            height: 200px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="flex-container">
+        <div class="flex-item">
+            1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0 2yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy0 3zzzzzzzzzzzzzz0
+        </div>
+        1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0 2yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy0 3zzzzzzzzzzzzzz0
+    </div>
+    <div class="flex-container">
+        <div class="flex-item">
+            1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0
+        </div>
+        <div class="flex-item rtl">
+            1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0 2yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy0 3zzzzzzzzzzzzzz0
+        </div>
+    </div>
+    <div class="flex-container">
+        <div class="flex-item height">
+            1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0 2yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy0 3zzzzzzzzzzzzzz0
+        </div>
+        <div class="flex-item">
+            <img src="figure.jpg">
+            1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0 2yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy0 3zzzzzzzzzzzzzz0
+        </div>
+    </div>
+</body>
+<script>
+    function testStart() {
+        screenShot("flex-webkit-prefix_with_-webkit-line-clamp.png", function () {
+            testImgDiff("flex-webkit-prefix_with_-webkit-line-clamp.png", "flex-webkit-prefix_with_-webkit-line-clamp_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+</html>

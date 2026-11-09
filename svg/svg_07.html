@@ -1,0 +1,38 @@
+<html>
+
+<head>
+  <meta name="pixel-test">
+  <style>
+        .container1 {
+            width: 100px;
+            display: flex;
+            background-color: blue;
+        }
+
+        svg
+        {
+            width: 100%;
+            height: 100%;
+        }
+  </style>
+</head>
+
+<body>
+    <div class="container1">
+        <div>
+            <svg width="50px" height="50px" viewBox="0 0 24 24" >
+                <rect width="20px" height="20px" fill="red"></rect>
+            </svg>
+        </div>
+    </div>
+</body>
+<script>
+  function testStart() {
+    screenShot("svg_07.png", function () {
+      testImgDiff("svg_07.png", "svg_07_expected.png");
+      testEnd();
+    });
+  }
+</script>
+
+</html>

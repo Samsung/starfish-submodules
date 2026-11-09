@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<script>
+    function testStart() {
+    screenShot("absolute_length.png", function () {
+        testImgDiff("absolute_length.png","absolute_length_expected.png");
+        testEnd();
+    }) 
+}
+</script>
+<body>
+    <div style="color : red; border: 1px solid black; width:200px"> Absolute length units</div>
+    <p style="font-size: 10px"> font-size: 10px </p>
+    <p style="font-size: 1cm"> font-size: 1cm </p>
+    <p style="font-size: 15mm"> font-size: 15mm </p>
+    <p style="font-size: 0.4in"> font-size: 0.4in </p>
+    <p style="font-size: 10pt"> font-size: 10pt </p>
+    <p style="font-size: 3pc"> font-size: 3pc </p>
+
+</body>
+</html>

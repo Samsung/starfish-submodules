@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<body>
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="300px">
+        <g opacity="0.5" fill-opacity="0.5">
+            <path d=" M 10,30 A 20,20 0,0,1 50,30 A 20,20 0,0,1 90,30 Q 90,60 50,90 Q 10,60 10,30 z" />
+            <path transform="translate(100.000000, 0.000000)" d="M 10,30
+                    A 20,20 0,0,1 50,30
+                    A 20,20 0,0,1 90,30
+                    Q 90,60 50,90
+                    Q 10,60 10,30 z" opacity="0.5" />
+            <path transform="translate(0.000000, 100.000000)" d="M 10,30
+                    A 20,20 0,0,1 50,30
+                    A 20,20 0,0,1 90,30
+                    Q 90,60 50,90
+                    Q 10,60 10,30 z" fill-opacity="0.5" />
+            <path transform="translate(100.000000, 100.000000)" d="M 10,30
+                    A 20,20 0,0,1 50,30
+                    A 20,20 0,0,1 90,30
+                    Q 90,60 50,90
+                    Q 10,60 10,30 z" opacity="0.5" fill-opacity="0.5" />
+        </g>
+    </svg>
+</body>
+<script>
+    function testStart() {
+        screenShot("svg_g_opacity_03.png", function () {
+            testImgDiff("svg_g_opacity_03.png", "svg_g_opacity_03_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+</html>

@@ -1,0 +1,55 @@
+<div id="a">
+</div>
+<style>
+
+div {
+width: 100px;
+height: 100px;
+background: red;
+font-family: StarfishAhem;
+}
+
+div:before {
+position: absolute;
+content: "XXX";
+}
+
+div.a {
+color: yellow;
+}
+
+div.b:before {
+content: "YYYY";
+}
+
+</style>
+<script>
+
+a.onclick = function() {
+  if (this.className) {
+    this.className="a b"
+  } else {
+    this.className = "a";
+  }
+}
+
+function testStart() {
+  screenShot("before-element-damage_01.png", function () {
+    testImgDiff("before-element-damage_01.png", "before-element-damage_01_expected.png");
+    a.onclick();
+    screenShot("before-element-damage_02.png", function () {
+      testImgDiff("before-element-damage_02.png", "before-element-damage_02_expected.png");
+      a.onclick();
+      screenShot("before-element-damage_03.png", function () {
+        testImgDiff("before-element-damage_03.png", "before-element-damage_03_expected.png");
+        a.onclick();
+        testEnd();
+      });
+
+    });
+  });
+
+}
+
+
+</script>

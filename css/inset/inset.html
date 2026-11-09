@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<script>
+    function testStart() {
+    screenShot("inset.png", function () {
+        testImgDiff("inset.png","inset_expected.png");
+        testEnd();
+    })
+}
+</script>
+<style>
+    body {
+    	background-color: pink;
+    }
+
+    div {
+    	width: 400px;
+	    height: 100px;
+	    border: solid 1px black;
+	    background-color: ivory;
+        position: relative;
+    }
+
+    .test1 {
+        position: absolute;
+        inset: 1em;
+        background-color: yellow;
+    }
+
+    .test2 {
+        position: absolute;
+        inset: 5% 0;
+        background-color: blue;
+    }
+
+    .test3 {
+        position: absolute;
+        inset: 2em 50px 20px;
+        background-color: green;
+    }
+
+    .test4 {
+        position: absolute;
+        inset: 10px 30% 20px 0;
+        background-color: red;
+    }
+
+    .test5 {
+        position: absolute;
+        inset: 0;
+        background-color: skyblue;
+    }
+</style>
+<body style="width: 400px; font-family: Ahem">
+    <div><span class="test1">111div111</span></div>
+    <div><span class="test2">222div222</span></div>
+    <div><span class="test3">3331div333</span></div>
+    <div><span class="test4">444div444</span></div>
+    <div><span class="test5">555div555</span></div>
+</body>
+</html>

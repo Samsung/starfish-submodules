@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<script src="../framework.js"></script>
+<style>
+  .outer {
+    background-color: gray;
+    width: 100px;
+  }
+
+  .right {
+    background-color: teal;
+    float:right;
+    width: auto;
+    height: 100px;
+  }
+
+  .right2 {
+    background-color: red;
+    float:right;
+    width: auto;
+    height: 120px;
+  }
+
+  .right3 {
+    background-color: blue;
+    float:right;
+    width: auto;
+    height: 150px;
+  }
+
+  .right4 {
+    background-color: yellow;
+    float:right;
+    width: auto;
+    height: 400px;
+  }
+</style>
+
+<body>
+  <div class="outer">
+    outer outer2
+    <div class="right">
+      right
+    </div>
+    ooouuutter
+    <div class="right">
+      right2
+    </div>
+    ou ter4
+    <div class="right2">
+      right3
+    </div>
+  </div>
+</body>
+
+<script>
+  var cssKeyValues = {
+    width: ["120px", "180px", "240px", "auto"]
+  };
+
+  var outerDiv = new Div("outer");
+  var divs = [outerDiv];
+  var bugs = [
+  ];
+
+  function init(ltr) {
+    if (ltr) {
+      outerDiv.changeStyle("direction", "ltr");
+    } else {
+      outerDiv.changeStyle("direction", "rtl");
+    }
+    outerDiv.changeStyle("width", "120px");
+  }
+
+  function testStart() {
+    var stepper = Stepper("stepper", divs, "width", cssKeyValues.width);
+
+    function iterate(ltr) {
+      outerDiv.elems[0].offsetHeight;
+      var names = name(divs, function (divs, styles) {
+        styles.push("3");
+        divs.forEach(function(div) {
+          styles.push(div.elems[0].style.width);
+        });
+      });
+      console.log("img : " + names.img);
+      screenShot(names.img, function () {
+        testImgDiff(names.img, names.expectedImg);
+
+        if (stepper.finished()) {
+          testEnd();
+        } else {
+          do {
+            stepper.step();
+            if (stepper.finished()) {
+              iterate(ltr);
+              return;
+            }
+          } while (canSkip(divs, bugs));
+
+          iterate(ltr);
+        }
+      });
+    }
+
+    init(true);
+    iterate(true);
+  }
+</script>
+</html>

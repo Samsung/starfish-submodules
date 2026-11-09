@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta name="pixel-test">
+	<style>
+		:root {
+			--first-color: #488cff;
+			--second-color: #ffff8c;
+			font-family: Ahem;
+		}
+
+		div {
+			--range: (var(--max) - var(--min));
+			--ratio: (var(--value) - var(--min))/var(--range);
+			--point: calc(var(--ratio) * 100%);
+		}
+
+		.class1 {
+			position: absolute;
+			left: calc(var(--ratio) * 100% - 11rem);
+			width: 10rem;
+			height: 10rem;
+			border-radius: 50%;
+			background-color: var(--primary);
+		}
+	</style>
+</head>
+
+<body>
+	<div class="class1" id="test1">You can see the blue dot in the middle.</div>
+</body>
+<script>
+	var div = document.getElementById("test1");
+	div.style = "--primary: #28b3f7; --min:18;--max:30;--value:24;"
+
+
+	function testStart() {
+		screenShot("customproperty_42.png", function () {
+			testImgDiff("customproperty_42.png", "customproperty_42_expected.png");
+			testEnd();
+		});
+	}
+</script>
+
+</html>

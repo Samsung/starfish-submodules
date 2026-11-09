@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<meta name="pixel-test">
+<head>
+  <style>
+.wrapper {
+  display: grid;
+  grid-template-columns: 100px 100px 100px;
+  grid-template-rows: 50px 100px 1fr;
+  border:solid 10px;
+  color: #000;
+}
+
+.box {
+  background-color: #000;
+  color: #fff;
+  font-size: 150%;
+}
+
+.b {
+  grid-column-start : 1;
+  grid-column-end : 2;
+}
+
+.c {
+  grid-column-start: 2;
+  grid-column-end : 4;
+}
+  </style>
+</head>
+<body style="font-family: Ahem">
+<div class="wrapper">
+  <div class="box a" style="background-color:green;">A - 1</div>
+  <div class="box a" style="background-color:orange;">A - 2</div>
+  <div class="box a" style="background-color:yellow;">A - 3</div>
+  <div class="box b" style="background-color:blue;">B</div>
+  <div class="box c" style="background-color:red;">C</div>
+</div>
+</body>
+<script>
+  function testStart() {
+    screenShot("gridbox_simple-box-9.png", function() {
+      testImgDiff("gridbox_simple-box-9.png", "gridbox_simple-box-9_expected.png");
+      testEnd();
+    });
+  }
+</script>
+</html>

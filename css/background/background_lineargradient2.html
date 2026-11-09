@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="pixel-test">
+    <style>
+        div {
+            border: 5px solid black;
+            margin-top: 5px;
+            height: 20px;
+            color: green;
+        }
+        #test1 {
+            background: linear-gradient(145deg, red, white 20%, blue);
+        }
+        #test2 {
+            background: linear-gradient(145deg, red 0%, white 20%, blue 100%);
+        }
+        #test3 {
+            background: linear-gradient(145deg, red 40%, white, black, blue);
+        }
+        #test4 {
+            background: linear-gradient(145deg, red 40%, white 60%, black 80%, blue 100%);
+        }
+        #test5 {
+            background: linear-gradient(145deg, red -50%, white, blue);
+        }
+        #test6 {
+            background: linear-gradient(145deg, red -50%, white 25%, blue 100%);
+        }
+        #test7 {
+            background: linear-gradient(145deg, red 20px, white 0px, blue 40px);
+        }
+        #test8 {
+            background: linear-gradient(145deg, red 20px, white 20px, blue 40px);
+        }
+        #test9 {
+            background: linear-gradient(145deg, red, white -50%, black 150%, blue);
+        }
+        #test10 {
+            background: linear-gradient(145deg, red 0%, white 0%, black 150%, blue 150%);
+        }
+        #test11 {
+            background: linear-gradient(145deg, red 80px, white 0px, black, blue 100px);
+        }
+        #test12 {
+            background: linear-gradient(145deg, red 80px, white 80px, black 90px, blue 100px);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="test1"></div>
+    <div id="test2"></div>
+    <div id="test3"></div>
+    <div id="test4"></div>
+    <div id="test5"></div>
+    <div id="test6"></div>
+    <div id="test7"></div>
+    <div id="test8"></div>
+    <div id="test9"></div>
+    <div id="test10"></div>
+    <div id="test11"></div>
+    <div id="test12"></div>
+</body>
+<script>
+    function testStart() {
+        screenShot("background_lineargradient2.png", function () {
+            testImgDiff("background_lineargradient2.png", "background_lineargradient2_expected.png");
+            testEnd();
+        });
+
+    }
+</script>
+
+</html>

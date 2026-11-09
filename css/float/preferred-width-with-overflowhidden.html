@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<meta name="pixel-test">
+<style>
+a {
+float:left;
+border: 5px black solid
+}
+span {
+float:left;
+width:200px;
+background:red;
+margin-right: 10px;
+}
+div {
+background:blue;
+color:red;
+}
+.txt {
+overflow:hidden;
+width:400px;
+}
+</style>
+<a>
+<span>l1</span>
+<div style="float:left;width:50px;">l2</div>
+<div style="float:right;width:50px;">r1</div>
+<div class="txt">preffered width should increase when meets `blockformattingcontext owners and float:left, right`</div>
+</a>
+<script>
+screenShot("preferred-width-with-overflowhidden.png", function () {
+                testImgDiff("preferred-width-with-overflowhidden.png", "preferred-width-with-overflowhidden_expected.png");
+                testEnd();
+                iterate();
+            });
+
+</script>

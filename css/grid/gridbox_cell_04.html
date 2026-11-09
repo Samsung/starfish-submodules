@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+<meta name="pixel-test">
+<style>
+* {
+  font-family: Ahem;
+}
+.wrapper {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  position: relative;
+  border: 2px solid red;
+}
+
+/*
+TCs
+grid-column: 1 2
+grid-column: 3 1 2
+grid-column: 3 2 1
+*/
+
+.box1 {
+  grid-column: 1;
+  height: 100px;
+  border: 2px solid blue;
+}
+.box2 {
+  grid-column: 2;
+  height: 100px;
+  border: 2px solid green;
+}
+.box3 {
+  /* position: absolute; */
+  border: 2px solid yellow;
+}
+.box4 {
+  position: absolute;
+  border: 2px solid purple;
+}
+</style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="box1" id="1">1</div>
+    <div class="box2" id="2">22 22 22</div>
+    <div class="box3" id="3">333</div>
+    <div class="box4" id="4">4444 4444</div>
+  </div>
+</body>
+<script>
+function testStart() {
+  screenShot("gridbox_cell_04.png", function() {
+    testImgDiff("gridbox_cell_04.png", "gridbox_cell_04_expected.png");
+    testEnd();
+  });
+}
+</script>
+</html>

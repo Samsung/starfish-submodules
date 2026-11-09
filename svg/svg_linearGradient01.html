@@ -1,0 +1,62 @@
+<html>
+<meta name="pixel-test">
+<body>
+
+<svg viewBox="0 0 16 104" width="16" height="104"
+xmlns="http://www.w3.org/2000/svg">
+<defs>
+    <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="a">
+        <stop stop-opacity="0" offset="0%"></stop>
+        <stop stop-opacity="1" offset="50%"></stop>
+        <stop stop-opacity="0" offset="100%"></stop>
+    </linearGradient>
+
+    <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="b">
+        <stop stop-opacity="0" offset="0%"></stop>
+        <stop stop-opacity="1" offset="50%"></stop>
+        <stop stop-opacity="0" offset="100%"></stop>
+    </linearGradient>
+</defs>
+<g fill="none" fill-rule="evenodd">
+    <path fill="url(#a)" d="M0 0h3v104H0z"></path>
+    <path fill="url(#b)" d="M3 0h6v104H3z"></path>
+    <path fill="url(#a)" d="M0 0h3v104H0z"></path>
+    <path fill="url(#b)" d="M3 0h6v104H3z"></path>
+</g>
+</svg>
+
+<svg viewBox="0 0 16 104" width="16" height="104"
+xmlns="http://www.w3.org/2000/svg">
+<defs>
+    <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="c">
+        <stop stop-opacity="0" offset="0%" stop-color="red"></stop>
+        <stop stop-opacity="1" offset="50%" stop-color="green"></stop>
+        <stop stop-opacity="0" offset="100%" stop-color="blue"></stop>
+    </linearGradient>
+
+    <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="d">
+        <stop stop-opacity="0" offset="0%" stop-color="red"></stop>
+        <stop stop-opacity="1" offset="50%" stop-color="green"></stop>
+        <stop stop-opacity="0" offset="100%" stop-color="blue"></stop>
+    </linearGradient>
+
+</defs>
+<g fill="none" fill-rule="evenodd">
+    <path fill="url(#c)" d="M0 0h3v104H0z"></path>
+    <path fill="url(#d)" d="M3 0h6v104H3z"></path>
+    <path fill="url(#c)" d="M0 0h3v104H0z"></path>
+    <path fill="url(#d)" d="M3 0h6v104H3z"></path>
+</g>
+
+</svg>
+
+</body>
+<script>
+    function testStart() {
+        screenShot("svg_linearGradient01.png", function() {
+             testImgDiff("svg_linearGradient01.png", "svg_linearGradient01_expected.png");
+             testEnd();
+        });
+    }
+    </script>
+</html>

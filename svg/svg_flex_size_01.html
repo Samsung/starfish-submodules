@@ -1,0 +1,38 @@
+<html>
+
+<head>
+   <meta name="pixel-test">
+   <style>
+      .icon-row {
+         display: flex;
+         min-width: 32px;
+         width: 32px;
+         height: 40px;
+         background-color: green;
+      }
+   </style>
+</head>
+
+<body>
+   <div class="parent">
+      <div class="icon-row">
+         <svg version="1.1" width="44px" height="44px" viewBox="0 0 44.0 44.0" xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink">
+            <rect width="100" height="100" fill="red" />
+         </svg>
+         <svg version="1.1" width="44px" height="44px" viewBox="0 0 44.0 44.0" xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink">
+            <rect width="100" height="100" fill="blue" />
+         </svg>
+      </div>
+   </div>
+</body>
+<script>
+   function testStart() {
+      screenShot("svg_flex_size_01.png", function () {
+          testImgDiff("svg_flex_size_01.png", "svg_flex_size_01_expected.png");
+          testEnd();
+      });
+   }
+</script>
+</html>

@@ -1,0 +1,37 @@
+<html style="width: 100%;height: 100%"><head>
+<style>
+* { margin: 0px }
+</style>
+        <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+    </head>
+    <body style="background-color:#ccc; margin: 0px;height: 100%; font-family: sans-serif;font-size: 10px">
+        <div style="width:800px;height:600px;background-color:#333" id="sample">
+            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1920 200" width="1920" height="200" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px); content-visibility: visible;">
+                <defs>
+                    <mask id="cutout-mask">
+                        <rect x="-575" y="-575" width="1150" height="1150" fill="white"/>
+                    </mask>
+                </defs>
+                <g>
+                    <g style="display: block;">
+                        <g transform="matrix(1,0,0,1,960,-70)" opacity="1">
+                            <g opacity="1" transform="matrix(1,0,0,1,0,274)">
+                                <rect x="-600" y="-600" width="2000" height="2000" mask="url(#cutout-mask)"></rect>
+                            </g>
+                        </g>
+                    </g>
+                </g>
+            </svg>
+        </div>
+        <br>
+<script>
+    function testStart() {
+        screenShot("svg_mask_05.png", function () {
+            testImgDiff("svg_mask_05.png", "svg_mask_05_expected.png");
+            testEnd();
+        });
+    }
+
+</script>    
+
+</body></html>

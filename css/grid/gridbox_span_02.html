@@ -1,0 +1,59 @@
+<html>
+<head>
+<meta name="pixel-test">
+<style>
+* {
+  font-family: Ahem;
+}
+#grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+    grid-gap: 0 16px;
+    grid-auto-rows: min-content;
+    border: 2px red solid;
+
+}
+#firstRow {
+    grid-column: 1 / span 6;
+    background-color: blue;
+}
+#secondRowFirstCol {
+    grid-column: 1 / span 2;
+    background-color: green;
+}
+#secondRowSecondCol {
+    grid-column: span 2;
+    background-color: yellow;
+}
+#secondRowThirdCol {
+    grid-column: span 2;
+    background-color: orange;
+}
+</style>
+</head>
+
+<body>
+<div id="grid">
+    <div id="firstRow">
+        first row here blah blah blah
+    </div>
+    <div id="secondRowFirstCol">
+        second row first column
+    </div>
+    <div id="secondRowSecondCol">
+        second row second column
+    </div>
+    <div id="secondRowThirdCol">
+        second row third column
+    </div>
+</div>
+</body>
+<script>
+    function testStart() {
+      screenShot("gridbox_span_02.png", function() {
+        testImgDiff("gridbox_span_02.png", "gridbox_span_02_expected.png");
+        testEnd();
+      });
+    }
+</script>
+</html>

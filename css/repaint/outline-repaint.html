@@ -1,0 +1,32 @@
+<style>
+
+div {
+  border: 10px red solid;
+  outline: 5px black solid;
+  width: 100px;
+  height: 100px;
+}
+
+#a {
+  outline: none;
+}
+
+</style>
+
+<div>
+</div>
+
+<script>
+function testStart() {
+  // take a screenshot for force rendering
+  screenShot("outline-repaint_0.png", function() {
+    document.querySelector("div").id= "a";
+    screenShot("outline-repaint_0.png", function() {
+      testImgDiff("outline-repaint_0.png", "outline-repaint_0_expcted.png");
+      testEnd();
+    });
+
+  });
+}
+
+</script>

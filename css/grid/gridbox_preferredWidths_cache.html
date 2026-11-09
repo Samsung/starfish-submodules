@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        * {
+            font-family: StarfishAhem;
+        }
+
+        .flexContainer1 {
+            width: 340px;
+            display: flex;
+            flex-direction: column;
+            background-color: yellow;
+        }
+
+        .gridContainer1 {
+            display: grid;
+            grid-template-columns: min-content auto;
+            background-color: green;
+        }
+
+        .gridItem1 {
+            background-color: blue;
+        }
+
+        .gridItem_flex2 {
+            position: relative;
+            background-color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="flexContainer1">
+        <div class="gridContainer1">
+            <div id="target" class="gridItem1">xxxxx xxxxx</div>
+            <div class="gridItem_flex2">yyyyy yyyyy</div>
+        </div>
+    </div>
+</body>
+<script>
+  function testStart() {
+      screenShot("gridbox_preferredWidths_cache.png", function() {
+          testImgDiff("gridbox_preferredWidths_cache.png", "gridbox_preferredWidths_cache_expected.png");
+          testEnd();
+      });
+  }
+</script>
+</html>

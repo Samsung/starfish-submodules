@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        .flexContainer {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .flexItem1 {
+            width: fit-content;
+            margin-left: auto;
+            margin-right: 20px;
+            background-color: red;
+        }
+
+        .flexItem2 {
+            width: fit-content;
+            margin-inline-start: auto;
+            margin-right: 20px;
+            background-color: yellow;
+        }
+
+        .flexItem3 {
+            width: fit-content;
+            margin-inline-start: auto;
+            margin-inline-end: 20px;
+            background-color: blue;
+        }
+
+        .flexItemChild {
+            width: 100px;
+            height: 100px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="flexContainer">
+        <div>
+            <div class="flexItem1">
+                <div class="flexItemChild"></div>
+            </div>
+            <div class="flexItem2">
+                <div class="flexItemChild"></div>
+            </div>
+            <div class="flexItem3">
+                <div class="flexItemChild"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function testStart() {
+            screenShot("margin-inline_auto.png", function () {
+                testImgDiff("margin-inline_auto.png", "margin-inline_auto_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</body>
+
+</html>

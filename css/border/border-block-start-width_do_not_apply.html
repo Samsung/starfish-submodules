@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        #target {
+            border-block-start-width: 20px;
+            border-bottom-style: solid;
+
+            width: 100px;
+            height: 100px;
+            background-color: yellow;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="target"></div>
+    <script>
+        function testStart() {
+            screenShot("border-block-start-width_do_not_apply.png", function () {
+                testImgDiff("border-block-start-width_do_not_apply.png", "border-block-start-width_do_not_apply_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</body>
+
+</html>

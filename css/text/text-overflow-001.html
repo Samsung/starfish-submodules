@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<meta name="pixel-test">
+<style>
+p, div {
+  width: 250px;
+  border: 2px solid;
+  padding: 0px 0px;
+
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.overflow-visible {
+  white-space: initial;
+}
+
+.overflow-clip {
+  text-overflow: clip;
+}
+
+.overflow-ellipsis {
+  text-overflow: ellipsis;
+}
+
+.overflow-string {
+  text-overflow: "[..]"; 
+}
+</style>
+<p class="overflow-visible">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
+<p class="overflow-clip">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
+<p dir="rtl" class="overflow-ellipsis">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
+<p class="overflow-ellipsis">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
+<p class="overflow-string">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
+<script type="text/javascript1">
+        // Capture the screen
+        function testStart() {
+            screenShot("text-overflow-001.png", function() {
+                testImgDiff("text-overflow-001.png", "text-overflow-001_expected.png");
+                testEnd();
+            });
+        }
+</script>

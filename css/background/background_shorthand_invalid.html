@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<meta name="pixel-test">
+<div id="target" style="background:yellow url('orange.png') right/20px 40px no-repeat repeat; width:200px;height:200px;"></div>
+<script>
+var tests = [];
+var p = 0;
+var currentFileName;
+var expectedFileName = "background_shorthand_invalid_expected.png";
+
+// INVALID CASE
+tests.push("pink url('purple.png') top 60px 30px repeat no-repeat");
+tests.push("pink/url('purple.png') top 60px 30px repeat no-repeat");
+tests.push("pink url('purple.png')/top 60px 30px repeat no-repeat");
+tests.push("pink url('purple.png') top 60px/30px repeat no-repeat");
+tests.push("pink url('purple.png') top 60px 30px/repeat no-repeat");
+tests.push("pink url('purple.png') top 60px 30px repeat/no-repeat");
+tests.push("pink url('purple.png') top/60px/30px repeat no-repeat");
+tests.push("pink url('purple.png') top/60px 30px/repeat no-repeat");
+tests.push("pink url('purple.png') top/60px 30px/repeat/no-repeat");
+
+tests.push("pink url('purple.png') top/60px 30px 60px repeat no-repeat");
+tests.push("pink url('purple.png') top/60px 30px 60px 30px repeat no-repeat");
+tests.push("pink url('purple.png') top/ no-repeat");
+tests.push("pink url('purple.png') top top no-repeat");
+
+function proceed() {
+
+	document.getElementById("target").style.background = tests[p];
+	console.log("[" + p + "] " + tests[p]);
+
+	currentFileName = "background_shorthand_invalid-" + p + ".png";
+	screenShot(currentFileName, cb);
+}
+
+function cb() {
+	testImgDiff(currentFileName, expectedFileName);
+	p++;
+     if (p == tests.length) testEnd();
+     else proceed();
+}
+
+function testStart() {
+    proceed();
+}
+
+</script>

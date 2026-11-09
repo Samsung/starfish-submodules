@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="pixel-test">
+  <style type="text/css">
+    #mask-by-png {
+      mask-image: url('test.svg');
+      -webkit-mask-image: url('test.svg');
+      background-color: #8f8f8f;
+      width: 200px;
+      height: 200px;
+    }
+  </style>
+</head>
+
+<body>
+  <div style="border: black 2px solid; width: 200px;">
+    <div id="mask-by-png"></div>
+  </div>
+  <script>
+    function testStart() {
+      screenShot("svg-mask-image-01.png", function () {
+        testImgDiff("svg-mask-image-01.png", "svg-mask-image-01_expected.png");
+        testEnd();
+      });
+    }
+  </script>
+</body>
+
+</html>

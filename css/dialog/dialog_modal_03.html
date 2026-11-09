@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="pixel-test">
+<style>
+* {
+  font-family: Ahem;
+}
+
+#content {
+  /*
+  width: 30px;
+  height: 30px;
+  */
+  background-color: green;
+}
+
+#region {
+}
+</style>
+</head>
+<body>
+  <p>Test passes if you see a green square in the middle</p>
+  <dialog id="content">dialog</dialog>
+  <div id="region"></div>
+</body>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  var dialog = document.getElementsByTagName('dialog')[0];
+  dialog.showModal();
+});
+
+function testStart() {
+  screenShot("dialog_modal_03.png", function() {
+    testImgDiff("dialog_modal_03.png", "dialog_modal_03_expected.png");
+    testEnd();
+  });
+}
+</script>
+</html>

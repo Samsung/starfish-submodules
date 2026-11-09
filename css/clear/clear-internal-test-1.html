@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<script src="../framework.js"></script>
+<style>
+  .outer {
+    background-color: gray;
+    width: 740px;
+  }
+
+  .left {
+    background-color: teal;
+    float:left;
+    width: auto;
+    height: 40px;
+  }
+
+  .left2 {
+    background-color: red;
+    float:left;
+    width: auto;
+    height: 30px;
+  }
+
+  .left3 {
+    background-color: purple;
+    float:left;
+    width: auto;
+    height: 45px;
+  }
+
+  .left4 {
+    background-color: skyblue;
+    float:left;
+    width: auto;
+    height: 65px;
+  }
+
+  .right {
+    background-color: blue;
+    float:right;
+    width: auto;
+    height: 50px;
+  }
+
+  .right2 {
+    background-color: yellow;
+    float:right;
+    width: auto;
+    height: 70px;
+  }
+
+  .right3 {
+    background-color: pink;
+    float:right;
+    width: auto;
+    height: 38px;
+  }
+</style>
+
+<body>
+  <div class="outer">
+    outer outer2
+    <div class="left">
+      left
+    </div>
+    outer3
+    <div class="left2">
+      left2
+    </div>
+    out d
+    <div class="left3">
+      left3
+    </div>
+    eee rr
+    <div class="right">
+      right
+    </div>
+    asd ggg
+    <div class="right2">
+      right2
+    </div>
+    <div class="left4">
+      left4
+    </div>
+    ccccccc
+    <div class="right3">
+      right3
+    </div>
+  </div>
+</body>
+
+
+<script>
+  var cssKeyValues = {
+    clear: ["none", "left", "right", "both"]
+  };
+
+  var outerDiv = new Div("outer");
+  var left2Div = new Div("left2");
+  var right2Div = new Div("right2");
+  var left4Div = new Div("left4");
+  var right3Div = new Div("right3");
+  var divs = [left2Div, right2Div, left4Div, right3Div];
+  var bugs = [
+    {"clear": ["none", "none", "right", "right"]},
+    {"clear": ["left", "left", "none"]},
+    {"clear": ["left", "left", "left"]},
+    {"clear": ["left", "right", "none"]},
+    {"clear": ["left", "right", "left"]},
+    {"clear": ["left", "both", "none"]},
+    {"clear": ["left", "both", "left"]},
+    {"clear": ["right"]},
+    {"clear": ["both"]},
+  ];
+
+  function init(ltr) {
+    if (ltr) {
+      outerDiv.changeStyle("direction", "ltr");
+    } else {
+      outerDiv.changeStyle("direction", "rtl");
+    }
+    left2Div.changeStyle("clear", "none");
+    right2Div.changeStyle("clear", "none");
+    left4Div.changeStyle("clear", "none");
+    right3Div.changeStyle("clear", "none");
+  }
+
+  function testStart() {
+    var stepper = Stepper("stepper", divs, "clear", cssKeyValues.clear);
+
+    function iterate(ltr) {
+      outerDiv.elems[0].offsetHeight;
+      var names = name(divs, function (divs, styles) {
+        styles.push("1");
+        divs.forEach(function(div) {
+          styles.push(div.elems[0].style.clear);
+        });
+      });
+      console.log("img : " + names.img);
+      screenShot(names.img, function () {
+        testImgDiff(names.img, names.expectedImg);
+
+        if (stepper.finished()) {
+          testEnd();
+        } else {
+          do {
+            stepper.step();
+            if (stepper.finished()) {
+              iterate(ltr);
+              return;
+            }
+          } while (canSkip(divs, bugs));
+
+          iterate(ltr);
+        }
+      });
+    }
+
+    init(true);
+    iterate(true);
+  }
+</script>
+</html>

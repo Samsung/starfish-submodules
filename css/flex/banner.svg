@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="279px" height="39px" viewBox="0 0 279 39" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Banner</title>
+    <rect x="2" y="3" width="34" height="34" rx="8" fill="#7A8B99"/>
+    <rect x="48" y="9" width="96" height="22" rx="4" fill="#FFFFFF"/>
+    <rect x="152" y="9" width="127" height="22" rx="4" fill="#FFFFFF" fill-opacity="0.8"/>
+</svg>

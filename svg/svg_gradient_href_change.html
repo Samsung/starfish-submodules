@@ -1,0 +1,30 @@
+<style>
+* { margin: 0 }
+</style>
+<svg width="300" height="300" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <linearGradient id="base">
+      <stop id="baseStart" offset="0%" stop-color="red"/>
+      <stop id="baseEnd" offset="100%" stop-color="red"/>
+    </linearGradient>
+    <linearGradient id="inherited" xlink:href="#base" x1="0" x2="0" y1="0" y2="1"/>
+  </defs>
+  <rect x="0" y="0" width="100" height="100" fill="url(#inherited)"/>
+</svg>
+
+<script>
+function testStart()
+{
+    screenShot("svg_gradient_href_change_01.png", function() {
+        testImgDiff("svg_gradient_href_change_01.png", "svg_gradient_change_01_expected.png");
+
+        document.getElementById("baseStart").setAttribute("stop-color", "blue");
+        document.getElementById("baseEnd").setAttribute("stop-color", "blue");
+
+        screenShot("svg_gradient_href_change_02.png", function() {
+            testImgDiff("svg_gradient_href_change_02.png", "svg_gradient_change_03_expected.png");
+            testEnd();
+        });
+    });
+}
+</script>

@@ -1,0 +1,36 @@
+<style>
+* { margin: 0; line-height: 0 }
+
+</style>
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <filter id="filter">
+    <feGaussianBlur stdDeviation="5" result="blur2" />
+    <feMerge>
+      <feMergeNode in="blur2" />
+      <feMergeNode in="SourceGraphic" />
+    </feMerge>
+  </filter>
+  <mask id="mask">
+      <rect fill="white" x="60" y="60" width="100" height="100"/>
+  </mask>
+  <clipPath id="clipPath">
+      <rect fill="white" x="40" y="40" width="200" height="100"/>
+  </clipPath>
+
+  <rect
+    x="40"
+    y="40"
+    width="100"
+    height="100"
+    style="stroke: #000000; fill: green; filter: url(#filter);mask: url(#mask);clip-path: url(#clipPath)" />
+</svg>
+
+<script>
+function testStart() {
+    screenShot("svg_inline_style_01.png", function () {
+      testImgDiff("svg_inline_style_01.png", "svg_inline_style_01_expected.png");
+      testEnd();
+    });
+  }
+</script>
+

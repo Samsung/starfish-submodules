@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="pixel-test">
+<style>
+* {
+  font-family: Ahem;
+}
+
+#content {
+  width: 100px;
+  height: 100px;
+  background-color: green;
+}
+
+#region {
+  width: 100px;
+  height: 100px;
+  background-color: gray;
+}
+
+.red {
+  width: 100px;
+  height: 100px;
+  background-color: red;
+}
+</style>
+</head>
+<body>
+  <p>Test passes if you see a red square in the gray box.</p>
+<!--  <div id="content"></div> -->
+  <dialog id="region">
+    <div class="red"></div>
+  </dialog>
+</body>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  var dialog = document.getElementsByTagName('dialog')[0];
+  dialog.showModal();
+});
+
+function testStart() {
+  screenShot("dialog_modal_01.png", function() {
+    testImgDiff("dialog_modal_01.png", "dialog_modal_01_expected.png");
+    testEnd();
+  });
+}
+</script>
+</html>

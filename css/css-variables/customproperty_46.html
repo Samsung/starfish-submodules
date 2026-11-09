@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta name="pixel-test">
+	<style>
+		#test1 {
+			position: relative;
+			background-color: red;
+			width:50px;
+			height:50px;
+			left : var(--point);
+		}
+
+		#test2 {
+			background-color: blue;
+			--range: (var(--max) - var(--min));
+			--ratio: (var(--range) - var(--value));
+			--point: calc(var(--ratio) * 10px);
+			width:500px;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="test2">
+		<div id="test1">
+		</div>
+	</div>
+</body>
+<script>
+	var div = document.getElementById("test2");
+	div.style = "--min:0;--max:30;--value:20;"
+	function testStart() {
+		screenShot("customproperty_46.png", function () {
+			testImgDiff("customproperty_46.png", "customproperty_46_expected.png");
+			testEnd();
+		});
+	}
+</script>
+</html>

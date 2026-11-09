@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<div id="a">
+    <div id="b"></div>
+</div>
+
+
+<style>
+
+#a {
+  height: 2000px;
+}
+
+#b {
+  margin-top: 550px;
+  width: 100px;
+  height: 100px;
+  background: red;
+}
+
+</style>
+<script>
+
+  function testStart() {
+    screenShot("scroll-test_1.png", function () {
+      testImgDiff("scroll-test_1.png", "scroll-test_1_expected.png");
+        window.scrollTo(0, 100)
+        screenShot("scroll-test_2.png", function() {
+            testImgDiff("scroll-test_2.png", "scroll-test_2_expected.png");
+            testEnd();
+        });
+    });
+  }
+
+
+
+</script>

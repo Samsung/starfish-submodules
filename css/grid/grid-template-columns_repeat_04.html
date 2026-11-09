@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        #grid1 {
+            display: grid;
+            width: 500px;
+            grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+        }
+
+        #grid2 {
+            display: grid;
+            width: 100px;
+            column-gap: 10px;
+            grid-template-columns: repeat(auto-fit, 50px 150px 200px);
+        }
+
+        #area1 {
+            background-color: lime;
+            height: 60px;
+        }
+
+        #area2 {
+            background-color: yellow;
+            height: 60px
+        }
+
+        #area3 {
+            background-color: blue;
+            height: 60px
+        }
+
+        #area4 {
+            background-color: red;
+            height: 60px
+        }
+    </style>
+</head>
+
+<body>
+    <div id="grid1">
+        <div id="area1"></div>
+        <div id="area2"></div>
+        <div id="area3"></div>
+        <div id="area4"></div>
+    </div>
+    <div id="grid2">
+        <div id="area1"></div>
+        <div id="area2"></div>
+        <div id="area3"></div>
+        <div id="area4"></div>
+        <div id="area1"></div>
+        <div id="area2"></div>
+        <div id="area3"></div>
+    </div>
+    <script>
+        function testStart() {
+            screenShot("grid-template-columns_repeat_04.png", function () {
+                testImgDiff("grid-template-columns_repeat_04.png", "grid-template-columns_repeat_04_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</body>
+
+</html>

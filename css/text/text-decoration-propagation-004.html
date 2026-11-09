@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<!-- Adapted from Mozilla's layout/reftests/text-decoration/decoration-css21.html
+     (https://searchfox.org/mozilla-central/source/layout/reftests/text-decoration/decoration-css21.html).
+     This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
+<html>
+    <head>
+        <style>
+            .sup { vertical-align: super; }
+            .transparent { color: transparent; }
+            .alllines { text-decoration: line-through; color: purple; }
+            .highRel { position: relative; top: -4em; }
+            .lowRel { position: relative; top: 4em; }
+            .lowVert { vertical-align: -4em; }
+            .highVert { vertical-align: 4em; }
+        </style>
+    </head>
+    <body>
+        <p>
+            <span style="text-decoration: underline">Underlined <span class="sup transparent">still underlined</span></span>
+            <span style="text-decoration: underline">Underlined <span class="sup">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span>
+        </p>
+        <p>
+            <span class="alllines">
+                Before<span class="highVert transparent">high</span><span class="lowVert transparent">low</span>After
+            </span>
+        </p>
+        <p>
+            <span class="alllines">
+                Before<span class="highRel">high</span><span class="lowRel">low</span>After</span>
+            </span>
+        </p>
+    </body>
+    <script type="text/javascript">
+        // Capture the screen
+        function testStart() {
+            screenShot("text-decoration-propagation-004.png", function() {
+                testImgDiff("text-decoration-propagation-004.png", "text-decoration-propagation-004_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</html>

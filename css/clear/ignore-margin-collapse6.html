@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style type="text/css">
+            #rel-pos-wrapper {position: relative;}
+
+            #parent-lime
+            {
+                background-color: lime;
+                border-top: black solid 1px;
+                width: 50%;
+            }
+
+            #float-left-blue
+            {
+                background-color: blue;
+                float: left;
+                height: 100px;
+                width: 100px;
+            }
+
+            #clear-left
+            {
+                clear: left;
+                margin-bottom: 140px;
+                margin-top: 230px;
+            }
+
+            #border-only {
+                margin-top: 30px;
+                border: 1px solid black;
+                margin-bottom: 130px;
+            }
+            #next-yellow
+            {
+                background-color: yellow;
+                height: 100px;
+            }
+
+            .ref-overlapped-red
+            {
+                background-color: red;
+                position: absolute;
+                z-index: -1;
+            }
+
+            #ref1
+            {
+                height: 200px;
+                top: 1px;
+                width: 50%;
+            }
+
+            #ref2
+            {
+                height: 100px;
+                top: 201px;
+                width: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="rel-pos-wrapper">
+            <div id="parent-lime">
+                <div id="border-only"></div>
+                <div id="float-left-blue"></div>
+                <div id="clear-left"></div>
+            </div>
+            <div id="next-yellow"></div>
+            <div id="ref1" class="ref-overlapped-red"></div>
+            <div id="ref2" class="ref-overlapped-red"></div>
+        </div>
+    </body>
+    <script>
+        function testStart() {
+            screenShot("ignore-margin-collapse6.png", function () {
+            testImgDiff("ignore-margin-collapse6.png", "ignore-margin-collapse6_expected.png");
+            testEnd();
+            });
+        }
+    </script>
+</html>

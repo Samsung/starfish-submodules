@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    <head>
+        <meta name="pixel-test">
+        <title>CSS Test: First-letter with table cell elements</title>
+        <link rel="author" title="Microsoft" href="http://www.microsoft.com/">
+        <link rel="help" href="http://www.w3.org/TR/CSS21/selector.html#first-letter">
+        <meta name="flags" content="">
+        <meta name="assert" content="The :first-letter pseudo-element applies to table-cells.">
+        <style type="text/css">
+            td:first-letter
+            {
+                color: green;
+            }
+
+            table {
+                border: 10px solid black;
+            }
+            td {
+                border: 10px solid red;
+            }
+
+        </style>
+    </head>
+    <body>
+        <p>Test passes if the letter "F" below is green.</p>
+        <table>
+            <tr>
+                <td><span>F</span>iller     Text</td>
+            </tr>
+        </table>
+    </body>
+
+<script>
+function testStart() {
+    screenShot("r_first-letter-selector-007.png", function () {
+        testImgDiff("r_first-letter-selector-007.png", "r_first-letter-selector-007_expected.png");
+        testEnd();
+    });
+}
+</script>
+
+</html>

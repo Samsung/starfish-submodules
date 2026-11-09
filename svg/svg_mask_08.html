@@ -1,0 +1,27 @@
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head><body>
+    <svg width="800" height="600" viewBox="0 0 800 600">
+        <defs>
+            <mask id="svgmask1" mask-type="alpha" width="50%">
+                <g id="svgmask1_1">
+                    <path stroke="black" stroke-width="100" d="M 20 20 L 50 20 L 50 50 L 20 50 L 10 10"></path>
+                </g>
+            </mask>
+        </defs>
+        <g transform="matrix(1,0,0,1,0,0)">
+            <path stroke="blue" mask="url(#svgmask1)" stroke-width="100" d="M 10 10 L 140 10 L 140 140 L 10 140 L 10 10"></path>
+        </g>
+    </svg>
+
+<script>
+    function testStart() {
+        screenShot("svg_mask_08.png", function () {
+            testImgDiff("svg_mask_08.png", "svg_mask_08_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+
+</body></html>

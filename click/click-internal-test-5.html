@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<meta name="pixel-test">
+<script src="../css/framework.js"></script>
+<style>
+  .outer {
+    background-color: gray;
+    position: absolute;
+    width: 500px;
+    height: 400px;
+  }
+
+  .inner {
+    background-color: pink;
+    width: 100px;
+    height: 100px;
+    top: 30px;
+    left: 30px;
+  }
+
+  .inner2 {
+    background-color: teal;
+    width: 100px;
+    height: 100px;
+    top: 20px;
+    left: 20px;
+  }
+
+  .inner3 {
+    background-color: mediumpurple;
+    width: 100px;
+    height: 100px;
+    top: 30px;
+    left: 30px;
+  }
+
+  .inner4 {
+    background-color: royalblue;
+    width: 100px;
+    height: 100px;
+    top: 20px;
+    left: 20px;
+  }
+</style>
+
+<body>
+  <div class="outer">
+    <div class="inner">
+        inner1
+    </div>
+    <div class="inner2">
+        inner2
+        <div class="inner3">
+          inner3
+        </div>
+    </div>
+    <div class="inner4">
+        inner4
+    </div>
+  </div>
+</body>
+
+<script>
+  var cssKeyValues = {
+    "position": ["static", "absolute"],
+    "z-index": ["-5", "-3", "0", "auto", "3", "5"],
+  };
+
+  var clickedTarget;
+
+  function onClick(e) {
+    clickedTarget = e.target;
+    clickedTarget.style.border = "3px solid yellow";
+    e.stopPropagation();
+  }
+
+  function restoreChange(e) {
+    e.style.border = "";
+  }
+  var outerDiv = new Div("outer");
+  var innerDiv = new Div("inner");
+  var inner2Div = new Div("inner2");
+  var inner3Div = new Div("inner3");
+  var inner4Div = new Div("inner4");
+  var divs = [inner3Div, inner4Div];
+  var divsToClock = [outerDiv, innerDiv, inner2Div, inner3Div, inner4Div];
+  var bugs = [
+              ];
+  var duplicates = [
+                    /* static, but with z-index */
+                    {"position": ["static"], "z-index": ["!auto"]},
+                    {"position": ["*", "static"], "z-index": ["*", "!auto"]},
+                    /* three same values */
+                    {"z-index": ["3", "3"]},
+                   ];
+
+  for (var i in divsToClock) {
+    divsToClock[i].elems[0].onclick = onClick;
+  }
+
+  function init() {
+    innerDiv.changeStyle("position", "static");
+    inner2Div.changeStyle("position", "absolute");
+    inner3Div.changeStyle("position", "static");
+    inner4Div.changeStyle("position", "static");
+
+    innerDiv.changeStyle("z-index", "auto");
+    inner2Div.changeStyle("z-index", "3");
+    inner3Div.changeStyle("z-index", "auto");
+    inner4Div.changeStyle("z-index", "auto");
+  }
+
+  function testStart() {
+    var stepper2 = Stepper("stepper2", divs, "position", cssKeyValues.position);
+    var stepper = Stepper("stepper", divs, "z-index", cssKeyValues["z-index"], stepper2);
+
+    function iterate() {
+      var names = name(divs, function (divs, styles) {
+        styles.push(innerDiv.elems[0].style.position);
+        styles.push(innerDiv.elems[0].style["z-index"]);
+        styles.push(inner2Div.elems[0].style.position);
+        styles.push(inner2Div.elems[0].style["z-index"]);
+
+        divs.forEach(function(div) {
+          styles.push(div.elems[0].style.position);
+          styles.push(div.elems[0].style["z-index"]);
+        });
+      });
+
+      function screenShotForDivs(i) {
+        if (i < divsToClock.length) {
+          var newBaseName = names.baseName + "-click-on-" + divsToClock[i].name;
+          var newImgName = newBaseName + ".png";
+          var newExpectedImgName = newBaseName + "_expected.png";
+          console.log("name : " + newImgName);
+          var rect = getXYWH(divsToClock[i].elems[0]);
+          simulateClick(rect.x + 10, rect.y + 10);
+          screenShot(newImgName, function () {
+            testImgDiff(newImgName, newExpectedImgName);
+            restoreChange(clickedTarget);
+            screenShotForDivs(i + 1);
+          });
+        } else {
+          if (stepper.finished()) {
+            testEnd();
+          } else {
+            do {
+              stepper.step();
+              if (stepper.finished()) {
+                testEnd();
+              }
+            } while (canSkip(divs, bugs) || canSkip(divs, duplicates));
+
+            iterate();
+          }
+        }
+      }
+
+      screenShotForDivs(0);
+    }
+
+    init()
+    iterate();
+  }
+</script>
+</html>

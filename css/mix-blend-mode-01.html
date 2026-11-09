@@ -1,0 +1,21 @@
+<html><head></head><body><div class="mask">XXX</div>
+<div class="cover-group">
+  <div class="cover1"></div>
+  <div class="cover2"></div>
+</div>
+<style>
+.mask{font-size:150px;text-align:center;font-family:StarfishAhem}
+.cover-group{position: absolute; top: 50px;left: 50%; width: 150px; height: 150px;margin-left:-75px;}
+.cover1{position: absolute;top: 0;left: 0;width: 100%;height: 100%;background: #a37431;border-radius: 50%;z-index: -1;}
+.cover2{position: absolute;top: 0;left: 0;width: 100%;height: 100%;background: #fff;border-radius: 50%;z-index: 1;mix-blend-mode: difference;}
+</style>
+<script>
+    function testStart() {
+        screenShot("mix-blend-mode-01.png", function () {
+            testImgDiff("mix-blend-mode-01.png", "mix-blend-mode-01_expected.png");
+            testEnd();
+        });
+    }
+</script>
+
+</body></html>

@@ -1,0 +1,37 @@
+<html>
+<head>
+    <meta name="pixel-test">
+</head>
+<body>
+    <div style="display:inline-block;padding:10px; margin: 10px; border:10px black solid;">
+        <img style="padding:10px;margin: 10px;border:10px black solid;"
+            src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" height="15">
+        A
+    </div>
+
+    <div style="display:inline-block">
+        <div style="display:inline-block;padding:10px; margin: 10px; border:10px black solid">
+            <div style="padding:10px; margin: 10px; border:10px black solid">
+                A B C
+                <img style="padding:10px; margin: 10px; border:10px black solid"
+                    src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" height="15">
+                D E
+            </div>
+        </div>
+    </div>
+
+    <div style="display:inline-block">
+        A B C
+        <div></div><img style="display:block;position:absolute;padding:10px; margin: 10px; border:10px black solid"
+            src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" height="15">
+    </div>
+</body>
+<script>
+	function testStart() {
+		screenShot("preferred-width-3.png", function() {
+			 testImgDiff("preferred-width-3.png", "preferred-width-3_expected.png");
+			 testEnd();
+		});
+	}
+	</script>
+</html>

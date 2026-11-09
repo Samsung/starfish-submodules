@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="pixel-test">
+    </head>
+    <body>
+        <span id="test1">
+            span1
+            <span id="test2">
+                span2
+                <span id="test3">
+                    span3
+                </span>
+                span2
+            </span>
+            span1
+        </span>
+    </body>
+    <script type="text/javascript">
+        var tcIdx = 0;
+        var visibility = [ "initial", "visible", "hidden", "inherit" ];
+        var valueSize = visibility.length;
+
+        function doTest(firstIdx, secondIdx, thirdIdx) {
+            if (firstIdx > valueSize - 1)
+                testEnd();
+
+            // Update the 'visibility' property
+            var elem1 = document.getElementById("test1");
+            var elem2 = document.getElementById("test2");
+            var elem3 = document.getElementById("test3");
+            elem1.style.visibility = visibility[firstIdx];
+            elem2.style.visibility = visibility[secondIdx];
+            elem3.style.visibility = visibility[thirdIdx];
+
+            if (secondIdx == valueSize - 1 && thirdIdx == valueSize - 1) {
+                firstIdx++;
+                secondIdx = 0;
+                thirdIdx = 0;
+            } else if (thirdIdx == valueSize - 1) {
+                secondIdx++;
+                thirdIdx = 0;
+            } else {
+                thirdIdx++;
+            }
+            tcIdx++;
+
+            // capture
+            var filePrefix = "visibility-001-";
+            var idx = tcIdx < 10 ? "0" + tcIdx : tcIdx;
+            screenShot(filePrefix + idx + ".png", function() {
+                testImgDiff(filePrefix + idx + ".png", filePrefix + idx + "_expected.png");
+                doTest(firstIdx, secondIdx, thirdIdx);
+            });
+        }
+
+        function testStart() {
+            doTest(0, 0, 0);
+        }
+    </script>
+</html>

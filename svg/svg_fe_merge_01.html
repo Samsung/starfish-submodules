@@ -1,0 +1,45 @@
+<html><head></head><body>
+<style>
+* { margin: 0; line-height: 0 }
+
+</style>
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <filter id="test" >
+    <feGaussianBlur stdDeviation="5" result="blur2"></feGaussianBlur>
+    <feMerge>
+      <feMergeNode in="asdf"></feMergeNode>
+      <feMergeNode in="SourceGraphic"></feMergeNode>
+    </feMerge>
+  </filter>
+  <rect x="40" y="40" width="100" height="100" style="stroke: #000000; fill: green" filter="url(#test)"></rect>
+</svg><br>
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <filter id="test2">
+    <feGaussianBlur stdDeviation="5" result="blur2"></feGaussianBlur>
+    <feMerge>
+      <feMergeNode in="SourceGraphic"></feMergeNode>
+    </feMerge>
+  </filter>
+  <rect x="40" y="40" width="100" height="100" style="stroke: #000000; fill: green" filter="url(#test2)"></rect>
+</svg><br>
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <filter id="test3">
+    <feGaussianBlur stdDeviation="5" result="blur2"></feGaussianBlur>
+    <feMerge>
+    </feMerge>
+  </filter>
+  <rect x="40" y="40" width="100" height="100" style="stroke: #000000; fill: green" filter="url(#test3)"></rect>
+</svg>
+
+<script>
+function testStart() {
+    screenShot("svg_fe_merge_01.png", function () {
+      testImgDiff("svg_fe_merge_01.png", "svg_fe_merge_01_expected.png");
+      testEnd();
+    });
+  }
+</script>
+
+
+</body></html>
+

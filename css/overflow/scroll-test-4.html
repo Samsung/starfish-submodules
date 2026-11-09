@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<div id="a">
+    <div id="b">
+        <div id="c">
+        </div>
+    </div>
+</div>
+
+
+<style>
+
+#a {
+  height: 600px;
+  overflow: auto;
+  transform: translateZ(0px);
+}
+
+#b {
+  height: 2000px;
+}
+
+#c {
+  margin-top: 550px;
+  width: 100px;
+  height: 100px;
+  background: red;
+}
+
+#c.c {
+  background: blue;
+}
+
+</style>
+<script>
+  function testStart() {
+    screenShot("scroll-test-4_1.png", function () {
+        testImgDiff("scroll-test-4_1.png", "scroll-test-3_1_expected.png");
+        a.scrollTop = 100;
+        screenShot("scroll-test-4_2.png", function() {
+            testImgDiff("scroll-test-4_2.png", "scroll-test-3_2_expected.png");
+            c.className = "c"
+            screenShot("scroll-test-4_3.png", function() {
+                testImgDiff("scroll-test-4_3.png", "scroll-test-3_3_expected.png");
+                testEnd();
+            });
+        });
+    });
+  }
+</script>

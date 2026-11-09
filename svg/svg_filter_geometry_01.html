@@ -1,0 +1,50 @@
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+* { margin: 0; line-height: 0 }
+</style>
+</head><body>
+<svg width="250" height="250" viewBox="0 0 250 250" xmlns="http://www.w3.org/2000/svg">
+  <filter id="filter" x="0.2">
+    <feColorMatrix type="saturate" values="0.2"></feColorMatrix>
+    <feGaussianBlur stdDeviation="1"></feGaussianBlur>
+  </filter>
+
+  <mask id="mask">
+     <rect fill="white" x="10" y="40" width="1000" height="1000"></rect>
+  </mask>
+  <g filter="url(#filter)">
+  <rect mask="url(#mask)" fill="green" stroke="red" x="20" y="20" width="100" height="100"></rect>
+  </g>
+</svg><svg width="250" height="250" viewBox="0 0 250 250" xmlns="http://www.w3.org/2000/svg">
+  <filter id="filter2" x="0.2" width="50%">
+    <feColorMatrix type="saturate" values="0.2"></feColorMatrix>
+    <feGaussianBlur stdDeviation="10"></feGaussianBlur>
+  </filter>
+  <g filter="url(#filter2)">
+  <rect mask="url(#mask)" fill="green" stroke="red" x="20" y="20" width="100" height="100"></rect>
+  </g>
+</svg>
+<br>
+<svg width="250" height="250" viewBox="0 0 250 250" xmlns="http://www.w3.org/2000/svg">
+  <filter id="filter3" x="0" y="0" width="50" height="100%" filterUnits="userSpaceOnUse">
+    <feColorMatrix type="saturate" values="0.2"></feColorMatrix>
+    <feGaussianBlur stdDeviation="1"></feGaussianBlur>
+  </filter>
+  <g transform="translate(10, 0)">
+  <rect mask="url(#mask)" filter="url(#filter3)" fill="green" stroke="red" x="20" y="20" width="100" height="100"></rect>
+  </g>
+</svg>
+
+<script>
+function testStart() {
+    screenShot("svg_filter_geometry_01.png", function () {
+      testImgDiff("svg_filter_geometry_01.png", "svg_filter_geometry_01_expected.png");
+      testEnd();
+    });
+  }
+</script>
+
+
+</body></html>
+

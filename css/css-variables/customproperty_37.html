@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="pixel-test">
+<style> 
+  .btn {
+    padding: 2rem 4rem;
+    border: 2px solid var(--color, black);
+    background: transparent;
+    font-size: 0.6em;
+    border-radius: 2px;
+  }
+  .btn:hover {
+    cursor: pointer;
+    background: var(--color, black);
+    color: white;
+  }
+  
+  
+  /* variations */
+  
+  .btn.red {
+    --color: red
+  }
+  .btn.yellow {
+    --color: yellow
+  }
+  .btn.green {
+    --color: green
+  }
+  .btn.orange {
+    --color: orange
+  }
+  .btn.teal {
+    --color: teal
+  }
+  
+  </style>
+  </head>
+  <body>
+    <button class="btn">Hello</button>
+    <button class="btn red">Hello</button>
+    <button class="btn yellow">Hello</button>
+    <button class="btn green">Hello</button>
+    <button class="btn orange">Hello</button>
+    <button class="btn teal">Hello</button>
+  </body>
+<script>
+    function testStart() {
+        screenShot("customproperty_37.png", function () {
+            testImgDiff("customproperty_37.png", "customproperty_37_expected.png");
+            testEnd();
+        });
+    }
+</script>
+</html>

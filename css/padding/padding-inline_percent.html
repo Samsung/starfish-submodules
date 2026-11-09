@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        .flexContainer {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .flexItem1 {
+            width: fit-content;
+            padding-left: auto;
+            padding-right: 20%;
+            background-color: red;
+        }
+
+        .flexItem2 {
+            width: fit-content;
+            padding-inline-start: auto;
+            padding-right: 20%;
+            background-color: yellow;
+        }
+
+        .flexItem3 {
+            width: fit-content;
+            padding-inline-start: auto;
+            padding-inline-end: 20%;
+            background-color: blue;
+        }
+
+        .flexItemChild {
+            width: 100px;
+            height: 100px;
+            background-color: black;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="flexContainer">
+        <div>
+            <div class="flexItem1">
+                <div class="flexItemChild"></div>
+            </div>
+            <div class="flexItem2">
+                <div class="flexItemChild"></div>
+            </div>
+            <div class="flexItem3">
+                <div class="flexItemChild"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function testStart() {
+            screenShot("padding-inline_percent.png", function () {
+                testImgDiff("padding-inline_percent.png", "padding-inline_percent_expected.png");
+                testEnd();
+            });
+        }
+    </script>
+</body>
+
+</html>

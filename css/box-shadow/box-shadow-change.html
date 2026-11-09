@@ -1,0 +1,36 @@
+<html>
+<head>
+    <style type="text/css">
+        #test {
+          width:100px;
+          height:100px;
+          background: red;
+          transform: translateZ(0);
+        }
+
+        .aa {
+          box-shadow: 0 0 0 5px #ff0;
+        }
+    </style>
+</head>
+<body>
+<script>
+function testStart()
+{
+    screenShot("box-shadow-change.png", function () {
+        testImgDiff("box-shadow-change.png", "box-shadow-change_expected.png");
+        test.className = "aa"
+        screenShot("box-shadow-change2.png", function () {
+            testImgDiff("box-shadow-change2.png", "box-shadow-change2_expected.png");
+            testEnd()
+        });
+
+    });
+}
+
+</script>
+  <div id='test'>
+  </div>
+</body>
+</html>
+
