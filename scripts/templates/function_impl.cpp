@@ -221,11 +221,16 @@ if (validArgCount == {{function.min_passing_count|string}}) {
 {%- if not function.name == '_unnamed_' %}
     {% set fnname = '%s%s'|format(function.name, function.id) if function.id else function.name %}
     {% set has_flag = function.flags and function.flags|length > 0 %}
+    {# https://webidl.spec.whatwg.org/#dfn-create-operation-function: a
+       promise-returning operation rejects with whatever its steps throw. An
+       overload (function.id) runs inside its dispatcher's wrapper; a [Custom]
+       one must reject by itself. #}
+    {% set rejects = function.return.kind == 'Promise' and not function.id %}
     {% call util_macro.ifdef(function.flags) %}
     {% if function.custom %}
 extern ValueRef* {{ gen_function_name(function) }}(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression);
     {% else %}
-static ValueRef* {{ gen_function_name(function) }}(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression)
+static ValueRef* {{ gen_function_name(function) }}{{ 'Steps' if rejects }}(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression)
 {
     {% if function.cereactions %}
     CustomElementReactionStack reactionStack;
@@ -240,6 +245,13 @@ static ValueRef* {{ gen_function_name(function) }}(ExecutionStateRef* state, Val
     {{- function_code_normal() -}}
     {% endif %}
 }
+        {% if rejects %}
+
+static ValueRef* {{ gen_function_name(function) }}(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression)
+{
+    return callPromiseOperation(state, thisValue, argc, argv, isNewExpression, {{ gen_function_name(function) }}Steps);
+}
+        {% endif %}
     {% endif %}
     {% endcall %}
 {% endif %}

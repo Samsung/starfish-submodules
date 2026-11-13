@@ -44,7 +44,10 @@ static bool {{ '%s%sWeak'|format(fn.name, fn.id) }}Checker(ExecutionStateRef* st
 {% set function = fn %}
 {% include 'function_impl.cpp' ignore missing %}
 {% endfor %}
-static ValueRef* {{ function.name }}Function(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression)
+{# Overloads all return a promise or none do (WebIDL 2.5.8); wrapping the
+   dispatcher rejects for every overload, see function_impl.cpp. #}
+{% set rejects = function.operations[0].return.kind == 'Promise' %}
+static ValueRef* {{ function.name }}Function{{ 'Steps' if rejects }}(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression)
 {
     {% if function.max_arg_count is not none %}
     size_t argCount = argc < {{ function.max_arg_count }} ? argc : {{ function.max_arg_count }};
@@ -104,5 +107,12 @@ static ValueRef* {{ function.name }}Function(ExecutionStateRef* state, ValueRef*
     THROW_EXCEPTION(msg);
     {% endif %}
 }
+{% if rejects %}
+
+static ValueRef* {{ function.name }}Function(ExecutionStateRef* state, ValueRef* thisValue, size_t argc, ValueRef** argv, bool isNewExpression)
+{
+    return callPromiseOperation(state, thisValue, argc, argv, isNewExpression, {{ function.name }}FunctionSteps);
+}
+{% endif %}
 
 
