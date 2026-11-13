@@ -194,7 +194,11 @@ class StarfishIDLReader():
       previous = target.get('constructor')
       if previous:
         # Web IDL: an overloaded constructor's length is its shortest
-        # overload's (only [CustomConstructor]s are overloaded here).
+        # overload's. min_passed_count is also the generated body's argument
+        # check, so only [CustomConstructor]s may be overloaded.
+        if not (previous.get('custom') and constructor.get('custom')):
+          raise RuntimeError('%s: overloaded constructors must be '
+                             '[CustomConstructor]' % target.get('name'))
         constructor['min_passed_count'] = min(
             previous.get('min_passed_count') or 0,
             constructor.get('min_passed_count') or 0)
