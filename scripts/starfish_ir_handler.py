@@ -227,6 +227,8 @@ class StarfishIRHandler():
           bounds.append('argCount <= %d' % high)
         subop['arg_count_condition'] = ' && '.join(bounds)
     op['max_arg_count'] = max_arg_count
+    # Web IDL: an overloaded operation's length is its shortest overload's.
+    op['min_passed_count'] = min(subop['min_passed_count'] for subop in operations)
 
     # Sort operations by max 'min_passed_count' order
     op['operations'] = sorted(operations, key=sort_op, reverse=True)

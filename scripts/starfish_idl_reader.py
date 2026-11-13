@@ -191,6 +191,13 @@ class StarfishIDLReader():
       prototype = 'Error' if 'Exception' in extattr.GetName() else 'Object'
       constructor = self._gen_ir_constructor(extattr, prototype)
       IRUtils.set_prop_to_dict(constructor, 'name', '')
+      previous = target.get('constructor')
+      if previous:
+        # Web IDL: an overloaded constructor's length is its shortest
+        # overload's (only [CustomConstructor]s are overloaded here).
+        constructor['min_passed_count'] = min(
+            previous.get('min_passed_count') or 0,
+            constructor.get('min_passed_count') or 0)
       IRUtils.set_prop_to_dict(target, 'constructor', constructor)
       return True
     return False

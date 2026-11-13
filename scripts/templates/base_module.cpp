@@ -430,10 +430,11 @@ void bindIterable{{ name }}(ScriptBindingInstance* instance, ObjectRef* targetOb
                 ValueRef::create(forEachFn),
                 true, true, true);
         {% set iteratorSymbolFunc = 'valuesFn' if iterable|length == 1 else 'entriesFn' %}
+        {# https://webidl.spec.whatwg.org/#js-iterable: @@iterator is not enumerable. #}
         targetObject->defineDataProperty(state,
                 ValueRef::create(context->vmInstance()->iteratorSymbol()),
                 ValueRef::create({{ iteratorSymbolFunc }}),
-                true, true, true);
+                true, false, true);
 
         return ValueRef::createUndefined();
     }, instance, targetObject);
