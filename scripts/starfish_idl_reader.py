@@ -103,6 +103,8 @@ _hd_extattr_rename = partial(_hd_extattr_value_t, 'Rename', 'rename', None)
 _hd_extattr_unforgeable = partial(_hd_extattr_bool_t, 'Unforgeable', 'unforgeable', True)
 _hd_extattr_notenumerable = partial(_hd_extattr_bool_t, 'NotEnumerable', 'enumerable', False)
 _hd_extattr_no_interfaceobj = partial(_hd_extattr_bool_t, 'NoInterfaceObject', 'no_interface', True)
+# [LegacyNoInterfaceObject] is the current Web IDL name of [NoInterfaceObject].
+_hd_extattr_legacy_no_interfaceobj = partial(_hd_extattr_bool_t, 'LegacyNoInterfaceObject', 'no_interface', True)
 _hd_extattr_partial_interface = partial(_hd_extattr_bool_t, 'PartialInterface', 'partial_interface', True)
 _hd_extattr_custom = partial(_hd_extattr_value_t, 'Custom', 'custom', True)
 _hd_extattr_putforward = partial(_hd_extattr_value_t, 'PutForwards', 'put_forwards', None)
@@ -689,6 +691,7 @@ class StarfishIDLReader():
                           self._hd_extattr_constructor,
                           _hd_extattr_unimplemented,
                           _hd_extattr_no_interfaceobj,
+                          _hd_extattr_legacy_no_interfaceobj,
                           _hd_extattr_primary_global,
                           _hd_extattr_partial_interface,
                           _hd_extattr_custom_descriptor,
