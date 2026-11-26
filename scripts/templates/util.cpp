@@ -442,6 +442,8 @@ if (!std::isfinite({{names.vname}})) {
             {% else %}
     {{ '%s %s = %s;'|format(type_exp, names.vname, arg.default) }}
             {% endif %}
+        {% elif type_exp == 'ScriptValue' and arg.default == 'nullptr' %}
+    {{ '%s %s = ValueRef::createNull();'|format(type_exp, names.vname) }}
         {% elif (arg.type.kind.startswith('SequenceOf') or arg.type.kind.startswith('FrozenArrayOf')) and arg.default == '[]' %}
     {{ '%s %s = {};'|format(type_exp, names.vname) }}
         {% else %}
